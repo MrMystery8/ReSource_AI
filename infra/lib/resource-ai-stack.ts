@@ -292,6 +292,7 @@ export class ResourceAiStack extends cdk.Stack {
     this.api = new apigateway.RestApi(this, 'ResourceAiApi', {
       restApiName: 'ReSource AI API',
       description: 'REST API for ReSource AI e-waste triage system',
+      binaryMediaTypes: ['*/*'],
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
