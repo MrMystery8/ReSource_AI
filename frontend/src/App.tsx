@@ -1,8 +1,11 @@
 import { useState, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { TriageForm, TriageFormData } from './components/TriageForm';
 import { FileUploader } from './components/FileUploader';
 import { ResultsView } from './components/ResultsView';
 import { useTriageSession } from './hooks/useTriageSession';
+import { Header } from './components/Header';
+import { ParticlesBackground } from './components/ParticlesBackground';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -33,34 +36,41 @@ function App() {
   const showForm = !session && !isPolling;
 
   return (
-    <div className="app">
-      <header className="app__header">
-        <h1>ReSource AI - E-Waste Triage</h1>
-      </header>
+    <div className="min-h-screen bg-gradient-animated relative overflow-hidden">
+      <ParticlesBackground />
 
-      <main className="app__main">
-        {error && (
-          <div className="app__error" role="alert">
-            <p>{error}</p>
-          </div>
-        )}
+      <div className="relative z-10">
+        <Header />
 
-        {showForm && (
-          <TriageForm
-            onSubmit={handleSubmit}
-            disabled={isSubmitting}
-            fileUploader={
-              <FileUploader
-                apiUrl={API_URL}
-                apiKey={API_KEY}
-                onFilesUploaded={handleFilesUploaded}
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+          {error && (
+            <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-sm" role="alert">
+              <p className="text-rose-300 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          <AnimatePresence mode="wait">
+            {showForm && (
+              <TriageForm
+                key="form"
+                onSubmit={handleSubmit}
+                disabled={isSubmitting}
+                fileUploader={
+                  <FileUploader
+                    apiUrl={API_URL}
+                    apiKey={API_KEY}
+                    onFilesUploaded={handleFilesUploaded}
+                  />
+                }
               />
-            }
-          />
-        )}
+            )}
 
-        {session && <ResultsView session={session} />}
-      </main>
+            {(session || isPolling) && (
+              <ResultsView key="results" session={session} />
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
     </div>
   );
 }

@@ -1,14 +1,12 @@
-import './ResultsView.css';
+import { motion } from 'framer-motion';
 
 export interface StageCardProps {
-  stageName: string;
+  stageName?: string;
   data: Record<string, unknown>;
 }
 
 function formatValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return '—';
-  }
+  if (value === null || value === undefined) return '—';
   if (Array.isArray(value)) {
     return value
       .map((item) =>
@@ -33,21 +31,43 @@ function formatKey(key: string): string {
     .trim();
 }
 
-export function StageCard({ stageName, data }: StageCardProps) {
-  const entries = Object.entries(data);
+const listVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 },
+};
+
+export function StageCard({ data }: StageCardProps) {
+  const entries = Object.entries(data).filter(
+    ([key]) => key !== 'riskLevel'
+  );
 
   return (
-    <div className="stage-card">
-      <h3 className="stage-card__title">{stageName}</h3>
-      <dl className="stage-card__content">
-        {entries.map(([key, value]) => (
-          <div className="stage-card__item" key={key}>
-            <dt className="stage-card__label">{formatKey(key)}</dt>
-            <dd className="stage-card__value">{formatValue(value)}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
+    <motion.dl
+      className="space-y-3"
+      variants={listVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {entries.map(([key, value]) => (
+        <motion.div
+          key={key}
+          variants={itemVariants}
+          className="flex flex-col sm:flex-row sm:gap-4 py-2 border-b border-border-subtle last:border-0"
+        >
+          <dt className="text-xs font-medium text-text-muted uppercase tracking-wide min-w-[160px] shrink-0 mb-0.5 sm:mb-0">
+            {formatKey(key)}
+          </dt>
+          <dd className="text-sm text-text-primary leading-relaxed">
+            {formatValue(value)}
+          </dd>
+        </motion.div>
+      ))}
+    </motion.dl>
   );
 }
 

@@ -1,53 +1,78 @@
+import { motion } from 'framer-motion';
 import type { ReusablePartsMapOutput, PartVerdict } from '@resource-ai/shared';
-import './ResultsView.css';
+import { Wrench } from 'lucide-react';
 
 export interface PartsMapTableProps {
   data: ReusablePartsMapOutput;
 }
 
-const VERDICT_CLASS_MAP: Record<PartVerdict, string> = {
-  Salvage: 'parts-map__verdict--salvage',
-  Conditional: 'parts-map__verdict--conditional',
-  'Do Not Access': 'parts-map__verdict--do-not-access',
+const VERDICT_CONFIG: Record<PartVerdict, { bg: string; text: string; border: string }> = {
+  Salvage: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
+  Conditional: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
+  'Do Not Access': { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30' },
+};
+
+const tableVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 },
 };
 
 export function PartsMapTable({ data }: PartsMapTableProps) {
   return (
-    <div className="parts-map">
-      <h3 className="parts-map__title">Reusable Parts Map</h3>
-      <div className="parts-map__table-wrapper">
-        <table className="parts-map__table">
+    <div className="glass-card glass-card-hover p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <Wrench className="w-5 h-5 text-primary-400" />
+        <h3 className="text-lg font-semibold text-text-primary">Reusable Parts Map</h3>
+      </div>
+
+      <div className="overflow-x-auto rounded-lg border border-border-subtle">
+        <motion.table
+          className="w-full text-sm"
+          variants={tableVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <thead>
-            <tr>
-              <th>Part/Resource</th>
-              <th>Likely Presence</th>
-              <th>Reuse Value</th>
-              <th>Possible Use</th>
-              <th>Skill Needed</th>
-              <th>Safety Concern</th>
-              <th>Verdict</th>
+            <tr className="bg-surface-elevated/80">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Part</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Presence</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Value</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Use</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Skill</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Safety</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Verdict</th>
             </tr>
           </thead>
-          <tbody>
-            {data.parts.map((row, index) => (
-              <tr key={index}>
-                <td>{row.partResource}</td>
-                <td>{row.likelyPresence}</td>
-                <td>{row.reuseValue}</td>
-                <td>{row.possibleUse}</td>
-                <td>{row.skillNeeded}</td>
-                <td>{row.safetyConcern}</td>
-                <td>
-                  <span
-                    className={`parts-map__verdict ${VERDICT_CLASS_MAP[row.verdict]}`}
-                  >
-                    {row.verdict}
-                  </span>
-                </td>
-              </tr>
-            ))}
+          <tbody className="divide-y divide-border-subtle">
+            {data.parts.map((row, index) => {
+              const verdictConfig = VERDICT_CONFIG[row.verdict];
+              return (
+                <motion.tr
+                  key={index}
+                  variants={rowVariants}
+                  className="hover:bg-surface-elevated/40 transition-colors"
+                >
+                  <td className="px-4 py-3 font-medium text-text-primary">{row.partResource}</td>
+                  <td className="px-4 py-3 text-text-secondary">{row.likelyPresence}</td>
+                  <td className="px-4 py-3 text-text-secondary">{row.reuseValue}</td>
+                  <td className="px-4 py-3 text-text-secondary">{row.possibleUse}</td>
+                  <td className="px-4 py-3 text-text-secondary">{row.skillNeeded}</td>
+                  <td className="px-4 py-3 text-text-secondary">{row.safetyConcern}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold border ${verdictConfig.bg} ${verdictConfig.text} ${verdictConfig.border}`}>
+                      {row.verdict}
+                    </span>
+                  </td>
+                </motion.tr>
+              );
+            })}
           </tbody>
-        </table>
+        </motion.table>
       </div>
     </div>
   );

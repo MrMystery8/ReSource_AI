@@ -1,12 +1,12 @@
 import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILES_PER_SESSION,
   ALLOWED_FILE_EXTENSIONS,
 } from '@resource-ai/shared';
-import './FileUploader.css';
+import { Upload, FileCheck, AlertCircle, Image, FileText } from 'lucide-react';
 
-/** Allowed MIME types mapped from the shared constants extensions. */
 const EXTENSION_TO_MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -22,8 +22,6 @@ const EXTENSION_TO_MIME: Record<string, string> = {
 };
 
 const ALLOWED_MIME_TYPES = Object.values(EXTENSION_TO_MIME);
-
-/** Accept string for the file input element. */
 const ACCEPT_STRING = (ALLOWED_FILE_EXTENSIONS as readonly string[]).join(',');
 
 export type FileStatus = 'uploading' | 'success' | 'error';
@@ -36,41 +34,27 @@ export interface UploadedFile {
 }
 
 export interface FileUploaderProps {
-  /** Base URL for the API (e.g. https://xyz.execute-api.region.amazonaws.com/prod) */
   apiUrl: string;
-  /** API key for authentication */
   apiKey: string;
-  /** Session ID to associate uploads with */
   sessionId?: string;
-  /** Callback invoked whenever the set of successfully uploaded file IDs changes */
   onFilesUploaded: (fileIds: string[]) => void;
 }
 
-/**
- * FileUploader component handles file selection, client-side validation,
- * upload to the POST /upload endpoint, and displays per-file status.
- */
 export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: FileUploaderProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const successfulFileIds = files
-    .filter((f) => f.status === 'success')
-    .map((f) => f.id);
-
+  const successfulFileIds = files.filter((f) => f.status === 'success').map((f) => f.id);
   const totalFiles = files.length;
   const canUploadMore = totalFiles < MAX_FILES_PER_SESSION;
 
-  /**
-   * Reads a File as a base64 string (without the data URL prefix).
-   */
   const readFileAsBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         const result = reader.result as string;
-        // Strip the data:...;base64, prefix
         const base64 = result.split(',')[1];
         resolve(base64);
       };
@@ -79,42 +63,27 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
     });
   };
 
-  /**
-   * Validates a single file against size and type constraints.
-   * Returns an error message or null if valid.
-   */
   const validateFile = (file: File): string | null => {
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return `File "${file.name}" exceeds the 10 MB size limit.`;
     }
-
-    // Check MIME type
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-      // Fallback: check extension
       const ext = '.' + file.name.split('.').pop()?.toLowerCase();
       if (!(ALLOWED_FILE_EXTENSIONS as readonly string[]).includes(ext)) {
-        return `File "${file.name}" has an unsupported format. Allowed: ${(ALLOWED_FILE_EXTENSIONS as readonly string[]).join(', ')}`;
+        return `File "${file.name}" has an unsupported format.`;
       }
     }
-
     return null;
   };
 
-  /**
-   * Uploads a single file to the backend.
-   */
   const uploadFile = async (file: File, tempId: string): Promise<void> => {
     try {
       const base64Body = await readFileAsBase64(file);
-
       const headers: Record<string, string> = {
         'Content-Type': file.type || 'application/octet-stream',
         'x-api-key': apiKey,
       };
-
-      if (sessionId) {
-        headers['x-session-id'] = sessionId;
-      }
+      if (sessionId) headers['x-session-id'] = sessionId;
 
       const response = await fetch(`${apiUrl}/upload`, {
         method: 'POST',
@@ -124,19 +93,17 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        const message = errorData?.error?.message ?? `Upload failed with status ${response.status}`;
+        const message = errorData?.error?.message ?? `Upload failed (${response.status})`;
         throw new Error(message);
       }
 
       const data = await response.json();
       const fileId = data.fileId as string;
 
-      // Update file status to success
       setFiles((prev) => {
         const updated = prev.map((f) =>
           f.id === tempId ? { ...f, id: fileId, status: 'success' as FileStatus } : f
         );
-        // Notify parent with updated successful IDs
         const newSuccessIds = updated.filter((f) => f.status === 'success').map((f) => f.id);
         onFilesUploaded(newSuccessIds);
         return updated;
@@ -151,41 +118,25 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
     }
   };
 
-  /**
-   * Handles file input change event.
-   */
-  const handleFileChange = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const processFiles = useCallback(
+    async (fileList: File[]) => {
       setError(null);
-      const selectedFiles = event.target.files;
-      if (!selectedFiles || selectedFiles.length === 0) return;
-
-      const filesToProcess = Array.from(selectedFiles);
-
-      // Check total count limit
       const remainingSlots = MAX_FILES_PER_SESSION - totalFiles;
-      if (filesToProcess.length > remainingSlots) {
-        setError(
-          `You can only upload ${remainingSlots} more file${remainingSlots === 1 ? '' : 's'} (max ${MAX_FILES_PER_SESSION} per session).`
-        );
-        // Reset input
-        if (inputRef.current) inputRef.current.value = '';
+      if (fileList.length > remainingSlots) {
+        setError(`You can only upload ${remainingSlots} more file${remainingSlots === 1 ? '' : 's'} (max ${MAX_FILES_PER_SESSION}).`);
         return;
       }
 
-      // Validate each file
       const validFiles: File[] = [];
-      for (const file of filesToProcess) {
+      for (const file of fileList) {
         const validationError = validateFile(file);
         if (validationError) {
           setError(validationError);
-          if (inputRef.current) inputRef.current.value = '';
           return;
         }
         validFiles.push(file);
       }
 
-      // Add files with uploading status
       const newFileEntries: UploadedFile[] = validFiles.map((file) => ({
         id: `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         name: file.name,
@@ -194,10 +145,6 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
 
       setFiles((prev) => [...prev, ...newFileEntries]);
 
-      // Reset input so the same file can be selected again
-      if (inputRef.current) inputRef.current.value = '';
-
-      // Upload each file
       for (let i = 0; i < validFiles.length; i++) {
         await uploadFile(validFiles[i], newFileEntries[i].id);
       }
@@ -205,53 +152,150 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
     [totalFiles, apiUrl, apiKey, sessionId, onFilesUploaded]
   );
 
-  return (
-    <div className="file-uploader">
-      <label className="file-uploader__label">
-        Device Evidence
-        <span className="file-uploader__optional">(optional)</span>
-      </label>
-      <p className="file-uploader__hint">
-        Upload photos or documents of your device to improve triage accuracy.
-        Supported: images, PDF, DOCX, PPTX, HTML, CSV, JSON. Max 10 MB each.
-      </p>
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFiles = event.target.files;
+      if (!selectedFiles || selectedFiles.length === 0) return;
+      await processFiles(Array.from(selectedFiles));
+      if (inputRef.current) inputRef.current.value = '';
+    },
+    [processFiles]
+  );
 
-      <div className="file-uploader__input-wrapper">
+  const handleDrop = useCallback(
+    async (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const droppedFiles = Array.from(e.dataTransfer.files);
+      if (droppedFiles.length > 0) {
+        await processFiles(droppedFiles);
+      }
+    },
+    [processFiles]
+  );
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const isImageFile = (name: string) => {
+    const ext = name.split('.').pop()?.toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext || '');
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-1">
+        <Upload className="w-4 h-4 text-text-muted" />
+        <span className="text-sm font-medium text-text-primary">Device Evidence</span>
+        <span className="text-xs text-text-muted">(optional)</span>
+      </div>
+
+      {/* Drop Zone */}
+      <motion.div
+        className={`relative rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer ${
+          isDragging
+            ? 'border-primary-400 bg-primary-500/10'
+            : 'border-border-subtle hover:border-primary-500/40 hover:bg-surface-elevated/30'
+        } ${!canUploadMore ? 'opacity-50 cursor-not-allowed' : ''}`}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={() => canUploadMore && inputRef.current?.click()}
+        whileHover={canUploadMore ? { scale: 1.005 } : {}}
+        whileTap={canUploadMore ? { scale: 0.995 } : {}}
+      >
+        <div className="flex flex-col items-center justify-center py-6 px-4">
+          <motion.div
+            className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${
+              isDragging ? 'bg-primary-500/20' : 'bg-surface-elevated'
+            }`}
+            animate={isDragging ? { scale: [1, 1.1, 1] } : {}}
+            transition={{ duration: 0.5, repeat: isDragging ? Infinity : 0 }}
+          >
+            <Upload className={`w-5 h-5 ${isDragging ? 'text-primary-400' : 'text-text-muted'}`} />
+          </motion.div>
+          <p className="text-sm text-text-secondary text-center">
+            <span className="text-primary-400 font-medium">Click to upload</span> or drag and drop
+          </p>
+          <p className="text-xs text-text-muted mt-1">
+            Images, PDF, DOCX, CSV, JSON • Max 10 MB each
+          </p>
+        </div>
+
         <input
           ref={inputRef}
           type="file"
-          className="file-uploader__input"
+          className="hidden"
           accept={ACCEPT_STRING}
           multiple
           disabled={!canUploadMore}
           onChange={handleFileChange}
           aria-label="Upload device evidence files"
         />
-      </div>
+      </motion.div>
 
-      {error && <p className="file-uploader__error" role="alert">{error}</p>}
-
-      {totalFiles > 0 && (
-        <>
-          <p className="file-uploader__count">
-            {successfulFileIds.length} of {MAX_FILES_PER_SESSION} files uploaded
-          </p>
-          <ul className="file-uploader__file-list" aria-label="Uploaded files">
-            {files.map((file) => (
-              <li key={file.id} className="file-uploader__file-item">
-                <span className="file-uploader__file-name">{file.name}</span>
-                <span
-                  className={`file-uploader__file-status file-uploader__file-status--${file.status}`}
-                >
-                  {file.status === 'uploading' && 'Uploading…'}
-                  {file.status === 'success' && 'Uploaded'}
-                  {file.status === 'error' && (file.errorMessage ?? 'Error')}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
+      {/* Error */}
+      {error && (
+        <motion.p
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-xs text-rose-400 flex items-center gap-1.5"
+          role="alert"
+        >
+          <AlertCircle className="w-3.5 h-3.5" />
+          {error}
+        </motion.p>
       )}
+
+      {/* File List */}
+      <AnimatePresence>
+        {totalFiles > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="space-y-2"
+          >
+            <p className="text-xs text-text-muted">
+              {successfulFileIds.length} of {MAX_FILES_PER_SESSION} files uploaded
+            </p>
+            <ul className="space-y-1.5" aria-label="Uploaded files">
+              {files.map((file) => (
+                <motion.li
+                  key={file.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-elevated/50 border border-border-subtle"
+                >
+                  {isImageFile(file.name) ? (
+                    <Image className="w-4 h-4 text-primary-400 shrink-0" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-primary-400 shrink-0" />
+                  )}
+                  <span className="text-sm text-text-primary truncate flex-1">{file.name}</span>
+                  {file.status === 'uploading' && (
+                    <motion.div
+                      className="w-3.5 h-3.5 border-2 border-primary-400/30 border-t-primary-400 rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    />
+                  )}
+                  {file.status === 'success' && (
+                    <FileCheck className="w-4 h-4 text-emerald-400" />
+                  )}
+                  {file.status === 'error' && (
+                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                  )}
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
