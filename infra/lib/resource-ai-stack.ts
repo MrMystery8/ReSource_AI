@@ -346,12 +346,15 @@ export class ResourceAiStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.CUSTOM,
     };
 
-    // POST /upload — Upload device evidence file (protected)
+    // POST /upload — Upload device evidence file (API key only).
+    // Keep this unauthenticated at the authorizer layer to avoid blocking
+    // evidence uploads on JWT/header edge cases; backend already supports
+    // optional user context for uploads.
     const uploadResource = this.api.root.addResource('upload');
     uploadResource.addMethod('POST', new apigateway.LambdaIntegration(this.uploadHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
-    }), protectedMethodOptions);
+    }), methodOptions);
 
     // /sessions resource
     const sessionsResource = this.api.root.addResource('sessions');
