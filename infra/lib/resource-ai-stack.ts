@@ -392,18 +392,16 @@ export class ResourceAiStack extends cdk.Stack {
     // ProjectUpdateHandler: DynamoDB read/write on projects table
     this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
 
-    // Bedrock InvokeModel permission for all Lambda functions (Claude Sonnet 4.5)
+    // Bedrock InvokeModel permission for all Lambda functions (Claude Sonnet 4.6)
     const bedrockClaudePolicy = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
       resources: [
-        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-5`,
-        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-5:0`,
-        `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-5`,
-        `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-5:0`,
+        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-6`,
+        `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-6`,
         // Cross-region inference profile (us.*)
-        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-5-20251101-v1:0`,
-        `arn:aws:bedrock:*:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-5-20251101-v1:0`,
+        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-6`,
+        `arn:aws:bedrock:*:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-6`,
       ],
     });
 

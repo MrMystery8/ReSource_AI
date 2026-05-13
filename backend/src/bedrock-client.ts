@@ -9,8 +9,8 @@ import {
   BEDROCK_RETRY_DELAY_MS,
 } from '@resource-ai/shared';
 
-// Claude Sonnet 4.5 via US cross-region inference profile (used globally)
-const DEFAULT_TEXT_MODEL = 'us.anthropic.claude-sonnet-4-5-20251101-v1:0';
+// Claude Sonnet 4.6 via US cross-region inference profile (used globally)
+const DEFAULT_TEXT_MODEL = 'us.anthropic.claude-sonnet-4-6';
 const DEFAULT_IMAGE_MODEL = 'amazon.titan-image-generator-v1';
 
 function isTransientError(error: unknown): boolean {
