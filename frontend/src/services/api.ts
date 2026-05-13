@@ -32,6 +32,17 @@ export class ApiClient {
     this.getToken = getToken;
   }
 
+  private isProtectedPath(path: string): boolean {
+    return (
+      path === '/upload' ||
+      path === '/leaderboard' ||
+      path === '/auth/profile' ||
+      path === '/auth/stats' ||
+      path.startsWith('/sessions') ||
+      path.startsWith('/admin')
+    );
+  }
+
   /**
    * Central fetch wrapper that:
    * - Includes x-api-key on all requests
@@ -57,6 +68,34 @@ export class ApiClient {
 
     if (response.status === 401) {
       window.dispatchEvent(new Event('auth:expired'));
+    } else if (response.status === 403 && token && this.isProtectedPath(path)) {
+      // API Gateway authorizer denials surface as 403. Treat those like
+      // expired/invalid auth so the app can recover via re-login.
+      let shouldExpire = false;
+      const contentType = response.headers.get('content-type') ?? '';
+
+      if (!contentType.includes('application/json')) {
+        shouldExpire = true;
+      } else {
+        try {
+          const body = await response.clone().json() as
+            | { message?: string }
+            | ErrorResponse;
+          const message =
+            ('error' in body && body.error?.message) ||
+            ('message' in body ? body.message : undefined);
+
+          if (message === 'Forbidden' || message === 'Unauthorized') {
+            shouldExpire = true;
+          }
+        } catch {
+          shouldExpire = true;
+        }
+      }
+
+      if (shouldExpire) {
+        window.dispatchEvent(new Event('auth:expired'));
+      }
     }
 
     return response;
