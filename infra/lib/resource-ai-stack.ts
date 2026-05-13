@@ -392,25 +392,27 @@ export class ResourceAiStack extends cdk.Stack {
     // ProjectUpdateHandler: DynamoDB read/write on projects table
     this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
 
-    // Bedrock InvokeModel permission for all Lambda functions (Claude Sonnet 4.6)
-    const bedrockClaudePolicy = new iam.PolicyStatement({
+    // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
+    const bedrockNovaPolicy = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
       resources: [
-        `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-6`,
-        // Global cross-region inference profile
-        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/global.anthropic.claude-sonnet-4-6`,
-        `arn:aws:bedrock:*:${this.account}:inference-profile/global.anthropic.claude-sonnet-4-6`,
+        // APAC cross-region inference profile for Nova Pro
+        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/apac.amazon.nova-pro-v1:0`,
+        // Foundation model in destination regions
+        `arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0`,
+        // Titan Image Generator
+        `arn:aws:bedrock:*::foundation-model/amazon.titan-image-generator-v1`,
       ],
     });
 
-    // Apply Claude policy to pipeline orchestrator (replaces Nova Pro)
-    this.pipelineOrchestrator.addToRolePolicy(bedrockClaudePolicy);
+    // Apply Nova Pro policy to pipeline orchestrator
+    this.pipelineOrchestrator.addToRolePolicy(bedrockNovaPolicy);
 
-    // Apply Claude policy to gamification handlers
-    this.guideGenerateHandler.addToRolePolicy(bedrockClaudePolicy);
-    this.guideChatHandler.addToRolePolicy(bedrockClaudePolicy);
-    this.projectSubmitHandler.addToRolePolicy(bedrockClaudePolicy);
+    // Apply Nova Pro policy to gamification handlers
+    this.guideGenerateHandler.addToRolePolicy(bedrockNovaPolicy);
+    this.guideChatHandler.addToRolePolicy(bedrockNovaPolicy);
+    this.projectSubmitHandler.addToRolePolicy(bedrockNovaPolicy);
 
     // --- Task 2.2: API Gateway REST API ---
 

@@ -9,8 +9,8 @@ import {
   BEDROCK_RETRY_DELAY_MS,
 } from '@resource-ai/shared';
 
-// Claude Sonnet 4.6 via Global cross-region inference profile
-const DEFAULT_TEXT_MODEL = 'global.anthropic.claude-sonnet-4-6';
+// Amazon Nova Pro via APAC cross-region inference profile
+const DEFAULT_TEXT_MODEL = 'apac.amazon.nova-pro-v1:0';
 const DEFAULT_IMAGE_MODEL = 'amazon.titan-image-generator-v1';
 
 function isTransientError(error: unknown): boolean {
@@ -37,25 +37,27 @@ export class BedrockClient {
   }
 
   /**
-   * Invoke a Claude text model via the Anthropic Messages API format.
-   * Used globally for all text generation (triage pipeline and gamification handlers).
+   * Invoke a text generation model (Amazon Nova Pro) and return the text response.
    */
   async invokeTextModel(
     prompt: string,
     modelId: string = DEFAULT_TEXT_MODEL
   ): Promise<string> {
     const body = JSON.stringify({
-      anthropic_version: 'bedrock-2023-05-31',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 4096,
-      temperature: 0.7,
+      schemaVersion: 'messages-v1',
+      messages: [{ role: 'user', content: [{ text: prompt }] }],
+      inferenceConfig: {
+        maxTokens: 4096,
+        topP: 0.9,
+        temperature: 0.7,
+      },
     });
 
     const responseBody = await this.invokeWithRetry(modelId, body);
     const parsed = JSON.parse(responseBody);
 
-    // Anthropic Messages API response format: { content: [{ type: "text", text: "..." }] }
-    const textContent = parsed.content?.[0]?.text;
+    // Nova response format: { output: { message: { content: [{ text: "..." }] } } }
+    const textContent = parsed.output?.message?.content?.[0]?.text;
     if (typeof textContent !== 'string') {
       throw new Error('Unexpected text model response format');
     }
