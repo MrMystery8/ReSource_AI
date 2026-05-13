@@ -161,22 +161,23 @@ export function validateImpactCardOutput(
   }
 
   // Enforce total word count limit (Requirement 10.2: total ≤ 120 words)
-  let totalWords = IMPACT_CARD_FIELDS.reduce(
-    (sum, field) => sum + countWords(result[field]),
-    0,
-  );
+  let totalWords = 0;
+  for (let i = 0; i < IMPACT_CARD_FIELDS.length; i++) {
+    totalWords += countWords(result[IMPACT_CARD_FIELDS[i]]);
+  }
 
   if (totalWords > MAX_IMPACT_CARD_TOTAL_WORDS) {
     // Truncate longest fields first until within limit
     while (totalWords > MAX_IMPACT_CARD_TOTAL_WORDS) {
       // Find the longest field (by word count)
-      let longestField: keyof ImpactCardOutput = IMPACT_CARD_FIELDS[0];
+      let longestField: string = IMPACT_CARD_FIELDS[0];
       let longestCount = 0;
-      for (const field of IMPACT_CARD_FIELDS) {
-        const wc = countWords(result[field]);
+      for (let i = 0; i < IMPACT_CARD_FIELDS.length; i++) {
+        const fieldName = IMPACT_CARD_FIELDS[i];
+        const wc = countWords(result[fieldName]);
         if (wc > longestCount) {
           longestCount = wc;
-          longestField = field;
+          longestField = fieldName;
         }
       }
 
