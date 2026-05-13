@@ -56,8 +56,6 @@ export class ResourceAiStack extends cdk.Stack {
 
     // S3 bucket for frontend static hosting
     this.frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
-      websiteIndexDocument: 'index.html',
-      websiteErrorDocument: 'index.html',
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
