@@ -94,8 +94,8 @@ function buildFileName(fileId: string, extension: string): string {
  * UploadHandler - Validates and stores device evidence files in S3.
  *
  * Expects:
- * - Base64-encoded file body (API Gateway binary support)
- * - Content-Type header indicating the file MIME type
+ * - JSON body with { file: base64String, contentType: mimeType, fileName: originalName }
+ * - Content-Type: application/json header
  * - x-session-id header or sessionId query parameter for session association
  *
  * Returns:
@@ -122,28 +122,7 @@ export const handler = async (
       console.log(`Upload initiated by userId: ${userId}, sessionId: ${sessionId}`);
     }
 
-    // Extract content type from headers
-    const contentType =
-      event.headers['content-type'] ??
-      event.headers['Content-Type'] ??
-      '';
-
-    if (!contentType) {
-      const errorResponse: ErrorResponse = {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Missing Content-Type header.',
-          field: 'contentType',
-        },
-      };
-      return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: JSON.stringify(errorResponse),
-      };
-    }
-
-    // Decode the file body (API Gateway sends base64-encoded binary)
+    // Parse request body
     if (!event.body) {
       const errorResponse: ErrorResponse = {
         error: {
@@ -159,9 +138,78 @@ export const handler = async (
       };
     }
 
-    const fileBuffer = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64')
-      : Buffer.from(event.body);
+    // Determine content type and file buffer based on request format
+    let contentType: string;
+    let fileBuffer: Buffer;
+
+    const requestContentType =
+      event.headers['content-type'] ??
+      event.headers['Content-Type'] ??
+      '';
+
+    if (requestContentType.includes('application/json')) {
+      // JSON body format: { file: base64String, contentType: mimeType, fileName: originalName }
+      let parsed: { file?: string; contentType?: string; fileName?: string };
+      try {
+        const rawBody = event.isBase64Encoded
+          ? Buffer.from(event.body, 'base64').toString('utf-8')
+          : event.body;
+        parsed = JSON.parse(rawBody);
+      } catch {
+        const errorResponse: ErrorResponse = {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Invalid JSON body.',
+            field: 'body',
+          },
+        };
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify(errorResponse),
+        };
+      }
+
+      if (!parsed.file || !parsed.contentType) {
+        const errorResponse: ErrorResponse = {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Request body must include "file" (base64) and "contentType" fields.',
+            field: 'body',
+          },
+        };
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify(errorResponse),
+        };
+      }
+
+      contentType = parsed.contentType;
+      fileBuffer = Buffer.from(parsed.file, 'base64');
+    } else {
+      // Legacy format: raw/base64 body with Content-Type header indicating file type
+      contentType = requestContentType;
+
+      if (!contentType) {
+        const errorResponse: ErrorResponse = {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Missing Content-Type header.',
+            field: 'contentType',
+          },
+        };
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify(errorResponse),
+        };
+      }
+
+      fileBuffer = event.isBase64Encoded
+        ? Buffer.from(event.body, 'base64')
+        : Buffer.from(event.body, 'base64');
+    }
 
     const fileSize = fileBuffer.length;
 

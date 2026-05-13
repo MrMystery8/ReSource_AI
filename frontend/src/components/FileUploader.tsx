@@ -81,7 +81,7 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
     try {
       const base64Body = await readFileAsBase64(file);
       const headers: Record<string, string> = {
-        'Content-Type': file.type || 'application/octet-stream',
+        'Content-Type': 'application/json',
         'x-api-key': apiKey,
       };
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
@@ -90,7 +90,11 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
       const response = await fetch(`${apiUrl}/upload`, {
         method: 'POST',
         headers,
-        body: base64Body,
+        body: JSON.stringify({
+          file: base64Body,
+          contentType: file.type || 'application/octet-stream',
+          fileName: file.name,
+        }),
       });
 
       if (!response.ok) {
