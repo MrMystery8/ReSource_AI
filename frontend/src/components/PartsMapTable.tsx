@@ -12,16 +12,6 @@ const VERDICT_CONFIG: Record<PartVerdict, { bg: string; text: string; border: st
   'Do Not Access': { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30' },
 };
 
-const tableVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
-};
-
-const rowVariants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0 },
-};
-
 export function PartsMapTable({ data }: PartsMapTableProps) {
   return (
     <div className="glass-card glass-card-hover p-6 space-y-4">
@@ -31,12 +21,7 @@ export function PartsMapTable({ data }: PartsMapTableProps) {
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border-subtle">
-        <motion.table
-          className="w-full text-sm"
-          variants={tableVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface-elevated/80">
               <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Part</th>
@@ -54,7 +39,9 @@ export function PartsMapTable({ data }: PartsMapTableProps) {
               return (
                 <motion.tr
                   key={index}
-                  variants={rowVariants}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.04 }}
                   className="hover:bg-surface-elevated/40 transition-colors"
                 >
                   <td className="px-4 py-3 font-medium text-text-primary">{row.partResource}</td>
@@ -72,7 +59,7 @@ export function PartsMapTable({ data }: PartsMapTableProps) {
               );
             })}
           </tbody>
-        </motion.table>
+        </table>
       </div>
     </div>
   );

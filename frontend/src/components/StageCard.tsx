@@ -31,32 +31,19 @@ function formatKey(key: string): string {
     .trim();
 }
 
-const listVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0 },
-};
-
 export function StageCard({ data }: StageCardProps) {
   const entries = Object.entries(data).filter(
     ([key]) => key !== 'riskLevel'
   );
 
   return (
-    <motion.dl
-      className="space-y-3"
-      variants={listVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {entries.map(([key, value]) => (
+    <dl className="space-y-3">
+      {entries.map(([key, value], index) => (
         <motion.div
           key={key}
-          variants={itemVariants}
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.03 }}
           className="flex flex-col sm:flex-row sm:gap-4 py-2 border-b border-border-subtle last:border-0"
         >
           <dt className="text-xs font-medium text-text-muted uppercase tracking-wide min-w-[160px] shrink-0 mb-0.5 sm:mb-0">
@@ -67,7 +54,7 @@ export function StageCard({ data }: StageCardProps) {
           </dd>
         </motion.div>
       ))}
-    </motion.dl>
+    </dl>
   );
 }
 

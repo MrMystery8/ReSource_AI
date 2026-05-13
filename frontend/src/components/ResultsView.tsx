@@ -42,22 +42,14 @@ const STAGE_ORDER = [
   'conceptVisual',
 ] as const;
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.1 },
-  },
-  exit: { opacity: 0, transition: { duration: 0.2 } },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
+// Individual item animation — each item animates itself on mount
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
 };
 
 export function ResultsView({ session }: ResultsViewProps) {
-  // Log session state for debugging
   console.log('[ResultsView] session:', session);
   console.log('[ResultsView] session status:', session?.status);
   console.log('[ResultsView] session stages:', session?.stages);
@@ -70,6 +62,7 @@ export function ResultsView({ session }: ResultsViewProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
         className="max-w-4xl mx-auto space-y-6"
       >
         {/* Status Header Skeleton */}
@@ -109,13 +102,13 @@ export function ResultsView({ session }: ResultsViewProps) {
   return (
     <motion.div
       className="max-w-4xl mx-auto space-y-6"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Status Header */}
-      <motion.div variants={itemVariants} className="glass-card p-5">
+      <motion.div {...fadeInUp} className="glass-card p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {status === 'processing' && (
@@ -152,9 +145,8 @@ export function ResultsView({ session }: ResultsViewProps) {
           <div className="mt-3 h-1.5 rounded-full bg-surface-elevated overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-primary-500 to-emerald-400"
-              initial={{ width: '0%' }}
               animate={{ width: `${(completedStages.length / totalExpectedStages) * 100}%` }}
-              transition={{ duration: 0.5, ease: 'easeOut' as const }}
+              transition={{ duration: 0.5 }}
             />
           </div>
         )}
@@ -162,7 +154,7 @@ export function ResultsView({ session }: ResultsViewProps) {
 
       {/* Processing Indicator */}
       {status === 'processing' && currentStage && (
-        <motion.div variants={itemVariants}>
+        <motion.div {...fadeInUp}>
           <ProgressIndicator stageName={STAGE_NAMES[currentStage] ?? currentStage} />
         </motion.div>
       )}
@@ -170,7 +162,7 @@ export function ResultsView({ session }: ResultsViewProps) {
       {/* Error Display */}
       {status === 'failed' && error && (
         <motion.div
-          variants={itemVariants}
+          {...fadeInUp}
           className="p-5 rounded-xl bg-rose-500/10 border border-rose-500/30"
           role="alert"
         >
@@ -194,14 +186,16 @@ export function ResultsView({ session }: ResultsViewProps) {
       )}
 
       {/* Completed Stages */}
-      {STAGE_ORDER.map((key) => {
+      {STAGE_ORDER.map((key, index) => {
         const stageData = stages[key];
         if (!stageData) return null;
 
         return (
           <motion.section
             key={key}
-            variants={itemVariants}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: index * 0.05 }}
             aria-label={STAGE_NAMES[key]}
           >
             {renderStage(key, stageData)}
@@ -213,12 +207,12 @@ export function ResultsView({ session }: ResultsViewProps) {
       {pendingStages.length > 0 && (
         <>
           {pendingStages.slice(0, 2).map((key) => (
-            <motion.div key={`skeleton-${key}`} variants={itemVariants}>
+            <motion.div key={`skeleton-${key}`} {...fadeInUp}>
               <SkeletonStage label={STAGE_NAMES[key] ?? key} />
             </motion.div>
           ))}
           {pendingStages.length > 2 && (
-            <motion.div variants={itemVariants} className="text-center py-2">
+            <motion.div {...fadeInUp} className="text-center py-2">
               <span className="text-xs text-text-muted">
                 +{pendingStages.length - 2} more stages pending...
               </span>

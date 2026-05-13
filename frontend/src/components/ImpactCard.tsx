@@ -26,28 +26,13 @@ const FIELD_DISPLAYS: FieldDisplay[] = [
   { key: 'overallVerdict', label: 'Overall Verdict', icon: <Award className="w-4 h-4" /> },
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
-};
-
-const listVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0 },
-};
-
 export function ImpactCard({ data }: ImpactCardProps) {
   return (
     <motion.div
       className="relative overflow-hidden rounded-2xl"
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4 }}
     >
       {/* Gradient border effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-emerald-500/10 to-primary-500/20 rounded-2xl" />
@@ -64,16 +49,13 @@ export function ImpactCard({ data }: ImpactCardProps) {
         </div>
 
         {/* Fields Grid */}
-        <motion.dl
-          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-          variants={listVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {FIELD_DISPLAYS.map(({ key, label, icon }) => (
+        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {FIELD_DISPLAYS.map(({ key, label, icon }, index) => (
             <motion.div
               key={key}
-              variants={itemVariants}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.04 }}
               className="flex items-start gap-3 p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 transition-colors"
             >
               <span className="text-primary-400 mt-0.5 shrink-0">{icon}</span>
@@ -83,7 +65,7 @@ export function ImpactCard({ data }: ImpactCardProps) {
               </div>
             </motion.div>
           ))}
-        </motion.dl>
+        </dl>
       </div>
     </motion.div>
   );
