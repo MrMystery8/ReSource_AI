@@ -31,6 +31,7 @@ export interface TriageSession {
   inputs: TriageInputs;
   stages: TriageStages;
   error: SessionError | null;
+  userId?: string;
 }
 
 export interface TriageInputs {
@@ -163,11 +164,88 @@ export interface ConceptVisualOutput {
   imageUrl: string;
 }
 
+// --- User & Auth Types ---
+
+export type UserRole = 'user' | 'manager';
+
+export interface User {
+  userId: string;          // UUID v4
+  email: string;           // Unique, lowercase, trimmed
+  passwordHash: string;    // bcrypt hash (cost 10)
+  displayName: string;     // 1-100 characters
+  role: UserRole;
+  createdAt: string;       // ISO 8601
+  updatedAt: string;       // ISO 8601
+}
+
+// Response shape (never includes passwordHash)
+export interface UserProfile {
+  userId: string;
+  email: string;
+  displayName: string;
+  role: UserRole;
+  createdAt: string;
+}
+
+export interface JwtPayload {
+  userId: string;
+  email: string;
+  role: UserRole;
+  iat: number;    // Issued at (Unix timestamp)
+  exp: number;    // Expires at (iat + 24 hours)
+}
+
+// --- Auth Request/Response Types ---
+
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: UserProfile;
+}
+
+export interface ProfileUpdateRequest {
+  displayName: string;
+}
+
+// --- Admin Response Types ---
+
+export interface UsersListResponse {
+  users: UserProfile[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface SessionsListResponse {
+  sessions: {
+    sessionId: string;
+    userId: string;
+    status: 'processing' | 'complete' | 'failed';
+    createdAt: string;
+    currentStage: string | null;
+  }[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 // --- Error Response ---
 
 export type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'AUTH_FAILURE'
+  | 'CONFLICT'
+  | 'FORBIDDEN'
   | 'NOT_FOUND'
   | 'SIZE_EXCEEDED'
   | 'INTERNAL_ERROR';
@@ -178,6 +256,60 @@ export interface ErrorResponse {
     message: string;
     field?: string;
   };
+}
+
+// --- Gamification Types ---
+
+export type UserLevel = 'Recycler' | 'Salvager' | 'E-Waste Champion' | 'Green Guardian';
+
+export interface UserStatsResponse {
+  points: number;
+  level: UserLevel;
+  streak: number;
+  badges: BadgeInfo[];
+  totalSessions: number;
+  lastTriageDate: string | null;
+  pointsToNextLevel: number;
+  nextLevel: UserLevel | null;
+}
+
+export interface BadgeInfo {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  earnedAt: string | null;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  displayName: string;
+  level: UserLevel;
+  points: number;
+  badgeCount: number;
+  isCurrentUser: boolean;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+  currentUserRank: number | null;
+}
+
+export interface UserSessionsResponse {
+  sessions: SessionSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface SessionSummary {
+  sessionId: string;
+  deviceName: string;
+  riskLevel: string | null;
+  salvageScore: number | null;
+  status: 'processing' | 'complete' | 'failed';
+  createdAt: string;
+  pointsEarned: number;
 }
 
 // --- API Request/Response Types ---

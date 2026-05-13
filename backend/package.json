@@ -14,10 +14,14 @@
     "@aws-sdk/lib-dynamodb": "^3.1045.0",
     "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@resource-ai/shared": "1.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.136",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/uuid": "^9.0.8",
     "typescript": "~5.4.0"
   }

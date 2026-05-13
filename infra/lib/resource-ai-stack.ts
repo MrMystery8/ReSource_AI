@@ -14,17 +14,25 @@ import * as path from 'path';
 export class ResourceAiStack extends cdk.Stack {
   // Expose resources for use by subsequent tasks
   public readonly sessionsTable: dynamodb.Table;
+  public readonly usersTable: dynamodb.Table;
   public readonly fileStorageBucket: s3.Bucket;
   public readonly frontendBucket: s3.Bucket;
   public readonly api: apigateway.RestApi;
   public readonly apiKey: apigateway.IApiKey;
   public readonly distribution: cloudfront.Distribution;
 
+  // Auth infrastructure
+  public readonly tokenAuthorizer: apigateway.TokenAuthorizer;
+
   // Lambda functions
   public readonly submitHandler: NodejsFunction;
   public readonly pollHandler: NodejsFunction;
   public readonly uploadHandler: NodejsFunction;
   public readonly pipelineOrchestrator: NodejsFunction;
+  public readonly authHandler: NodejsFunction;
+  public readonly adminHandler: NodejsFunction;
+  public readonly sessionsHandler: NodejsFunction;
+  public readonly leaderboardHandler: NodejsFunction;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -38,6 +46,25 @@ export class ResourceAiStack extends cdk.Stack {
       timeToLiveAttribute: 'expiresAt',
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    this.sessionsTable.addGlobalSecondaryIndex({
+      indexName: 'userId-index',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // DynamoDB table for user profiles and authentication
+    this.usersTable = new dynamodb.Table(this, 'UsersTable', {
+      tableName: 'resource-ai-users',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    this.usersTable.addGlobalSecondaryIndex({
+      indexName: 'email-index',
+      partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
     });
 
     // S3 bucket for file storage (uploads and generated images)
@@ -81,6 +108,7 @@ export class ResourceAiStack extends cdk.Stack {
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
         BUCKET_NAME: this.fileStorageBucket.bucketName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -97,6 +125,7 @@ export class ResourceAiStack extends cdk.Stack {
         TABLE_NAME: this.sessionsTable.tableName,
         BUCKET_NAME: this.fileStorageBucket.bucketName,
         PIPELINE_FUNCTION_NAME: this.pipelineOrchestrator.functionName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -112,6 +141,7 @@ export class ResourceAiStack extends cdk.Stack {
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
         BUCKET_NAME: this.fileStorageBucket.bucketName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -127,6 +157,86 @@ export class ResourceAiStack extends cdk.Stack {
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
         BUCKET_NAME: this.fileStorageBucket.bucketName,
+      },
+    });
+
+    // AuthHandler Lambda (register, login, profile)
+    this.authHandler = new NodejsFunction(this, 'AuthHandler', {
+      functionName: 'resource-ai-auth-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'auth.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        USERS_TABLE_NAME: this.usersTable.tableName,
+        JWT_SECRET: this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production',
+      },
+    });
+
+    // --- Task 4.4: Lambda Authorizer ---
+
+    const jwtSecret = this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production';
+
+    const authorizerFunction = new NodejsFunction(this, 'AuthorizerFunction', {
+      functionName: 'resource-ai-authorizer',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'authorizer.ts'),
+      memorySize: 128,
+      timeout: cdk.Duration.seconds(10),
+      bundling: nodejsBundling,
+      environment: {
+        JWT_SECRET: jwtSecret,
+      },
+    });
+
+    this.tokenAuthorizer = new apigateway.TokenAuthorizer(this, 'JwtAuthorizer', {
+      handler: authorizerFunction,
+      resultsCacheTtl: cdk.Duration.seconds(300),
+    });
+
+    // AdminHandler Lambda
+    this.adminHandler = new NodejsFunction(this, 'AdminHandler', {
+      functionName: 'resource-ai-admin-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'admin.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        USERS_TABLE_NAME: this.usersTable.tableName,
+        SESSIONS_TABLE_NAME: this.sessionsTable.tableName,
+      },
+    });
+
+    // SessionsHandler Lambda (user's own sessions)
+    this.sessionsHandler = new NodejsFunction(this, 'SessionsHandler', {
+      functionName: 'resource-ai-sessions-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'sessions.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        TABLE_NAME: this.sessionsTable.tableName,
+      },
+    });
+
+    // LeaderboardHandler Lambda (top users by points)
+    this.leaderboardHandler = new NodejsFunction(this, 'LeaderboardHandler', {
+      functionName: 'resource-ai-leaderboard-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'leaderboard.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -147,6 +257,23 @@ export class ResourceAiStack extends cdk.Stack {
     // PipelineOrchestrator: DynamoDB read/write + S3 read/write + Bedrock InvokeModel
     this.sessionsTable.grantReadWriteData(this.pipelineOrchestrator);
     this.fileStorageBucket.grantReadWrite(this.pipelineOrchestrator);
+
+    // AdminHandler: DynamoDB read/write on users table + read on sessions table
+    this.usersTable.grantReadWriteData(this.adminHandler);
+    this.sessionsTable.grantReadData(this.adminHandler);
+
+    // AuthHandler: DynamoDB read/write on users table + read on sessions table (for stats/session count)
+    this.usersTable.grantReadWriteData(this.authHandler);
+    this.sessionsTable.grantReadData(this.authHandler);
+
+    // SessionsHandler: DynamoDB read on sessions table
+    this.sessionsTable.grantReadData(this.sessionsHandler);
+
+    // LeaderboardHandler: DynamoDB read on users table
+    this.usersTable.grantReadData(this.leaderboardHandler);
+
+    // PipelineOrchestrator: read/write on users table (for gamification updates)
+    this.usersTable.grantReadWriteData(this.pipelineOrchestrator);
 
     // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
     this.pipelineOrchestrator.addToRolePolicy(new iam.PolicyStatement({
@@ -192,28 +319,90 @@ export class ResourceAiStack extends cdk.Stack {
     // Lambda integrations for API Gateway endpoints
     const methodOptions: apigateway.MethodOptions = { apiKeyRequired: true };
 
-    // POST /upload — Upload device evidence file
+    // Protected method options: API key + Lambda Authorizer (for authenticated endpoints)
+    const protectedMethodOptions: apigateway.MethodOptions = {
+      apiKeyRequired: true,
+      authorizer: this.tokenAuthorizer,
+      authorizationType: apigateway.AuthorizationType.CUSTOM,
+    };
+
+    // POST /upload — Upload device evidence file (protected)
     const uploadResource = this.api.root.addResource('upload');
     uploadResource.addMethod('POST', new apigateway.LambdaIntegration(this.uploadHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
-    }), methodOptions);
+    }), protectedMethodOptions);
 
     // /sessions resource
     const sessionsResource = this.api.root.addResource('sessions');
 
-    // POST /sessions — Create new triage session
+    // POST /sessions — Create new triage session (protected)
     sessionsResource.addMethod('POST', new apigateway.LambdaIntegration(this.submitHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
-    }), methodOptions);
+    }), protectedMethodOptions);
 
-    // GET /sessions/{sessionId} — Get session status and results
+    // GET /sessions — List current user's sessions (protected)
+    sessionsResource.addMethod('GET', new apigateway.LambdaIntegration(this.sessionsHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // GET /sessions/{sessionId} — Get session status and results (protected)
     const sessionByIdResource = sessionsResource.addResource('{sessionId}');
     sessionByIdResource.addMethod('GET', new apigateway.LambdaIntegration(this.pollHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
-    }), methodOptions);
+    }), protectedMethodOptions);
+
+    // --- Auth endpoints ---
+
+    // /auth resource
+    const authResource = this.api.root.addResource('auth');
+
+    // POST /auth/register — Public (API key only, no authorizer)
+    const authRegisterResource = authResource.addResource('register');
+    authRegisterResource.addMethod('POST', new apigateway.LambdaIntegration(this.authHandler), methodOptions);
+
+    // POST /auth/login — Public (API key only, no authorizer)
+    const authLoginResource = authResource.addResource('login');
+    authLoginResource.addMethod('POST', new apigateway.LambdaIntegration(this.authHandler), methodOptions);
+
+    // GET/PUT /auth/profile — Protected (API key + authorizer)
+    const authProfileResource = authResource.addResource('profile');
+    authProfileResource.addMethod('GET', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
+    authProfileResource.addMethod('PUT', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
+
+    // GET /auth/stats — Protected (API key + authorizer)
+    const authStatsResource = authResource.addResource('stats');
+    authStatsResource.addMethod('GET', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
+
+    // --- Admin endpoints ---
+
+    // /admin resource
+    const adminResource = this.api.root.addResource('admin');
+
+    // GET /admin/users — Protected (manager only, enforced in handler)
+    const adminUsersResource = adminResource.addResource('users');
+    adminUsersResource.addMethod('GET', new apigateway.LambdaIntegration(this.adminHandler), protectedMethodOptions);
+
+    // PUT /admin/users/{userId}/role — Protected (manager only)
+    const adminUserByIdResource = adminUsersResource.addResource('{userId}');
+    const adminUserRoleResource = adminUserByIdResource.addResource('role');
+    adminUserRoleResource.addMethod('PUT', new apigateway.LambdaIntegration(this.adminHandler), protectedMethodOptions);
+
+    // GET /admin/sessions — Protected (manager only)
+    const adminSessionsResource = adminResource.addResource('sessions');
+    adminSessionsResource.addMethod('GET', new apigateway.LambdaIntegration(this.adminHandler), protectedMethodOptions);
+
+    // --- Leaderboard endpoint ---
+
+    // GET /leaderboard — Protected (API key + authorizer)
+    const leaderboardResource = this.api.root.addResource('leaderboard');
+    leaderboardResource.addMethod('GET', new apigateway.LambdaIntegration(this.leaderboardHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
 
     // --- Task 2.4: CloudFront Distribution ---
 

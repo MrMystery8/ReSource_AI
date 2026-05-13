@@ -1,7 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { CreateSessionRequest, PollSessionResponse } from '@resource-ai/shared';
-import { submitSession, pollSession } from '../services/api';
+import { ApiClient } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL ?? '';
+const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 const POLL_INTERVAL_MS = 3000;
 
 export interface UseTriageSessionResult {
@@ -14,16 +17,14 @@ export interface UseTriageSessionResult {
 
 /**
  * Custom hook that manages the triage session lifecycle:
- * - Submits a session via the API
+ * - Submits a session via the ApiClient (with auth headers automatically included)
  * - Starts polling every 3 seconds after successful submission
  * - Stops polling when status is 'complete' or 'failed'
  * - Handles network errors gracefully
  * - Cleans up the polling interval on unmount
  */
-export function useTriageSession(
-  apiUrl: string,
-  apiKey: string
-): UseTriageSessionResult {
+export function useTriageSession(): UseTriageSessionResult {
+  const { token } = useAuth();
   const [session, setSession] = useState<PollSessionResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPolling, setIsPolling] = useState(false);
@@ -31,6 +32,14 @@ export function useTriageSession(
 
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionIdRef = useRef<string | null>(null);
+  const apiClientRef = useRef<ApiClient>(
+    new ApiClient(API_URL, API_KEY, () => token)
+  );
+
+  // Keep the apiClient's getToken closure up to date with the latest token
+  useEffect(() => {
+    apiClientRef.current = new ApiClient(API_URL, API_KEY, () => token);
+  }, [token]);
 
   const stopPolling = useCallback(() => {
     console.log('[useTriageSession] Stopping polling');
@@ -50,7 +59,7 @@ export function useTriageSession(
       const poll = async () => {
         try {
           console.log('[useTriageSession] Polling session:', sessionId);
-          const result = await pollSession(apiUrl, apiKey, sessionId);
+          const result = await apiClientRef.current.pollSession(sessionId);
           console.log('[useTriageSession] Poll result:', {
             status: result.status,
             currentStage: result.currentStage,
@@ -78,7 +87,7 @@ export function useTriageSession(
       poll();
       pollingIntervalRef.current = setInterval(poll, POLL_INTERVAL_MS);
     },
-    [apiUrl, apiKey, stopPolling]
+    [stopPolling]
   );
 
   const handleSubmitSession = useCallback(
@@ -95,7 +104,7 @@ export function useTriageSession(
           fileIds: fileIds.length > 0 ? fileIds : undefined,
         };
 
-        const sessionId = await submitSession(apiUrl, apiKey, requestData);
+        const sessionId = await apiClientRef.current.submitSession(requestData);
         console.log('[useTriageSession] Session created:', sessionId);
         startPolling(sessionId);
       } catch (err) {
@@ -107,7 +116,7 @@ export function useTriageSession(
         setIsSubmitting(false);
       }
     },
-    [apiUrl, apiKey, startPolling, stopPolling]
+    [startPolling, stopPolling]
   );
 
   // Clean up polling interval on unmount

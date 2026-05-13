@@ -3,6 +3,7 @@ import { SessionStore } from '../session-store';
 import { StageExecutor } from '../pipeline/stage-executor';
 import { PromptBuilder } from '../pipeline/prompt-builder';
 import { BedrockClient } from '../bedrock-client';
+import { processSessionCompletion } from '../gamification/gamification-service';
 import {
   PIPELINE_STAGES,
   PIPELINE_TIMEOUT_MS,
@@ -70,4 +71,25 @@ export const handler = async (event: PipelineEvent, context: Context): Promise<v
   // All stages completed successfully
   await sessionStore.markSessionComplete(sessionId);
   console.log('Pipeline completed successfully', { sessionId });
+
+  // Trigger gamification — award points, update streak, check badges
+  if (session.userId) {
+    try {
+      const gamificationResult = await processSessionCompletion(session.userId, session);
+      console.log('Gamification processed', {
+        sessionId,
+        userId: session.userId,
+        pointsEarned: gamificationResult.pointsEarned.total,
+        newBadges: gamificationResult.newBadges,
+        newLevel: gamificationResult.newLevel,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Gamification processing failed (non-fatal)', {
+        sessionId,
+        userId: session.userId,
+        error: errorMessage,
+      });
+    }
+  }
 };

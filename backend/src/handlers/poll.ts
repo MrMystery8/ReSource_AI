@@ -15,6 +15,7 @@ const CORS_HEADERS = {
  *
  * GET /sessions/{sessionId}
  * - Returns 200 with PollSessionResponse on success
+ * - Returns 403 if user does not own the session (unless manager)
  * - Returns 404 if session not found
  * - Returns 500 for unexpected errors
  */
@@ -38,6 +39,10 @@ export const handler = async (
       };
     }
 
+    // Extract userId and role from authorizer context
+    const userId = event.requestContext.authorizer?.userId as string | undefined;
+    const role = event.requestContext.authorizer?.role as string | undefined;
+
     const session = await sessionStore.getSession(sessionId);
 
     if (!session) {
@@ -49,6 +54,21 @@ export const handler = async (
       };
       return {
         statusCode: 404,
+        headers: CORS_HEADERS,
+        body: JSON.stringify(errorResponse),
+      };
+    }
+
+    // Verify session ownership: userId must match OR user must be a manager
+    if (userId && session.userId && session.userId !== userId && role !== 'manager') {
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Access denied to this session',
+        },
+      };
+      return {
+        statusCode: 403,
         headers: CORS_HEADERS,
         body: JSON.stringify(errorResponse),
       };

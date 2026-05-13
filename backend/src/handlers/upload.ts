@@ -108,12 +108,19 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
+    // Extract userId from authorizer context (for audit trail)
+    const userId = event.requestContext.authorizer?.userId as string | undefined;
+
     // Extract session ID from custom header or query parameter (optional — files can be uploaded before session creation)
     const sessionId =
       event.headers['x-session-id'] ??
       event.headers['X-Session-Id'] ??
       event.queryStringParameters?.sessionId ??
       'unassociated';
+
+    if (userId) {
+      console.log(`Upload initiated by userId: ${userId}, sessionId: ${sessionId}`);
+    }
 
     // Extract content type from headers
     const contentType =

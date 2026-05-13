@@ -92,3 +92,28 @@ export const SECOND_LIFE_IDEAS_COUNT = 3;
 // --- Risk Level Ordering (for escalation logic) ---
 
 export const RISK_LEVEL_ORDER = ['Green', 'Yellow', 'Orange', 'Red'] as const;
+
+// --- Gamification Constants ---
+
+export const LEVEL_THRESHOLDS = [
+  { level: 'Recycler' as const, minPoints: 0, maxPoints: 499 },
+  { level: 'Salvager' as const, minPoints: 500, maxPoints: 1499 },
+  { level: 'E-Waste Champion' as const, minPoints: 1500, maxPoints: 3999 },
+  { level: 'Green Guardian' as const, minPoints: 4000, maxPoints: Infinity },
+] as const;
+
+export const POINTS_CONFIG = {
+  base: 100,
+  photoBonus: 25,
+  greenBonus: 50,
+  detailedInputBonus: 25,
+} as const;
+
+export const BADGE_DEFINITIONS = [
+  { id: 'first-triage', name: 'First Triage', description: 'Complete your first triage', icon: '🌱' },
+  { id: 'regular-recycler', name: 'Regular Recycler', description: 'Complete 5 triages', icon: '♻️' },
+  { id: 'hazard-spotter', name: 'Hazard Spotter', description: 'Submit a Red-risk device', icon: '⚠️' },
+  { id: 'parts-hunter', name: 'Parts Hunter', description: 'Find 10+ salvageable parts', icon: '🔧' },
+  { id: 'streak-master', name: 'Streak Master', description: 'Maintain a 4-week streak', icon: '🔥' },
+  { id: 'green-champion', name: 'Green Champion', description: '5 Green-risk outcomes', icon: '🌿' },
+] as const;

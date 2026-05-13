@@ -81,6 +81,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const sanitizedFailureSymptoms = sanitize(validated.failureSymptoms);
     const sanitizedUserContext = sanitize(validated.userContext);
 
+    // 4.5 Extract userId from authorizer context
+    const userId = event.requestContext.authorizer?.userId as string | undefined;
+
     // 5. Create session in DynamoDB
     const inputs: TriageInputs = {
       deviceIdentity: sanitizedDeviceIdentity,
@@ -89,7 +92,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       fileIds: validated.fileIds ?? [],
     };
 
-    const sessionId = await sessionStore.createSession(inputs);
+    const sessionId = await sessionStore.createSession(inputs, userId);
 
     // 6. Invoke PipelineOrchestrator Lambda asynchronously
     await lambdaClient.send(

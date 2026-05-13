@@ -28,7 +28,7 @@ export class SessionStore {
    * Creates a new triage session with status 'processing' and 24-hour TTL.
    * Returns the generated session ID.
    */
-  async createSession(inputs: TriageInputs): Promise<string> {
+  async createSession(inputs: TriageInputs, userId?: string): Promise<string> {
     const sessionId = uuidv4();
     const now = new Date();
     const expiresAt = Math.floor(now.getTime() / 1000) + SESSION_TTL_HOURS * 3600;
@@ -51,6 +51,7 @@ export class SessionStore {
         conceptVisual: null,
       },
       error: null,
+      ...(userId && { userId }),
     };
 
     await this.retryWrite(() =>
