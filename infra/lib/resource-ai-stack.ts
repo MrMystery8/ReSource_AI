@@ -392,19 +392,7 @@ export class ResourceAiStack extends cdk.Stack {
     // ProjectUpdateHandler: DynamoDB read/write on projects table
     this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
 
-    // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
-    this.pipelineOrchestrator.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['bedrock:InvokeModel'],
-      resources: [
-        // APAC cross-region inference profile for Nova Pro
-        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/apac.amazon.nova-pro-v1:0`,
-        // Foundation model in destination regions
-        `arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0`,
-      ],
-    }));
-
-    // Bedrock InvokeModel permission for new gamification handlers (Claude Sonnet 4.6)
+    // Bedrock InvokeModel permission for all Lambda functions (Claude Sonnet 4.5)
     const bedrockClaudePolicy = new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
@@ -413,9 +401,16 @@ export class ResourceAiStack extends cdk.Stack {
         `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-5:0`,
         `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-5`,
         `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-5:0`,
+        // Cross-region inference profile (us.*)
+        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-5-20251101-v1:0`,
+        `arn:aws:bedrock:*:${this.account}:inference-profile/us.anthropic.claude-sonnet-4-5-20251101-v1:0`,
       ],
     });
 
+    // Apply Claude policy to pipeline orchestrator (replaces Nova Pro)
+    this.pipelineOrchestrator.addToRolePolicy(bedrockClaudePolicy);
+
+    // Apply Claude policy to gamification handlers
     this.guideGenerateHandler.addToRolePolicy(bedrockClaudePolicy);
     this.guideChatHandler.addToRolePolicy(bedrockClaudePolicy);
     this.projectSubmitHandler.addToRolePolicy(bedrockClaudePolicy);
