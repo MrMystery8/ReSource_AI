@@ -32,14 +32,16 @@ export function useTriageSession(): UseTriageSessionResult {
 
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionIdRef = useRef<string | null>(null);
+  const tokenRef = useRef<string | null>(token);
+
+  // Always keep tokenRef in sync with the latest token value
+  tokenRef.current = token;
+
   const apiClientRef = useRef<ApiClient>(
-    new ApiClient(API_URL, API_KEY, () => token)
+    new ApiClient(API_URL, API_KEY, () => tokenRef.current)
   );
 
-  // Keep the apiClient's getToken closure up to date with the latest token
-  useEffect(() => {
-    apiClientRef.current = new ApiClient(API_URL, API_KEY, () => token);
-  }, [token]);
+  // tokenRef is updated on every render above, so apiClient always reads the latest token
 
   const stopPolling = useCallback(() => {
     console.log('[useTriageSession] Stopping polling');
