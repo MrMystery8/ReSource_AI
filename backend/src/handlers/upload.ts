@@ -96,6 +96,7 @@ function buildFileName(fileId: string, extension: string): string {
  * Expects:
  * - JSON body with { file: base64String, contentType: mimeType, fileName: originalName }
  * - Content-Type: application/json header
+ * - JWT authorizer context for authenticated access
  * - x-session-id header or sessionId query parameter for session association
  *
  * Returns:
@@ -108,19 +109,33 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    // Extract userId from authorizer context (for audit trail)
-    const userId = event.requestContext.authorizer?.userId as string | undefined;
+    // Extract userId from authorizer context (for audit trail and access control)
+    const userId =
+      (event.requestContext.authorizer?.lambda?.userId as string | undefined) ??
+      (event.requestContext.authorizer?.userId as string | undefined);
 
-    // Extract session ID from custom header or query parameter (optional — files can be uploaded before session creation)
+    if (!userId) {
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: 'AUTH_FAILURE',
+          message: 'Unauthorized',
+        },
+      };
+      return {
+        statusCode: 401,
+        headers: CORS_HEADERS,
+        body: JSON.stringify(errorResponse),
+      };
+    }
+
+    // Extract session ID from custom header or query parameter for session association
     const sessionId =
       event.headers['x-session-id'] ??
       event.headers['X-Session-Id'] ??
       event.queryStringParameters?.sessionId ??
       'unassociated';
 
-    if (userId) {
-      console.log(`Upload initiated by userId: ${userId}, sessionId: ${sessionId}`);
-    }
+    console.log(`Upload initiated by userId: ${userId}, sessionId: ${sessionId}`);
 
     // Parse request body
     if (!event.body) {
