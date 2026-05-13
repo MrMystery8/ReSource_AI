@@ -1,18 +1,16 @@
 # Dependencies
 node_modules/
 
-# Build outputs
-dist/
+# TypeScript compiled output
 *.js
-*.d.ts
 *.js.map
+*.d.ts
 *.d.ts.map
+*.tsbuildinfo
+**/dist/
 
-# Keep source TypeScript files
-!jest.config.ts
-!jest.integration.config.ts
-!infra/jest.config.ts
-!vite.config.ts
+# Keep vite type declarations (source file, not compiled)
+!frontend/src/vite-env.d.ts
 
 # CDK
 cdk.out/

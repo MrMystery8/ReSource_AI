@@ -133,7 +133,8 @@ export function validateImpactCardOutput(
 
   // Validate all 11 fields are present and are strings
   const result: Record<string, string> = {};
-  for (const field of IMPACT_CARD_FIELDS) {
+  for (let i = 0; i < IMPACT_CARD_FIELDS.length; i++) {
+    const field = IMPACT_CARD_FIELDS[i];
     if (typeof obj[field] !== 'string') {
       throw new Error(
         `Impact Card output must include a string field "${field}". Got: ${typeof obj[field]}`,
@@ -147,7 +148,8 @@ export function validateImpactCardOutput(
   }
 
   // Enforce per-field word limit (Requirement 10.3: each field ≤ 15 words)
-  for (const field of IMPACT_CARD_FIELDS) {
+  for (let i = 0; i < IMPACT_CARD_FIELDS.length; i++) {
+    const field = IMPACT_CARD_FIELDS[i];
     if (countWords(result[field]) > MAX_IMPACT_CARD_FIELD_WORDS) {
       result[field] = truncateToWordLimit(result[field], MAX_IMPACT_CARD_FIELD_WORDS);
     }

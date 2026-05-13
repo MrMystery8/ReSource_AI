@@ -13,10 +13,7 @@
     "sourceMap": true,
     "composite": true,
     "outDir": "dist",
-    "rootDir": "src",
-    "paths": {
-      "@resource-ai/shared": ["../shared/src/index.ts"]
-    }
+    "rootDir": "src"
   },
   "include": ["src/**/*"],
   "references": [
