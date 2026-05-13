@@ -48,7 +48,6 @@ export class BedrockClient {
       anthropic_version: 'bedrock-2023-05-31',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 4096,
-      top_p: 0.9,
       temperature: 0.7,
     });
 
