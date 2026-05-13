@@ -8,6 +8,7 @@ import { SessionDetailPage } from './pages/SessionDetailPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
+import { ImplementationGuidePage } from './pages/ImplementationGuidePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ManagerRoute } from './components/auth/ManagerRoute';
 
@@ -71,6 +72,14 @@ export const router = createBrowserRouter([
             <ManagerRoute>
               <AdminPage />
             </ManagerRoute>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'guide/:projectId',
+        element: (
+          <ProtectedRoute>
+            <ImplementationGuidePage />
           </ProtectedRoute>
         ),
       },

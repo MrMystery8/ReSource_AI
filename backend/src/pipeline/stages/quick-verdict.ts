@@ -138,7 +138,7 @@ function applyRiskEscalation(riskLevel: RiskLevel, session: TriageSession): Risk
   const hasShortTextField =
     deviceIdentity.length < MIN_EVIDENCE_CHAR_THRESHOLD ||
     failureSymptoms.length < MIN_EVIDENCE_CHAR_THRESHOLD ||
-    userContext.length < MIN_EVIDENCE_CHAR_THRESHOLD;
+    !userContext.expertiseLevel;
 
   if (!hasShortTextField) {
     return riskLevel;

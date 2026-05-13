@@ -15,6 +15,7 @@ export class ResourceAiStack extends cdk.Stack {
   // Expose resources for use by subsequent tasks
   public readonly sessionsTable: dynamodb.Table;
   public readonly usersTable: dynamodb.Table;
+  public readonly projectsTable: dynamodb.Table;
   public readonly fileStorageBucket: s3.Bucket;
   public readonly frontendBucket: s3.Bucket;
   public readonly api: apigateway.RestApi;
@@ -33,6 +34,13 @@ export class ResourceAiStack extends cdk.Stack {
   public readonly adminHandler: NodejsFunction;
   public readonly sessionsHandler: NodejsFunction;
   public readonly leaderboardHandler: NodejsFunction;
+
+  // New gamification Lambda functions
+  public readonly guideGenerateHandler: NodejsFunction;
+  public readonly guideChatHandler: NodejsFunction;
+  public readonly projectSubmitHandler: NodejsFunction;
+  public readonly projectsListHandler: NodejsFunction;
+  public readonly projectUpdateHandler: NodejsFunction;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -65,6 +73,20 @@ export class ResourceAiStack extends cdk.Stack {
     this.usersTable.addGlobalSecondaryIndex({
       indexName: 'email-index',
       partitionKey: { name: 'email', type: dynamodb.AttributeType.STRING },
+    });
+
+    // DynamoDB table for recycling projects (gamification expansion)
+    this.projectsTable = new dynamodb.Table(this, 'ProjectsTable', {
+      tableName: 'resource-ai-projects',
+      partitionKey: { name: 'projectId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    this.projectsTable.addGlobalSecondaryIndex({
+      indexName: 'userId-index',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'startedAt', type: dynamodb.AttributeType.STRING },
     });
 
     // S3 bucket for file storage (uploads and generated images)
@@ -240,6 +262,80 @@ export class ResourceAiStack extends cdk.Stack {
       },
     });
 
+    // GuideGenerateHandler Lambda (POST /guide/generate)
+    this.guideGenerateHandler = new NodejsFunction(this, 'GuideGenerateHandler', {
+      functionName: 'resource-ai-guide-generate-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'guide-generate.ts'),
+      memorySize: 512,
+      timeout: cdk.Duration.seconds(90),
+      bundling: nodejsBundling,
+      environment: {
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        BUCKET_NAME: this.fileStorageBucket.bucketName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
+      },
+    });
+
+    // GuideChatHandler Lambda (POST /guide/chat)
+    this.guideChatHandler = new NodejsFunction(this, 'GuideChatHandler', {
+      functionName: 'resource-ai-guide-chat-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'guide-chat.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(60),
+      bundling: nodejsBundling,
+      environment: {
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+      },
+    });
+
+    // ProjectSubmitHandler Lambda (POST /project/submit)
+    this.projectSubmitHandler = new NodejsFunction(this, 'ProjectSubmitHandler', {
+      functionName: 'resource-ai-project-submit-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'project-submit.ts'),
+      memorySize: 512,
+      timeout: cdk.Duration.seconds(90),
+      bundling: nodejsBundling,
+      environment: {
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        BUCKET_NAME: this.fileStorageBucket.bucketName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
+      },
+    });
+
+    // ProjectsListHandler Lambda (GET /projects)
+    this.projectsListHandler = new NodejsFunction(this, 'ProjectsListHandler', {
+      functionName: 'resource-ai-projects-list-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'projects-list.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+      },
+    });
+
+    // ProjectUpdateHandler Lambda (PATCH /projects/:projectId)
+    this.projectUpdateHandler = new NodejsFunction(this, 'ProjectUpdateHandler', {
+      functionName: 'resource-ai-project-update-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'project-update.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+      },
+    });
+
     // --- IAM Permissions (least-privilege, no wildcard resource ARNs) ---
 
     // SubmitHandler: DynamoDB write + Lambda invoke (async invocation of PipelineOrchestrator)
@@ -275,6 +371,27 @@ export class ResourceAiStack extends cdk.Stack {
     // PipelineOrchestrator: read/write on users table (for gamification updates)
     this.usersTable.grantReadWriteData(this.pipelineOrchestrator);
 
+    // --- Gamification Lambda Permissions ---
+
+    // GuideGenerateHandler: DynamoDB read/write on projects table + S3 read + Bedrock
+    this.projectsTable.grantReadWriteData(this.guideGenerateHandler);
+    this.fileStorageBucket.grantRead(this.guideGenerateHandler);
+    this.usersTable.grantReadData(this.guideGenerateHandler);
+
+    // GuideChatHandler: DynamoDB read on projects table + Bedrock
+    this.projectsTable.grantReadData(this.guideChatHandler);
+
+    // ProjectSubmitHandler: DynamoDB read/write on projects table + S3 read + users table + Bedrock
+    this.projectsTable.grantReadWriteData(this.projectSubmitHandler);
+    this.fileStorageBucket.grantRead(this.projectSubmitHandler);
+    this.usersTable.grantReadWriteData(this.projectSubmitHandler);
+
+    // ProjectsListHandler: DynamoDB read on projects table
+    this.projectsTable.grantReadData(this.projectsListHandler);
+
+    // ProjectUpdateHandler: DynamoDB read/write on projects table
+    this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
+
     // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
     this.pipelineOrchestrator.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -286,6 +403,22 @@ export class ResourceAiStack extends cdk.Stack {
         `arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0`,
       ],
     }));
+
+    // Bedrock InvokeModel permission for new gamification handlers (Claude Sonnet 4.6)
+    const bedrockClaudePolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['bedrock:InvokeModel'],
+      resources: [
+        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-5`,
+        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-sonnet-4-5:0`,
+        `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-5`,
+        `arn:aws:bedrock:*::foundation-model/anthropic.claude-sonnet-4-5:0`,
+      ],
+    });
+
+    this.guideGenerateHandler.addToRolePolicy(bedrockClaudePolicy);
+    this.guideChatHandler.addToRolePolicy(bedrockClaudePolicy);
+    this.projectSubmitHandler.addToRolePolicy(bedrockClaudePolicy);
 
     // --- Task 2.2: API Gateway REST API ---
 
@@ -420,6 +553,51 @@ export class ResourceAiStack extends cdk.Stack {
     // GET /leaderboard — Protected (API key + authorizer)
     const leaderboardResource = this.api.root.addResource('leaderboard');
     leaderboardResource.addMethod('GET', new apigateway.LambdaIntegration(this.leaderboardHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // --- Gamification API routes ---
+
+    // /guide resource
+    const guideResource = this.api.root.addResource('guide');
+
+    // POST /guide/generate — Generate implementation guide (protected)
+    const guideGenerateResource = guideResource.addResource('generate');
+    guideGenerateResource.addMethod('POST', new apigateway.LambdaIntegration(this.guideGenerateHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // POST /guide/chat — Chat about current project (protected)
+    const guideChatResource = guideResource.addResource('chat');
+    guideChatResource.addMethod('POST', new apigateway.LambdaIntegration(this.guideChatHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // /project resource
+    const projectResource = this.api.root.addResource('project');
+
+    // POST /project/submit — Submit project photos for grading (protected)
+    const projectSubmitResource = projectResource.addResource('submit');
+    projectSubmitResource.addMethod('POST', new apigateway.LambdaIntegration(this.projectSubmitHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // /projects resource
+    const projectsResource = this.api.root.addResource('projects');
+
+    // GET /projects — List user's projects (protected)
+    projectsResource.addMethod('GET', new apigateway.LambdaIntegration(this.projectsListHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // PATCH /projects/{projectId} — Update project (abandon/delete) (protected)
+    const projectByIdResource = projectsResource.addResource('{projectId}');
+    projectByIdResource.addMethod('PATCH', new apigateway.LambdaIntegration(this.projectUpdateHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
     }), protectedMethodOptions);

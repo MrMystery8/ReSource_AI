@@ -15,7 +15,72 @@ import type {
   SessionsListResponse,
   UserRole,
   UploadFileResponse,
+  StructuredUserContext,
+  ImplementationGuide,
+  ProjectsListResponse,
 } from '@resource-ai/shared';
+
+// ─── Guide API types ───
+
+export interface GenerateGuideRequest {
+  ideaTitle: string;
+  ideaDescription: string;
+  requiredComponents: string[];
+  additionalMaterials: string[];
+  userContext: StructuredUserContext;
+  sessionId: string;
+}
+
+export interface GenerateGuideResponse {
+  guide: ImplementationGuide;
+  projectId: string;
+}
+
+// ─── Chat API types ───
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+export interface ProjectContext {
+  ideaTitle: string;
+  materials: string[];
+  steps: string[];
+  deviceInfo: string;
+}
+
+export interface SendChatMessageRequest {
+  message: string;
+  projectContext: ProjectContext;
+  conversationHistory: ChatMessage[];
+}
+
+export interface SendChatMessageResponse {
+  reply: string;
+}
+
+// ─── Project Submission API types ───
+
+export interface GuideContext {
+  ideaTitle: string;
+  expectedOutcome: string;
+  steps: string[];
+}
+
+export interface SubmitProjectRequest {
+  projectId: string;
+  photoFileIds: string[];
+  guideContext: GuideContext;
+}
+
+export interface SubmitProjectResponse {
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  points: number;
+  feedback: string;
+}
 
 /**
  * Class-based API client that handles auth headers, API key inclusion,
@@ -225,6 +290,60 @@ export class ApiClient {
     return this.parseResponse<UploadFileResponse>(response);
   }
 
+  // ─── Guide Endpoints ───
+
+  async generateGuide(
+    data: GenerateGuideRequest,
+    signal?: AbortSignal
+  ): Promise<GenerateGuideResponse> {
+    const response = await this.request('/guide/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      signal,
+    });
+    return this.parseResponse<GenerateGuideResponse>(response);
+  }
+
+  async sendChatMessage(
+    data: SendChatMessageRequest,
+    signal?: AbortSignal
+  ): Promise<SendChatMessageResponse> {
+    const response = await this.request('/guide/chat', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      signal,
+    });
+    return this.parseResponse<SendChatMessageResponse>(response);
+  }
+
+  // ─── Project Submission Endpoints ───
+
+  async submitProject(
+    data: SubmitProjectRequest,
+    signal?: AbortSignal
+  ): Promise<SubmitProjectResponse> {
+    const response = await this.request('/project/submit', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      signal,
+    });
+    return this.parseResponse<SubmitProjectResponse>(response);
+  }
+
+  /**
+   * Reloads Second Life Ideas by re-submitting the session with the same inputs.
+   * The pipeline will regenerate all stages including secondLifeIdeas with fresh AI output.
+   * Returns the new sessionId which can be polled for updated results.
+   */
+  async reloadIdeas(data: CreateSessionRequest): Promise<string> {
+    const response = await this.request('/sessions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    const result = await this.parseResponse<CreateSessionResponse>(response);
+    return result.sessionId;
+  }
+
   // ─── Admin Endpoints ───
 
   async getAdminUsers(limit?: number, offset?: number): Promise<UsersListResponse> {
@@ -260,6 +379,32 @@ export class ApiClient {
       method: 'GET',
     });
     return this.parseResponse<SessionsListResponse>(response);
+  }
+
+  // ─── Project Endpoints ───
+
+  async getProjects(limit?: number, offset?: number): Promise<ProjectsListResponse> {
+    const params = new URLSearchParams();
+    if (limit !== undefined) params.set('limit', String(limit));
+    if (offset !== undefined) params.set('offset', String(offset));
+    const query = params.toString();
+    const path = `/projects${query ? `?${query}` : ''}`;
+
+    const response = await this.request(path, {
+      method: 'GET',
+    });
+    return this.parseResponse<ProjectsListResponse>(response);
+  }
+
+  async updateProject(
+    projectId: string,
+    action: 'abandon' | 'delete'
+  ): Promise<void> {
+    const response = await this.request(`/projects/${projectId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action }),
+    });
+    await this.parseResponse<unknown>(response);
   }
 }
 

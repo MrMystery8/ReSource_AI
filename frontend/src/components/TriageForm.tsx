@@ -1,12 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { MAX_FIELD_LENGTH } from '@resource-ai/shared';
-import { Cpu, AlertTriangle, User, Send, Sparkles } from 'lucide-react';
+import type { StructuredUserContext } from '@resource-ai/shared';
+import { Cpu, AlertTriangle, Send, Sparkles } from 'lucide-react';
+import { StructuredContextInput } from './StructuredContextInput';
 
 export interface TriageFormData {
   deviceIdentity: string;
   failureSymptoms: string;
-  userContext: string;
+  userContext: StructuredUserContext;
 }
 
 export interface TriageFormProps {
@@ -15,15 +17,15 @@ export interface TriageFormProps {
   disabled?: boolean;
 }
 
-interface FieldConfig {
-  name: keyof TriageFormData;
+interface TextFieldConfig {
+  name: 'deviceIdentity' | 'failureSymptoms';
   label: string;
   placeholder: string;
   icon: React.ReactNode;
   description: string;
 }
 
-const FIELDS: FieldConfig[] = [
+const TEXT_FIELDS: TextFieldConfig[] = [
   {
     name: 'deviceIdentity',
     label: 'Device Identity',
@@ -37,13 +39,6 @@ const FIELDS: FieldConfig[] = [
     placeholder: "e.g., Won't turn on, overheating, smoke smell, broken charging port...",
     icon: <AlertTriangle className="w-4 h-4" />,
     description: 'What went wrong? Any safety concerns?',
-  },
-  {
-    name: 'userContext',
-    label: 'Your Context & Goal',
-    placeholder: 'e.g., Beginner, have basic tools, want to salvage the camera module...',
-    icon: <User className="w-4 h-4" />,
-    description: 'Your skill level and what you hope to achieve',
   },
 ];
 
@@ -62,19 +57,17 @@ const itemVariants = {
 };
 
 export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps) {
-  const [formData, setFormData] = useState<TriageFormData>({
-    deviceIdentity: '',
-    failureSymptoms: '',
-    userContext: '',
-  });
+  const [deviceIdentity, setDeviceIdentity] = useState('');
+  const [failureSymptoms, setFailureSymptoms] = useState('');
+  const [userContext, setUserContext] = useState<Partial<StructuredUserContext>>({});
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  const handleChange = useCallback(
-    (field: keyof TriageFormData) =>
+  const handleTextChange = useCallback(
+    (setter: React.Dispatch<React.SetStateAction<string>>) =>
       (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         if (value.length <= MAX_FIELD_LENGTH) {
-          setFormData((prev) => ({ ...prev, [field]: value }));
+          setter(value);
         }
       },
     []
@@ -82,15 +75,25 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
 
   const isFieldValid = (value: string): boolean => value.trim().length > 0;
 
+  const isContextComplete = (ctx: Partial<StructuredUserContext>): boolean =>
+    ctx.expertiseLevel != null &&
+    ctx.motivation != null &&
+    ctx.materialAvailability != null &&
+    ctx.timeCommitment != null;
+
   const isFormValid =
-    isFieldValid(formData.deviceIdentity) &&
-    isFieldValid(formData.failureSymptoms) &&
-    isFieldValid(formData.userContext);
+    isFieldValid(deviceIdentity) &&
+    isFieldValid(failureSymptoms) &&
+    isContextComplete(userContext);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid && !disabled) {
-      onSubmit(formData);
+      onSubmit({
+        deviceIdentity,
+        failureSymptoms,
+        userContext: userContext as StructuredUserContext,
+      });
     }
   };
 
@@ -119,8 +122,9 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
       </motion.div>
 
       {/* Form Fields */}
-      {FIELDS.map((field) => {
-        const value = formData[field.name];
+      {TEXT_FIELDS.map((field) => {
+        const value = field.name === 'deviceIdentity' ? deviceIdentity : failureSymptoms;
+        const setter = field.name === 'deviceIdentity' ? setDeviceIdentity : setFailureSymptoms;
         const charCount = value.length;
         const isFocused = focusedField === field.name;
         const hasValue = value.trim().length > 0;
@@ -154,7 +158,7 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
                 className="w-full bg-surface-elevated/50 text-text-primary placeholder-text-muted rounded-xl px-4 py-3 text-sm leading-relaxed resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 name={field.name}
                 value={value}
-                onChange={handleChange(field.name)}
+                onChange={handleTextChange(setter)}
                 onFocus={() => setFocusedField(field.name)}
                 onBlur={() => setFocusedField(null)}
                 placeholder={field.placeholder}
@@ -188,6 +192,14 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
           </motion.div>
         );
       })}
+
+      {/* Structured User Context */}
+      <motion.div variants={itemVariants} className="mb-5">
+        <StructuredContextInput
+          value={userContext}
+          onChange={setUserContext}
+        />
+      </motion.div>
 
       {/* File Uploader */}
       {fileUploader && (

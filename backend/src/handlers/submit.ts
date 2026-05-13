@@ -58,7 +58,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const textFields: Array<{ name: string; value: string }> = [
       { name: 'deviceIdentity', value: validated.deviceIdentity },
       { name: 'failureSymptoms', value: validated.failureSymptoms },
-      { name: 'userContext', value: validated.userContext },
     ];
 
     for (const field of textFields) {
@@ -79,7 +78,6 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // 4. Sanitize text inputs
     const sanitizedDeviceIdentity = sanitize(validated.deviceIdentity);
     const sanitizedFailureSymptoms = sanitize(validated.failureSymptoms);
-    const sanitizedUserContext = sanitize(validated.userContext);
 
     // 4.5 Extract userId from authorizer context
     const userId = event.requestContext.authorizer?.userId as string | undefined;
@@ -88,7 +86,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const inputs: TriageInputs = {
       deviceIdentity: sanitizedDeviceIdentity,
       failureSymptoms: sanitizedFailureSymptoms,
-      userContext: sanitizedUserContext,
+      userContext: validated.userContext,
       fileIds: validated.fileIds ?? [],
     };
 

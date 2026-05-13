@@ -20,6 +20,20 @@ export type StageKey =
   | 'impactCard'
   | 'conceptVisual';
 
+// --- Structured User Context ---
+
+export type ExpertiseLevel = 'Beginner' | 'Intermediate' | 'Expert';
+export type Motivation = 'Learn Something New' | 'Environmental Impact' | 'Save Money' | 'Creative Project';
+export type MaterialAvailability = 'Basic Household Tools' | 'Some Electronics Tools' | 'Full Workshop';
+export type TimeCommitment = 'Under 1 Hour' | '1-3 Hours' | 'Half Day' | 'Multi-Day Project';
+
+export interface StructuredUserContext {
+  expertiseLevel: ExpertiseLevel;
+  motivation: Motivation;
+  materialAvailability: MaterialAvailability;
+  timeCommitment: TimeCommitment;
+}
+
 // --- Triage Session ---
 
 export interface TriageSession {
@@ -37,7 +51,7 @@ export interface TriageSession {
 export interface TriageInputs {
   deviceIdentity: string;
   failureSymptoms: string;
-  userContext: string;
+  userContext: StructuredUserContext;
   fileIds: string[];
 }
 
@@ -127,6 +141,7 @@ export interface ProjectIdea {
   category: IdeaCategory;
   title: string;
   description: string;
+  skillLevel: 'Beginner' | 'Intermediate' | 'Advanced' | 'Professional';
   requiredComponents: string[];
   additionalMaterials: string[];
 }
@@ -317,7 +332,7 @@ export interface SessionSummary {
 export interface CreateSessionRequest {
   deviceIdentity: string;
   failureSymptoms: string;
-  userContext: string;
+  userContext: StructuredUserContext;
   fileIds?: string[];
 }
 
@@ -337,4 +352,59 @@ export interface PollSessionResponse {
   currentStage: string | null;
   error: SessionError | null;
   stages: TriageStages;
+}
+
+// --- Project Types ---
+
+export interface InstructionStep {
+  stepNumber: number;
+  instruction: string;
+  explanation?: string;
+}
+
+export interface ImplementationGuide {
+  materials: string[];
+  steps: InstructionStep[];
+  estimatedTime: string;
+  safetyWarnings: string[];
+}
+
+export interface SubmissionResult {
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  points: number;
+  feedback: string;
+  photoKeys: string[];
+  submittedAt: string;
+}
+
+export interface Project {
+  projectId: string;
+  userId: string;
+  sessionId: string;
+  ideaTitle: string;
+  ideaDescription: string;
+  requiredComponents: string[];
+  additionalMaterials: string[];
+  userContext: StructuredUserContext;
+  status: 'in-progress' | 'completed' | 'abandoned';
+  guide?: ImplementationGuide;
+  submission?: SubmissionResult;
+  startedAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectHistoryEntry {
+  projectId: string;
+  ideaTitle: string;
+  startedAt: string;
+  status: 'in-progress' | 'completed' | 'abandoned';
+  grade?: 'A' | 'B' | 'C' | 'D' | 'F';
+  pointsEarned?: number;
+}
+
+export interface ProjectsListResponse {
+  projects: ProjectHistoryEntry[];
+  total: number;
+  limit: number;
+  offset: number;
 }

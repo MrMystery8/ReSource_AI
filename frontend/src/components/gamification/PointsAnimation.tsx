@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export interface PointsAnimationProps {
@@ -7,9 +8,35 @@ export interface PointsAnimationProps {
 }
 
 export function PointsAnimation({ points, visible, onComplete }: PointsAnimationProps) {
+  // forceHidden is set to true by the safety timeout to ensure the animation
+  // always dismisses within 3 seconds even if the exit animation never fires.
+  const [forceHidden, setForceHidden] = useState(false);
+
+  useEffect(() => {
+    if (!visible) {
+      // Reset force-hidden state whenever visible goes false so the next
+      // appearance starts fresh.
+      setForceHidden(false);
+      return;
+    }
+
+    // Start a 3-second safety timeout when the animation becomes visible.
+    const timeoutId = setTimeout(() => {
+      setForceHidden(true);
+      onComplete?.();
+    }, 3000);
+
+    // Clear the timeout on unmount or when visible changes to false.
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [visible, onComplete]);
+
+  const isVisible = visible && !forceHidden;
+
   return (
     <AnimatePresence>
-      {visible && (
+      {isVisible && (
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -198,7 +198,12 @@ function validateAndTransformIdea(
     throw new Error(`Idea ${index}: description must be a non-empty string`);
   }
 
-  // Validate requiredComponents
+  // Validate skillLevel
+  const validSkillLevels = ['Beginner', 'Intermediate', 'Advanced', 'Professional'];
+  if (!validSkillLevels.includes(i.skillLevel as string)) {
+    // Default to 'Beginner' if not provided or invalid
+    i.skillLevel = 'Beginner';
+  }  // Validate requiredComponents
   if (!Array.isArray(i.requiredComponents)) {
     throw new Error(`Idea ${index}: requiredComponents must be an array`);
   }
@@ -253,6 +258,7 @@ function validateAndTransformIdea(
     category: i.category as IdeaCategory,
     title: (i.title as string).trim(),
     description,
+    skillLevel: i.skillLevel as 'Beginner' | 'Intermediate' | 'Advanced' | 'Professional',
     requiredComponents,
     additionalMaterials,
   };

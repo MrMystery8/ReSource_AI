@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { TriageForm, TriageFormData } from '../components/TriageForm';
 import { FileUploader } from '../components/FileUploader';
@@ -8,16 +9,22 @@ import { BadgeUnlockToast } from '../components/gamification/BadgeUnlockToast';
 import { useTriageSession } from '../hooks/useTriageSession';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
-import type { UserStatsResponse, BadgeInfo } from '@resource-ai/shared';
+import type { UserStatsResponse, BadgeInfo, ProjectIdea, ExpertiseLevel, StructuredUserContext } from '@resource-ai/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
 export function TriagePage() {
+  const navigate = useNavigate();
   const [fileIds, setFileIds] = useState<string[]>([]);
   const { submitSession, session, isSubmitting, isPolling, error } =
     useTriageSession();
   const { token } = useAuth();
+
+  // Track the user's expertise level from the most recent form submission
+  const [userExpertise, setUserExpertise] = useState<ExpertiseLevel>('Beginner');
+  // Track the full user context for passing to the guide page
+  const [lastUserContext, setLastUserContext] = useState<StructuredUserContext | null>(null);
 
   // Gamification state
   const [pointsEarned, setPointsEarned] = useState<number>(0);
@@ -37,6 +44,10 @@ export function TriagePage() {
   const handleSubmit = useCallback(
     async (data: TriageFormData) => {
       console.log('[TriagePage] Form submitted:', data);
+
+      // Capture expertise level for use in SecondLifeIdeasSection
+      setUserExpertise(data.userContext.expertiseLevel ?? 'Beginner');
+      setLastUserContext(data.userContext);
 
       // Capture current stats before submission for comparison later
       try {
@@ -136,6 +147,22 @@ export function TriagePage() {
     setCurrentBadgeIndex((prev) => prev + 1);
   }, []);
 
+  const handleIdeaClick = useCallback(
+    (idea: ProjectIdea) => {
+      navigate('/guide/new', {
+        state: {
+          ideaTitle: idea.title,
+          ideaDescription: idea.description,
+          requiredComponents: idea.requiredComponents,
+          additionalMaterials: idea.additionalMaterials,
+          userContext: lastUserContext,
+          sessionId: session?.sessionId,
+        },
+      });
+    },
+    [navigate, session, lastUserContext]
+  );
+
   const showForm = !session && !isPolling;
 
   return (
@@ -165,7 +192,11 @@ export function TriagePage() {
 
         {(session || isPolling) && (
           <div className="relative" key="results">
-            <ResultsView session={session} />
+            <ResultsView
+              session={session}
+              userExpertise={userExpertise}
+              onIdeaClick={handleIdeaClick}
+            />
 
             {/* Points Animation Overlay */}
             <PointsAnimation

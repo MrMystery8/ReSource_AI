@@ -2,7 +2,7 @@
 // ReSource AI E-Waste Triage - Shared Constants
 // ============================================================
 
-import { PipelineStageConfig } from './types';
+import { PipelineStageConfig, ExpertiseLevel, SkillLevel } from './types';
 
 // --- Pipeline Stage Configuration ---
 
@@ -117,3 +117,26 @@ export const BADGE_DEFINITIONS = [
   { id: 'streak-master', name: 'Streak Master', description: 'Maintain a 4-week streak', icon: '🔥' },
   { id: 'green-champion', name: 'Green Champion', description: '5 Green-risk outcomes', icon: '🌿' },
 ] as const;
+
+// --- Project Grading Constants ---
+
+export const PROJECT_GRADE_POINTS: Record<string, number> = {
+  A: 500,
+  B: 350,
+  C: 200,
+  D: 100,
+  F: 25,
+};
+
+export const EXPERTISE_LEVEL_ORDER: Record<ExpertiseLevel, number> = {
+  Beginner: 1,
+  Intermediate: 2,
+  Expert: 3,
+};
+
+export const IDEA_SKILL_TO_EXPERTISE: Record<SkillLevel, ExpertiseLevel> = {
+  Beginner: 'Beginner',
+  Intermediate: 'Intermediate',
+  Advanced: 'Expert',
+  Professional: 'Expert',
+};

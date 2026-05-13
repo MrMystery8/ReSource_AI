@@ -10,14 +10,19 @@ import {
   Recycle,
   ChevronRight,
   Inbox,
+  FolderOpen,
+  ClipboardList,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
-import type { SessionSummary } from '@resource-ai/shared';
+import { ProjectHistoryTab } from '../components/ProjectHistoryTab';
+import type { SessionSummary, ProjectHistoryEntry } from '@resource-ai/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 const PAGE_SIZE = 10;
+
+type ActiveTab = 'projects' | 'triage';
 
 /** Format a date string into a human-readable relative or absolute format */
 function formatDate(dateStr: string): string {
@@ -93,8 +98,13 @@ function StatusIndicator({ status }: { status: SessionSummary['status'] }) {
   }
 }
 
-export function HistoryPage() {
-  const { token } = useAuth();
+// ─── Triage Sessions Tab ───────────────────────────────────────────────────
+
+interface TriageSessionsTabProps {
+  token: string | null;
+}
+
+function TriageSessionsTab({ token }: TriageSessionsTabProps) {
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,9 +116,7 @@ export function HistoryPage() {
   const fetchSessions = useCallback(
     async (offset: number, append: boolean) => {
       if (!token) return;
-
       const client = new ApiClient(API_URL, API_KEY, () => token);
-
       try {
         const data = await client.getUserSessions(PAGE_SIZE, offset);
         if (append) {
@@ -127,7 +135,6 @@ export function HistoryPage() {
     [token]
   );
 
-  // Initial load
   useEffect(() => {
     setIsLoading(true);
     fetchSessions(0, false).finally(() => setIsLoading(false));
@@ -139,10 +146,9 @@ export function HistoryPage() {
     setIsLoadingMore(false);
   };
 
-  // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[40vh]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
           <p className="text-text-secondary text-sm">Loading sessions...</p>
@@ -151,10 +157,9 @@ export function HistoryPage() {
     );
   }
 
-  // Error state
   if (error && sessions.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[40vh]">
         <div className="glass-card p-8 w-full max-w-md text-center">
           <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Unable to load history</h2>
@@ -174,14 +179,13 @@ export function HistoryPage() {
     );
   }
 
-  // Empty state
   if (sessions.length === 0 && !error) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex items-center justify-center min-h-[60vh]"
+        className="flex items-center justify-center min-h-[40vh]"
       >
         <div className="glass-card p-10 w-full max-w-md text-center">
           <motion.div
@@ -208,22 +212,12 @@ export function HistoryPage() {
     );
   }
 
-  // Sessions list
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-3xl mx-auto"
     >
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Session History</h1>
-        <p className="text-text-secondary text-sm mt-1">
-          {total} session{total !== 1 ? 's' : ''} total
-        </p>
-      </div>
-
       {/* Error banner (for load-more errors) */}
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
@@ -264,7 +258,8 @@ export function HistoryPage() {
                   <div className="flex items-center gap-3 text-sm">
                     {session.salvageScore !== null && (
                       <span className="text-text-secondary">
-                        Salvage: <span className="text-white font-medium">{session.salvageScore}%</span>
+                        Salvage:{' '}
+                        <span className="text-white font-medium">{session.salvageScore}%</span>
                       </span>
                     )}
                     <span className="inline-flex items-center gap-1 text-text-muted">
@@ -303,6 +298,185 @@ export function HistoryPage() {
             )}
           </button>
         </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ─── Projects Tab ─────────────────────────────────────────────────────────
+
+interface ProjectsTabContainerProps {
+  token: string | null;
+}
+
+function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
+  const [projects, setProjects] = useState<ProjectHistoryEntry[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProjects = useCallback(
+    async (offset: number, append: boolean) => {
+      if (!token) return;
+      const client = new ApiClient(API_URL, API_KEY, () => token);
+      try {
+        const data = await client.getProjects(PAGE_SIZE, offset);
+        if (append) {
+          setProjects((prev) => [...prev, ...data.projects]);
+        } else {
+          setProjects(data.projects);
+        }
+        setTotal(data.total);
+        setError(null);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to load projects';
+        setError(message);
+      }
+    },
+    [token]
+  );
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchProjects(0, false).finally(() => setIsLoading(false));
+  }, [fetchProjects]);
+
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true);
+    await fetchProjects(projects.length, true);
+    setIsLoadingMore(false);
+  };
+
+  const handleAbandon = async (projectId: string) => {
+    if (!token) return;
+    const client = new ApiClient(API_URL, API_KEY, () => token);
+    try {
+      await client.updateProject(projectId, 'abandon');
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.projectId === projectId ? { ...p, status: 'abandoned' as const } : p
+        )
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to abandon project';
+      setError(message);
+    }
+  };
+
+  const handleDelete = async (projectId: string) => {
+    if (!token) return;
+    const client = new ApiClient(API_URL, API_KEY, () => token);
+    try {
+      await client.updateProject(projectId, 'delete');
+      setProjects((prev) => prev.filter((p) => p.projectId !== projectId));
+      setTotal((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete project';
+      setError(message);
+    }
+  };
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setError(null);
+    fetchProjects(0, false).finally(() => setIsLoading(false));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+          <p className="text-text-secondary text-sm">Loading projects...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <ProjectHistoryTab
+        projects={projects}
+        totalCount={total}
+        onLoadMore={handleLoadMore}
+        onNavigate={() => {
+          // Navigation is handled inside ProjectHistoryTab via useNavigate
+        }}
+        onAbandon={handleAbandon}
+        onDelete={handleDelete}
+        isLoadingMore={isLoadingMore}
+        error={error}
+        onRetry={handleRetry}
+      />
+    </motion.div>
+  );
+}
+
+// ─── HistoryPage ──────────────────────────────────────────────────────────
+
+export function HistoryPage() {
+  const { token } = useAuth();
+  const [activeTab, setActiveTab] = useState<ActiveTab>('projects');
+
+  const tabs: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
+    {
+      id: 'projects',
+      label: 'Projects',
+      icon: <FolderOpen className="w-4 h-4" />,
+    },
+    {
+      id: 'triage',
+      label: 'Triage Sessions',
+      icon: <ClipboardList className="w-4 h-4" />,
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-3xl mx-auto"
+    >
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white">History</h1>
+        <p className="text-text-secondary text-sm mt-1">
+          Track your recycling projects and triage sessions
+        </p>
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex gap-1 p-1 rounded-xl bg-surface-elevated/40 border border-border-subtle mb-6">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              activeTab === tab.id
+                ? 'bg-primary-600 text-white shadow-sm'
+                : 'text-text-secondary hover:text-white hover:bg-surface-elevated/60'
+            }`}
+            aria-selected={activeTab === tab.id}
+            role="tab"
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'projects' ? (
+        <ProjectsTabContainer token={token} />
+      ) : (
+        <TriageSessionsTab token={token} />
       )}
     </motion.div>
   );

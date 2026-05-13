@@ -9,7 +9,7 @@ import {
   BEDROCK_RETRY_DELAY_MS,
 } from '@resource-ai/shared';
 
-const DEFAULT_TEXT_MODEL = 'apac.amazon.nova-pro-v1:0';
+const DEFAULT_TEXT_MODEL = 'us.anthropic.claude-sonnet-4-5-20251101-v1:0';
 const DEFAULT_IMAGE_MODEL = 'amazon.titan-image-generator-v1';
 
 function isTransientError(error: unknown): boolean {
@@ -43,20 +43,18 @@ export class BedrockClient {
     modelId: string = DEFAULT_TEXT_MODEL
   ): Promise<string> {
     const body = JSON.stringify({
-      schemaVersion: 'messages-v1',
-      messages: [{ role: 'user', content: [{ text: prompt }] }],
-      inferenceConfig: {
-        maxTokens: 4096,
-        topP: 0.9,
-        temperature: 0.7,
-      },
+      anthropic_version: 'bedrock-2023-05-31',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 4096,
+      top_p: 0.9,
+      temperature: 0.7,
     });
 
     const responseBody = await this.invokeWithRetry(modelId, body);
     const parsed = JSON.parse(responseBody);
 
-    // Nova response format: { output: { message: { content: [{ text: "..." }] } } }
-    const textContent = parsed.output?.message?.content?.[0]?.text;
+    // Anthropic Messages API response format: { content: [{ type: "text", text: "..." }] }
+    const textContent = parsed.content?.[0]?.text;
     if (typeof textContent !== 'string') {
       throw new Error('Unexpected text model response format');
     }

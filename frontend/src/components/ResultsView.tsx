@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import type {
   PollSessionResponse,
@@ -8,6 +9,8 @@ import type {
   NextStepsOutput,
   ReusablePartsMapOutput,
   ImpactCardOutput,
+  ExpertiseLevel,
+  ProjectIdea,
 } from '@resource-ai/shared';
 import { ProgressIndicator } from './ProgressIndicator';
 import { PartsMapTable } from './PartsMapTable';
@@ -17,12 +20,14 @@ import { SkeletonStage } from './SkeletonStage';
 import { QuickVerdictCard } from './stages/QuickVerdictCard';
 import { SafetyGateCard } from './stages/SafetyGateCard';
 import { DetailedAnalysisCard } from './stages/DetailedAnalysisCard';
-import { SecondLifeIdeasCard } from './stages/SecondLifeIdeasCard';
 import { NextStepsCard } from './stages/NextStepsCard';
+import { SecondLifeIdeasSection } from './SecondLifeIdeasSection';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export interface ResultsViewProps {
   session: PollSessionResponse | null;
+  userExpertise?: ExpertiseLevel;
+  onIdeaClick?: (idea: ProjectIdea) => void;
 }
 
 const STAGE_NAMES: Record<string, string> = {
@@ -54,7 +59,33 @@ const fadeInUp = {
   transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
 };
 
-export function ResultsView({ session }: ResultsViewProps) {
+export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick }: ResultsViewProps) {
+  const [isReloading, setIsReloading] = useState(false);
+  const [reloadError, setReloadError] = useState<string | null>(null);
+  const [reloadedIdeas, setReloadedIdeas] = useState<ProjectIdea[] | null>(null);
+
+  const handleReload = async () => {
+    setIsReloading(true);
+    setReloadError(null);
+    try {
+      // No dedicated reload endpoint exists yet — show a friendly message
+      // and retain the current ideas.
+      await new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error('Reload not yet available')), 100)
+      );
+    } catch (err) {
+      setReloadError(
+        err instanceof Error ? err.message : 'Could not reload ideas. Please try again.'
+      );
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
+  const handleIdeaClick = (idea: ProjectIdea) => {
+    onIdeaClick?.(idea);
+  };
+
   console.log('[ResultsView] session:', session);
   console.log('[ResultsView] session status:', session?.status);
   console.log('[ResultsView] session stages:', session?.stages);
@@ -203,7 +234,18 @@ export function ResultsView({ session }: ResultsViewProps) {
             transition={{ duration: 0.4, delay: index * 0.05 }}
             aria-label={STAGE_NAMES[key]}
           >
-            {renderStage(key, stageData)}
+            {key === 'secondLifeIdeas'
+              ? (
+                <SecondLifeIdeasSection
+                  ideas={reloadedIdeas ?? (stageData as SecondLifeIdeasOutput).ideas}
+                  userExpertise={userExpertise}
+                  onIdeaClick={handleIdeaClick}
+                  onReload={handleReload}
+                  isReloading={isReloading}
+                  reloadError={reloadError}
+                />
+              )
+              : renderStage(key, stageData)}
           </motion.section>
         );
       })}
@@ -241,7 +283,8 @@ function renderStage(key: string, data: unknown): React.ReactNode {
       case 'reusablePartsMap':
         return <PartsMapTable data={data as ReusablePartsMapOutput} />;
       case 'secondLifeIdeas':
-        return <SecondLifeIdeasCard data={data as SecondLifeIdeasOutput} />;
+        // Handled inline in the render loop above (uses SecondLifeIdeasSection)
+        return null;
       case 'nextSteps':
         return <NextStepsCard data={data as NextStepsOutput} />;
       case 'impactCard':

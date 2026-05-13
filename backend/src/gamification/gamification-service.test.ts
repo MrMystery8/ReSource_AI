@@ -5,9 +5,16 @@ import {
   calculateLevel,
   UserStats,
 } from './gamification-service';
-import { TriageSession } from '@resource-ai/shared';
+import { TriageSession, StructuredUserContext } from '@resource-ai/shared';
 
 // --- Test Helpers ---
+
+const DEFAULT_USER_CONTEXT: StructuredUserContext = {
+  expertiseLevel: 'Beginner',
+  motivation: 'Learn Something New',
+  materialAvailability: 'Basic Household Tools',
+  timeCommitment: 'Under 1 Hour',
+};
 
 function makeSession(overrides: Partial<TriageSession> = {}): TriageSession {
   return {
@@ -19,7 +26,7 @@ function makeSession(overrides: Partial<TriageSession> = {}): TriageSession {
     inputs: {
       deviceIdentity: 'Old laptop',
       failureSymptoms: 'Screen broken',
-      userContext: 'Want to recycle',
+      userContext: DEFAULT_USER_CONTEXT,
       fileIds: [],
     },
     stages: {
@@ -68,7 +75,7 @@ describe('awardSessionPoints', () => {
       inputs: {
         deviceIdentity: 'Laptop',
         failureSymptoms: 'Broken',
-        userContext: 'Recycle',
+        userContext: DEFAULT_USER_CONTEXT,
         fileIds: ['file-1'],
       },
     });
@@ -102,13 +109,13 @@ describe('awardSessionPoints', () => {
     expect(result.total).toBe(150);
   });
 
-  it('awards +25 detailed input bonus when all 3 text fields > 200 chars', () => {
+  it('awards +25 detailed input bonus when all 3 text fields > 200 chars and userContext is complete', () => {
     const longText = 'a'.repeat(201);
     const session = makeSession({
       inputs: {
         deviceIdentity: longText,
         failureSymptoms: longText,
-        userContext: longText,
+        userContext: DEFAULT_USER_CONTEXT,
         fileIds: [],
       },
     });
@@ -117,13 +124,13 @@ describe('awardSessionPoints', () => {
     expect(result.total).toBe(125);
   });
 
-  it('does not award detailed input bonus if only 2 fields > 200 chars', () => {
+  it('does not award detailed input bonus if only 2 text fields > 200 chars', () => {
     const longText = 'a'.repeat(201);
     const session = makeSession({
       inputs: {
         deviceIdentity: longText,
-        failureSymptoms: longText,
-        userContext: 'short',
+        failureSymptoms: 'short',
+        userContext: DEFAULT_USER_CONTEXT,
         fileIds: [],
       },
     });
@@ -137,7 +144,7 @@ describe('awardSessionPoints', () => {
       inputs: {
         deviceIdentity: longText,
         failureSymptoms: longText,
-        userContext: longText,
+        userContext: DEFAULT_USER_CONTEXT,
         fileIds: ['photo-1'],
       },
       stages: {

@@ -52,14 +52,13 @@ export function validateCreateSessionRequest(body: unknown): CreateSessionReques
 
   const obj = body as Record<string, unknown>;
 
-  // Validate required string fields
-  const requiredFields: Array<keyof Pick<CreateSessionRequest, 'deviceIdentity' | 'failureSymptoms' | 'userContext'>> = [
+  // Validate required string fields (deviceIdentity, failureSymptoms)
+  const requiredStringFields: Array<keyof Pick<CreateSessionRequest, 'deviceIdentity' | 'failureSymptoms'>> = [
     'deviceIdentity',
     'failureSymptoms',
-    'userContext',
   ];
 
-  for (const field of requiredFields) {
+  for (const field of requiredStringFields) {
     const value = obj[field];
 
     if (value === undefined || value === null) {
@@ -82,6 +81,36 @@ export function validateCreateSessionRequest(body: unknown): CreateSessionReques
     }
   }
 
+  // Validate structured userContext object
+  const userContextRaw = obj.userContext;
+  if (userContextRaw === undefined || userContextRaw === null) {
+    throw new ValidationError('userContext', 'userContext is required');
+  }
+  if (typeof userContextRaw !== 'object' || Array.isArray(userContextRaw)) {
+    throw new ValidationError('userContext', 'userContext must be an object');
+  }
+  const ctx = userContextRaw as Record<string, unknown>;
+
+  const validExpertiseLevels = ['Beginner', 'Intermediate', 'Expert'];
+  if (!validExpertiseLevels.includes(ctx.expertiseLevel as string)) {
+    throw new ValidationError('userContext.expertiseLevel', `expertiseLevel must be one of: ${validExpertiseLevels.join(', ')}`);
+  }
+
+  const validMotivations = ['Learn Something New', 'Environmental Impact', 'Save Money', 'Creative Project'];
+  if (!validMotivations.includes(ctx.motivation as string)) {
+    throw new ValidationError('userContext.motivation', `motivation must be one of: ${validMotivations.join(', ')}`);
+  }
+
+  const validMaterialAvailability = ['Basic Household Tools', 'Some Electronics Tools', 'Full Workshop'];
+  if (!validMaterialAvailability.includes(ctx.materialAvailability as string)) {
+    throw new ValidationError('userContext.materialAvailability', `materialAvailability must be one of: ${validMaterialAvailability.join(', ')}`);
+  }
+
+  const validTimeCommitments = ['Under 1 Hour', '1-3 Hours', 'Half Day', 'Multi-Day Project'];
+  if (!validTimeCommitments.includes(ctx.timeCommitment as string)) {
+    throw new ValidationError('userContext.timeCommitment', `timeCommitment must be one of: ${validTimeCommitments.join(', ')}`);
+  }
+
   // Validate optional fileIds
   if (obj.fileIds !== undefined && obj.fileIds !== null) {
     if (!Array.isArray(obj.fileIds)) {
@@ -98,7 +127,7 @@ export function validateCreateSessionRequest(body: unknown): CreateSessionReques
   return {
     deviceIdentity: obj.deviceIdentity as string,
     failureSymptoms: obj.failureSymptoms as string,
-    userContext: obj.userContext as string,
+    userContext: obj.userContext as import('@resource-ai/shared').StructuredUserContext,
     fileIds: obj.fileIds as string[] | undefined,
   };
 }

@@ -65,7 +65,7 @@ function hasDetailedInput(session: TriageSession): boolean {
   return (
     deviceIdentity.length > 200 &&
     failureSymptoms.length > 200 &&
-    userContext.length > 200
+    userContext.expertiseLevel != null
   );
 }
 

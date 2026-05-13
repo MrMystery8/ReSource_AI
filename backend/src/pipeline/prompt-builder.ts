@@ -38,10 +38,15 @@ Limit your response to 350 words maximum.`,
 Include 6-10 rows with columns: Part/Resource, Likely Presence (Confirmed/Probable/Uncertain), Reuse Value (High/Medium/Low/None), Possible Use, Skill Needed (Beginner/Intermediate/Advanced/Professional), Safety Concern, and Verdict (Salvage/Conditional/Do Not Access).
 Skill Needed must not exceed the user's stated skill level for any row with Verdict "Salvage".`,
 
-  secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 3 Safe Second Life Ideas.
+  secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 3 Safe Second Life Ideas tailored to the user's stated context.
 Categories: beginner, STEM/learning, and practical/creative.
 Each idea must include: project title, brief description (max 90 words), required components from the device, and additional materials needed.
-Only reference components identified in the Reusable Parts Map. Default to beginner-level if no skill level is stated.`,
+Only reference components identified in the Reusable Parts Map. Default to beginner-level if no skill level is stated.
+IMPORTANT: Tailor all ideas to the user's expertise level, motivation, material availability, and time commitment provided in the User Inputs section.
+- Expertise Level: match idea complexity so it does not exceed the user's stated expertise level
+- Motivation: prioritise ideas that align with the user's stated motivation
+- Material Availability: only suggest ideas achievable with the user's available tools and workspace
+- Time Commitment: only suggest ideas completable within the user's stated time commitment`,
 
   nextSteps: `You are a safe recovery advisor. Produce Safe Next Steps and Recovery Route.
 Provide: safe first actions (3-5 ordered steps), parts to keep, parts to avoid, overall recommendation, trash warnings, local recovery note, and hazard warnings referencing the Safety Gate hazard list.
@@ -241,7 +246,11 @@ export class PromptBuilder {
     return `## User Inputs
 Device Identity: ${deviceIdentity}
 Failure Symptoms: ${failureSymptoms}
-User Context: ${userContext}
+User Context:
+  - Expertise Level: ${userContext.expertiseLevel}
+  - Motivation: ${userContext.motivation}
+  - Material Availability: ${userContext.materialAvailability}
+  - Time Commitment: ${userContext.timeCommitment}
 Files Provided: ${fileIds.length} file(s)`;
   }
 

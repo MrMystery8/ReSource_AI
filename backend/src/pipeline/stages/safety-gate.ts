@@ -133,7 +133,7 @@ function applyConservativeEscalation(
   const hasShortInput =
     session.inputs.deviceIdentity.length < MIN_EVIDENCE_CHAR_THRESHOLD ||
     session.inputs.failureSymptoms.length < MIN_EVIDENCE_CHAR_THRESHOLD ||
-    session.inputs.userContext.length < MIN_EVIDENCE_CHAR_THRESHOLD;
+    !session.inputs.userContext.expertiseLevel;
 
   // Only escalate if evidence is incomplete: no files AND short text inputs
   if (!hasFiles && hasShortInput) {
