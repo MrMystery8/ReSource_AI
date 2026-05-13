@@ -14,7 +14,10 @@ export async function submitSession(
   apiKey: string,
   data: CreateSessionRequest
 ): Promise<string> {
-  const response = await fetch(`${apiUrl}/sessions`, {
+  const url = `${apiUrl}/sessions`;
+  console.log('[API] POST', url, data);
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -23,18 +26,22 @@ export async function submitSession(
     body: JSON.stringify(data),
   });
 
+  console.log('[API] POST response status:', response.status);
+
   if (!response.ok) {
     let message = `Submission failed (${response.status})`;
     try {
       const errorBody: ErrorResponse = await response.json();
       message = errorBody.error.message;
+      console.error('[API] POST error body:', errorBody);
     } catch {
-      // Use default message if response body isn't parseable
+      console.error('[API] POST error - could not parse response body');
     }
     throw new Error(message);
   }
 
   const result: CreateSessionResponse = await response.json();
+  console.log('[API] POST success, sessionId:', result.sessionId);
   return result.sessionId;
 }
 
@@ -47,24 +54,37 @@ export async function pollSession(
   apiKey: string,
   sessionId: string
 ): Promise<PollSessionResponse> {
-  const response = await fetch(`${apiUrl}/sessions/${sessionId}`, {
+  const url = `${apiUrl}/sessions/${sessionId}`;
+  console.log('[API] GET', url);
+
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       'x-api-key': apiKey,
     },
   });
 
+  console.log('[API] GET response status:', response.status);
+
   if (!response.ok) {
     let message = `Polling failed (${response.status})`;
     try {
       const errorBody: ErrorResponse = await response.json();
       message = errorBody.error.message;
+      console.error('[API] GET error body:', errorBody);
     } catch {
-      // Use default message if response body isn't parseable
+      console.error('[API] GET error - could not parse response body');
     }
     throw new Error(message);
   }
 
   const result: PollSessionResponse = await response.json();
+  console.log('[API] GET success:', {
+    status: result.status,
+    currentStage: result.currentStage,
+    stagesWithData: Object.entries(result.stages)
+      .filter(([, v]) => v != null)
+      .map(([k]) => k),
+  });
   return result;
 }

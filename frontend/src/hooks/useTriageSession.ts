@@ -33,6 +33,7 @@ export function useTriageSession(
   const sessionIdRef = useRef<string | null>(null);
 
   const stopPolling = useCallback(() => {
+    console.log('[useTriageSession] Stopping polling');
     if (pollingIntervalRef.current !== null) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
@@ -42,20 +43,32 @@ export function useTriageSession(
 
   const startPolling = useCallback(
     (sessionId: string) => {
+      console.log('[useTriageSession] Starting polling for session:', sessionId);
       sessionIdRef.current = sessionId;
       setIsPolling(true);
 
       const poll = async () => {
         try {
+          console.log('[useTriageSession] Polling session:', sessionId);
           const result = await pollSession(apiUrl, apiKey, sessionId);
+          console.log('[useTriageSession] Poll result:', {
+            status: result.status,
+            currentStage: result.currentStage,
+            stagesCompleted: Object.keys(result.stages).filter(
+              (k) => result.stages[k as keyof typeof result.stages] != null
+            ),
+            error: result.error,
+          });
           setSession(result);
 
           if (result.status === 'complete' || result.status === 'failed') {
+            console.log('[useTriageSession] Session finished with status:', result.status);
             stopPolling();
           }
         } catch (err) {
           const message =
             err instanceof Error ? err.message : 'An error occurred while polling';
+          console.error('[useTriageSession] Polling error:', err);
           setError(message);
           stopPolling();
         }
@@ -70,6 +83,7 @@ export function useTriageSession(
 
   const handleSubmitSession = useCallback(
     async (data: CreateSessionRequest, fileIds: string[]) => {
+      console.log('[useTriageSession] Submitting session:', { data, fileIds });
       setError(null);
       setSession(null);
       setIsSubmitting(true);
@@ -82,10 +96,12 @@ export function useTriageSession(
         };
 
         const sessionId = await submitSession(apiUrl, apiKey, requestData);
+        console.log('[useTriageSession] Session created:', sessionId);
         startPolling(sessionId);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'An error occurred during submission';
+        console.error('[useTriageSession] Submit error:', err);
         setError(message);
       } finally {
         setIsSubmitting(false);
