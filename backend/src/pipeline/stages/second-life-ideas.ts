@@ -31,6 +31,7 @@ For each idea, provide:
 - category: one of "beginner", "stem-learning", or "practical-creative"
 - title: a short, descriptive project title
 - description: a brief description of the project (MAXIMUM ${MAX_SECOND_LIFE_IDEA_WORDS} words)
+- skillLevel: one of "Beginner", "Intermediate", "Advanced", or "Professional" — this MUST reflect the actual difficulty and MUST NOT exceed the user's stated expertise level
 - requiredComponents: an array of component names from the device needed for this project
 - additionalMaterials: an array of additional materials or tools needed beyond the device components
 
@@ -41,6 +42,7 @@ RISK LEVEL CONSTRAINTS:
 
 SKILL LEVEL CONSTRAINTS:
 - All projects MUST be achievable within the user's stated skill level and available tools.
+- The skillLevel field for EVERY idea MUST NOT exceed the user's stated expertise level.
 - If no skill level is stated in the user context, default to beginner-level projects requiring only basic household tools.
 
 COMPONENT CONSTRAINTS:

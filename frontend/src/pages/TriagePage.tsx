@@ -25,6 +25,13 @@ export function TriagePage() {
   const [userExpertise, setUserExpertise] = useState<ExpertiseLevel>('Beginner');
   // Track the full user context for passing to the guide page
   const [lastUserContext, setLastUserContext] = useState<StructuredUserContext | null>(null);
+  // Track the full session inputs for reload functionality
+  const [lastSessionInputs, setLastSessionInputs] = useState<{
+    deviceIdentity: string;
+    failureSymptoms: string;
+    userContext: StructuredUserContext;
+    fileIds?: string[];
+  } | null>(null);
 
   // Gamification state
   const [pointsEarned, setPointsEarned] = useState<number>(0);
@@ -48,6 +55,12 @@ export function TriagePage() {
       // Capture expertise level for use in SecondLifeIdeasSection
       setUserExpertise(data.userContext.expertiseLevel ?? 'Beginner');
       setLastUserContext(data.userContext);
+      setLastSessionInputs({
+        deviceIdentity: data.deviceIdentity,
+        failureSymptoms: data.failureSymptoms,
+        userContext: data.userContext,
+        fileIds: fileIds.length > 0 ? fileIds : undefined,
+      });
 
       // Capture current stats before submission for comparison later
       try {
@@ -196,6 +209,7 @@ export function TriagePage() {
               session={session}
               userExpertise={userExpertise}
               onIdeaClick={handleIdeaClick}
+              sessionInputs={lastSessionInputs ?? undefined}
             />
 
             {/* Points Animation Overlay */}

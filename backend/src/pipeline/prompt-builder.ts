@@ -40,10 +40,11 @@ Skill Needed must not exceed the user's stated skill level for any row with Verd
 
   secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 3 Safe Second Life Ideas tailored to the user's stated context.
 Categories: beginner, STEM/learning, and practical/creative.
-Each idea must include: project title, brief description (max 90 words), required components from the device, and additional materials needed.
+Each idea must include: project title, brief description (max 90 words), skillLevel, required components from the device, and additional materials needed.
 Only reference components identified in the Reusable Parts Map. Default to beginner-level if no skill level is stated.
 IMPORTANT: Tailor all ideas to the user's expertise level, motivation, material availability, and time commitment provided in the User Inputs section.
-- Expertise Level: match idea complexity so it does not exceed the user's stated expertise level
+- Expertise Level: ALL ideas MUST have a skillLevel that does NOT exceed the user's stated expertise level. For example, if the user is "Beginner", all ideas must have skillLevel "Beginner". If "Intermediate", ideas can be "Beginner" or "Intermediate". If "Expert", ideas can be any level.
+- skillLevel field: MUST be one of "Beginner", "Intermediate", "Advanced", or "Professional" and must reflect the actual difficulty of the project
 - Motivation: prioritise ideas that align with the user's stated motivation
 - Material Availability: only suggest ideas achievable with the user's available tools and workspace
 - Time Commitment: only suggest ideas completable within the user's stated time commitment`,
@@ -116,6 +117,7 @@ const OUTPUT_SCHEMAS: Record<StageKey, string> = {
       category: 'beginner | stem-learning | practical-creative',
       title: 'string',
       description: 'string (max 90 words)',
+      skillLevel: 'Beginner | Intermediate | Advanced | Professional',
       requiredComponents: ['string'],
       additionalMaterials: ['string'],
     }],

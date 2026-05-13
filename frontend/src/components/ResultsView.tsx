@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type {
   PollSessionResponse,
@@ -11,6 +11,7 @@ import type {
   ImpactCardOutput,
   ExpertiseLevel,
   ProjectIdea,
+  StructuredUserContext,
 } from '@resource-ai/shared';
 import { ProgressIndicator } from './ProgressIndicator';
 import { PartsMapTable } from './PartsMapTable';
@@ -23,11 +24,24 @@ import { DetailedAnalysisCard } from './stages/DetailedAnalysisCard';
 import { NextStepsCard } from './stages/NextStepsCard';
 import { SecondLifeIdeasSection } from './SecondLifeIdeasSection';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { ApiClient } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+
+const API_URL = import.meta.env.VITE_API_URL ?? '';
+const API_KEY = import.meta.env.VITE_API_KEY ?? '';
+const RELOAD_POLL_INTERVAL_MS = 2000;
+const RELOAD_POLL_MAX_ATTEMPTS = 30;
 
 export interface ResultsViewProps {
   session: PollSessionResponse | null;
   userExpertise?: ExpertiseLevel;
   onIdeaClick?: (idea: ProjectIdea) => void;
+  sessionInputs?: {
+    deviceIdentity: string;
+    failureSymptoms: string;
+    userContext: StructuredUserContext;
+    fileIds?: string[];
+  };
 }
 
 const STAGE_NAMES: Record<string, string> = {
@@ -59,37 +73,73 @@ const fadeInUp = {
   transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
 };
 
-export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick }: ResultsViewProps) {
+export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, sessionInputs }: ResultsViewProps) {
+  const { token } = useAuth();
   const [isReloading, setIsReloading] = useState(false);
   const [reloadError, setReloadError] = useState<string | null>(null);
   const [reloadedIdeas, setReloadedIdeas] = useState<ProjectIdea[] | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const handleReload = async () => {
+  const handleReload = useCallback(async () => {
+    if (!sessionInputs) {
+      setReloadError('Session data not available for reload. Please submit a new analysis.');
+      return;
+    }
+
     setIsReloading(true);
     setReloadError(null);
+
     try {
-      // No dedicated reload endpoint exists yet — show a friendly message
-      // and retain the current ideas.
-      await new Promise<void>((_, reject) =>
-        setTimeout(() => reject(new Error('Reload not yet available')), 100)
-      );
+      const apiClient = new ApiClient(API_URL, API_KEY, () => token);
+      const newSessionId = await apiClient.reloadIdeas({
+        deviceIdentity: sessionInputs.deviceIdentity,
+        failureSymptoms: sessionInputs.failureSymptoms,
+        userContext: sessionInputs.userContext,
+        fileIds: sessionInputs.fileIds,
+      });
+
+      // Poll the new session until secondLifeIdeas stage is complete
+      let attempts = 0;
+      pollingRef.current = setInterval(async () => {
+        attempts++;
+        try {
+          const result = await apiClient.pollSession(newSessionId);
+
+          if (result.stages.secondLifeIdeas) {
+            // Got new ideas — update state and stop polling
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            pollingRef.current = null;
+            setReloadedIdeas((result.stages.secondLifeIdeas as SecondLifeIdeasOutput).ideas);
+            setIsReloading(false);
+          } else if (result.status === 'failed') {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            pollingRef.current = null;
+            setReloadError('Failed to generate new ideas. Please try again.');
+            setIsReloading(false);
+          } else if (attempts >= RELOAD_POLL_MAX_ATTEMPTS) {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            pollingRef.current = null;
+            setReloadError('Reload timed out. Please try again.');
+            setIsReloading(false);
+          }
+        } catch {
+          if (pollingRef.current) clearInterval(pollingRef.current);
+          pollingRef.current = null;
+          setReloadError('Could not reload ideas. Please try again.');
+          setIsReloading(false);
+        }
+      }, RELOAD_POLL_INTERVAL_MS);
     } catch (err) {
       setReloadError(
         err instanceof Error ? err.message : 'Could not reload ideas. Please try again.'
       );
-    } finally {
       setIsReloading(false);
     }
-  };
+  }, [sessionInputs, token]);
 
   const handleIdeaClick = (idea: ProjectIdea) => {
     onIdeaClick?.(idea);
   };
-
-  console.log('[ResultsView] session:', session);
-  console.log('[ResultsView] session status:', session?.status);
-  console.log('[ResultsView] session stages:', session?.stages);
-  console.log('[ResultsView] current stage:', session?.currentStage);
 
   // No session yet — show full skeleton loading state
   if (!session) {
