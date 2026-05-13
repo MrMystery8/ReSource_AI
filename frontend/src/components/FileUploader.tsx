@@ -36,11 +36,12 @@ export interface UploadedFile {
 export interface FileUploaderProps {
   apiUrl: string;
   apiKey: string;
+  authToken?: string | null;
   sessionId?: string;
   onFilesUploaded: (fileIds: string[]) => void;
 }
 
-export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: FileUploaderProps) {
+export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUploaded }: FileUploaderProps) {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -83,6 +84,7 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
         'Content-Type': file.type || 'application/octet-stream',
         'x-api-key': apiKey,
       };
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
       if (sessionId) headers['x-session-id'] = sessionId;
 
       const response = await fetch(`${apiUrl}/upload`, {
@@ -149,7 +151,7 @@ export function FileUploader({ apiUrl, apiKey, sessionId, onFilesUploaded }: Fil
         await uploadFile(validFiles[i], newFileEntries[i].id);
       }
     },
-    [totalFiles, apiUrl, apiKey, sessionId, onFilesUploaded]
+    [totalFiles, apiUrl, apiKey, authToken, sessionId, onFilesUploaded]
   );
 
   const handleFileChange = useCallback(

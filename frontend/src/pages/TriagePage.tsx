@@ -156,6 +156,7 @@ export function TriagePage() {
               <FileUploader
                 apiUrl={API_URL}
                 apiKey={API_KEY}
+                authToken={token}
                 onFilesUploaded={handleFilesUploaded}
               />
             }
