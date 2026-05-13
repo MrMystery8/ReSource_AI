@@ -83,7 +83,7 @@ describe('Lambda Authorizer', () => {
       const stmt = getStatement(result);
 
       expect(stmt.Resource).toBe(
-        'arn:aws:execute-api:us-east-1:123456789:apiid/prod/GET/*/*'
+        'arn:aws:execute-api:us-east-1:123456789:apiid/prod/*/*'
       );
     });
   });

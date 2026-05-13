@@ -17,6 +17,8 @@ export async function handler(
 
   try {
     const decoded = verifyToken(token);
+    const arnParts = event.methodArn.split('/');
+    const apiStageArn = arnParts.slice(0, 2).join('/');
 
     return {
       principalId: decoded.userId,
@@ -26,7 +28,7 @@ export async function handler(
           {
             Action: 'execute-api:Invoke',
             Effect: 'Allow',
-            Resource: event.methodArn.replace(/\/[^/]+\/[^/]+$/, '/*/*'),
+            Resource: `${apiStageArn}/*/*`,
           },
         ],
       },
