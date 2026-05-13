@@ -1,29 +1,21 @@
 import { Context } from 'aws-lambda';
 import { SessionStore } from '../session-store';
+import { StageExecutor } from '../pipeline/stage-executor';
+import { PromptBuilder } from '../pipeline/prompt-builder';
+import { BedrockClient } from '../bedrock-client';
 import {
   PIPELINE_STAGES,
   PIPELINE_TIMEOUT_MS,
-  PipelineStageConfig,
   StageKey,
-  TriageSession,
 } from '@resource-ai/shared';
 
 const sessionStore = new SessionStore();
+const bedrockClient = new BedrockClient();
+const promptBuilder = new PromptBuilder();
+const stageExecutor = new StageExecutor(bedrockClient, promptBuilder);
 
 interface PipelineEvent {
   sessionId: string;
-}
-
-/**
- * Placeholder stage executor stub.
- * Will be replaced by the StageExecutor implementation in Task 7.5.
- */
-async function executeStage(
-  _stage: PipelineStageConfig,
-  _session: TriageSession,
-  _remainingTimeMs: number
-): Promise<unknown> {
-  return null;
 }
 
 /**
@@ -52,6 +44,7 @@ export const handler = async (event: PipelineEvent, context: Context): Promise<v
   }
 
   const startTime = Date.now();
+  const accumulatedOutputs: Record<string, unknown> = {};
 
   for (const stage of PIPELINE_STAGES) {
     const elapsed = Date.now() - startTime;
@@ -63,10 +56,9 @@ export const handler = async (event: PipelineEvent, context: Context): Promise<v
       return;
     }
 
-    const remainingTimeMs = PIPELINE_TIMEOUT_MS - elapsed;
-
     try {
-      const result = await executeStage(stage, session, remainingTimeMs);
+      const result = await stageExecutor.execute(stage, session, accumulatedOutputs);
+      accumulatedOutputs[stage.key] = result;
       await sessionStore.updateSessionStage(sessionId, stage.key as StageKey, result);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
