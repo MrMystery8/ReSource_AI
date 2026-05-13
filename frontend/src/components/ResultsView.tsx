@@ -4,14 +4,12 @@ import type {
   SafetyGateOutput,
   ReusablePartsMapOutput,
   ImpactCardOutput,
-  ConceptVisualOutput,
   RiskLevel,
 } from '@resource-ai/shared';
 import { ProgressIndicator } from './ProgressIndicator';
 import { StageCard } from './StageCard';
 import { PartsMapTable } from './PartsMapTable';
 import { ImpactCard } from './ImpactCard';
-import { ConceptImage } from './ConceptImage';
 import { RiskBadge } from './RiskBadge';
 import './ResultsView.css';
 
@@ -27,7 +25,6 @@ const STAGE_NAMES: Record<string, string> = {
   secondLifeIdeas: 'Safe Second Life Ideas',
   nextSteps: 'Safe Next Steps and Recovery Route',
   impactCard: 'ReSource Impact Card',
-  conceptVisual: 'ReSource Concept Visual',
 };
 
 const STAGE_ORDER = [
@@ -38,7 +35,6 @@ const STAGE_ORDER = [
   'secondLifeIdeas',
   'nextSteps',
   'impactCard',
-  'conceptVisual',
 ] as const;
 
 export function ResultsView({ session }: ResultsViewProps) {
@@ -111,8 +107,6 @@ function renderStage(key: string, data: unknown): React.ReactNode {
       return <PartsMapTable data={data as ReusablePartsMapOutput} />;
     case 'impactCard':
       return <ImpactCard data={data as ImpactCardOutput} />;
-    case 'conceptVisual':
-      return <ConceptImage data={data as ConceptVisualOutput} />;
     default:
       return (
         <StageCard

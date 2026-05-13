@@ -1,10 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { SessionStore } from '../session-store';
-import { FileStore } from '../file-store';
 import { PollSessionResponse, ErrorResponse } from '@resource-ai/shared';
 
 const sessionStore = new SessionStore();
-const fileStore = new FileStore();
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -56,23 +54,12 @@ export const handler = async (
       };
     }
 
-    // Generate pre-signed URL for concept visual if it contains an S3 key (not already a URL)
-    const stages = { ...session.stages };
-    if (stages.conceptVisual?.imageUrl) {
-      const imageUrl = stages.conceptVisual.imageUrl;
-      // If the imageUrl is an S3 key (not starting with http), generate a pre-signed URL
-      if (!imageUrl.startsWith('http')) {
-        const presignedUrl = await fileStore.getFileUrl(imageUrl);
-        stages.conceptVisual = { imageUrl: presignedUrl };
-      }
-    }
-
     const response: PollSessionResponse = {
       sessionId: session.sessionId,
       status: session.status,
       currentStage: session.currentStage,
       error: session.error,
-      stages,
+      stages: session.stages,
     };
 
     return {

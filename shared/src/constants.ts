@@ -14,12 +14,11 @@ export const PIPELINE_STAGES: readonly PipelineStageConfig[] = [
   { key: 'secondLifeIdeas', name: 'Safe Second Life Ideas', type: 'text' },
   { key: 'nextSteps', name: 'Safe Next Steps and Recovery Route', type: 'text' },
   { key: 'impactCard', name: 'ReSource Impact Card', type: 'text' },
-  { key: 'conceptVisual', name: 'ReSource Concept Visual', type: 'image' },
 ] as const;
 
 // --- Timeout Values ---
 
-export const PIPELINE_TIMEOUT_MS = 120_000;
+export const PIPELINE_TIMEOUT_MS = 170_000;
 export const STAGE_SOFT_TIMEOUT_MS = 30_000;
 export const BEDROCK_REQUEST_TIMEOUT_MS = 60_000;
 export const BEDROCK_RETRY_DELAY_MS = 2_000;

@@ -148,15 +148,15 @@ export class ResourceAiStack extends cdk.Stack {
     this.sessionsTable.grantReadWriteData(this.pipelineOrchestrator);
     this.fileStorageBucket.grantReadWrite(this.pipelineOrchestrator);
 
-    // Bedrock InvokeModel permission - scoped to inference profiles and models
+    // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
     this.pipelineOrchestrator.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
       resources: [
-        // Amazon Nova Pro (first-party, no Marketplace subscription needed)
-        `arn:aws:bedrock:${this.region}::foundation-model/amazon.nova-pro-v1:0`,
-        // Titan Image Generator (direct invocation)
-        `arn:aws:bedrock:${this.region}::foundation-model/amazon.titan-image-generator-v1`,
+        // APAC cross-region inference profile for Nova Pro
+        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/apac.amazon.nova-pro-v1:0`,
+        // Foundation model in destination regions
+        `arn:aws:bedrock:*::foundation-model/amazon.nova-pro-v1:0`,
       ],
     }));
 
