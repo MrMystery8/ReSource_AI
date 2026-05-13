@@ -3,17 +3,22 @@ import type {
   PollSessionResponse,
   QuickVerdictOutput,
   SafetyGateOutput,
+  DetailedAnalysisOutput,
+  SecondLifeIdeasOutput,
+  NextStepsOutput,
   ReusablePartsMapOutput,
   ImpactCardOutput,
-  RiskLevel,
 } from '@resource-ai/shared';
 import { ProgressIndicator } from './ProgressIndicator';
-import { StageCard } from './StageCard';
 import { PartsMapTable } from './PartsMapTable';
 import { ImpactCard } from './ImpactCard';
-import { RiskBadge } from './RiskBadge';
 import { ConceptImage } from './ConceptImage';
 import { SkeletonStage } from './SkeletonStage';
+import { QuickVerdictCard } from './stages/QuickVerdictCard';
+import { SafetyGateCard } from './stages/SafetyGateCard';
+import { DetailedAnalysisCard } from './stages/DetailedAnalysisCard';
+import { SecondLifeIdeasCard } from './stages/SecondLifeIdeasCard';
+import { NextStepsCard } from './stages/NextStepsCard';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 
 export interface ResultsViewProps {
@@ -227,41 +232,29 @@ export function ResultsView({ session }: ResultsViewProps) {
 function renderStage(key: string, data: unknown): React.ReactNode {
   try {
     switch (key) {
-      case 'quickVerdict': {
-        const qv = data as QuickVerdictOutput;
-        return (
-          <div className="glass-card glass-card-hover p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-text-primary">{STAGE_NAMES[key]}</h3>
-              {qv.riskLevel && <RiskBadge level={qv.riskLevel as RiskLevel} />}
-            </div>
-            <StageCard data={qv as unknown as Record<string, unknown>} />
-          </div>
-        );
-      }
-      case 'safetyGate': {
-        const sg = data as SafetyGateOutput;
-        return (
-          <div className="glass-card glass-card-hover p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-text-primary">{STAGE_NAMES[key]}</h3>
-              {sg.riskLevel && <RiskBadge level={sg.riskLevel as RiskLevel} />}
-            </div>
-            <StageCard data={sg as unknown as Record<string, unknown>} />
-          </div>
-        );
-      }
+      case 'quickVerdict':
+        return <QuickVerdictCard data={data as QuickVerdictOutput} />;
+      case 'safetyGate':
+        return <SafetyGateCard data={data as SafetyGateOutput} />;
+      case 'detailedAnalysis':
+        return <DetailedAnalysisCard data={data as DetailedAnalysisOutput} />;
       case 'reusablePartsMap':
         return <PartsMapTable data={data as ReusablePartsMapOutput} />;
+      case 'secondLifeIdeas':
+        return <SecondLifeIdeasCard data={data as SecondLifeIdeasOutput} />;
+      case 'nextSteps':
+        return <NextStepsCard data={data as NextStepsOutput} />;
       case 'impactCard':
         return <ImpactCard data={data as ImpactCardOutput} />;
       case 'conceptVisual':
         return <ConceptImage data={data as { imageUrl: string }} />;
       default:
         return (
-          <div className="glass-card glass-card-hover p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-text-primary">{STAGE_NAMES[key] ?? key}</h3>
-            <StageCard data={data as Record<string, unknown>} />
+          <div className="glass-card glass-card-hover p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-3">{STAGE_NAMES[key] ?? key}</h3>
+            <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-auto">
+              {JSON.stringify(data, null, 2)}
+            </pre>
           </div>
         );
     }
