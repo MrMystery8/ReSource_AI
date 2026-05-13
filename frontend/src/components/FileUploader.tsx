@@ -6,6 +6,7 @@ import {
   ALLOWED_FILE_EXTENSIONS,
 } from '@resource-ai/shared';
 import { Upload, FileCheck, AlertCircle, Image, FileText } from 'lucide-react';
+import { ApiClient } from '../services/api';
 
 const EXTENSION_TO_MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -46,6 +47,9 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const tokenRef = useRef<string | null>(authToken ?? null);
+  tokenRef.current = authToken ?? null;
+  const apiClientRef = useRef<ApiClient>(new ApiClient(apiUrl, apiKey, () => tokenRef.current));
 
   const successfulFileIds = files.filter((f) => f.status === 'success').map((f) => f.id);
   const totalFiles = files.length;
@@ -79,32 +83,18 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
 
   const uploadFile = async (file: File, tempId: string): Promise<void> => {
     try {
-      const base64Body = await readFileAsBase64(file);
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      };
-      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-      if (sessionId) headers['x-session-id'] = sessionId;
-
-      const response = await fetch(`${apiUrl}/upload`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          file: base64Body,
-          contentType: file.type || 'application/octet-stream',
-          fileName: file.name,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const message = errorData?.error?.message ?? `Upload failed (${response.status})`;
-        throw new Error(message);
+      if (!tokenRef.current) {
+        throw new Error('Your session has expired. Please log in again.');
       }
 
-      const data = await response.json();
-      const fileId = data.fileId as string;
+      const base64Body = await readFileAsBase64(file);
+      const data = await apiClientRef.current.uploadEvidenceFile(
+        base64Body,
+        file.type || 'application/octet-stream',
+        file.name,
+        sessionId
+      );
+      const fileId = data.fileId;
 
       setFiles((prev) => {
         const updated = prev.map((f) =>

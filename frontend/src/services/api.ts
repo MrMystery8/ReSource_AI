@@ -14,6 +14,7 @@ import type {
   UsersListResponse,
   SessionsListResponse,
   UserRole,
+  UploadFileResponse,
 } from '@resource-ai/shared';
 
 /**
@@ -160,6 +161,29 @@ export class ApiClient {
 
   async pollSession(sessionId: string): Promise<PollSessionResponse> {
     return this.getSession(sessionId);
+  }
+
+  async uploadEvidenceFile(
+    fileBase64: string,
+    contentType: string,
+    fileName: string,
+    sessionId?: string
+  ): Promise<UploadFileResponse> {
+    const headers: Record<string, string> = {};
+    if (sessionId) {
+      headers['x-session-id'] = sessionId;
+    }
+
+    const response = await this.request('/upload', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        file: fileBase64,
+        contentType,
+        fileName,
+      }),
+    });
+    return this.parseResponse<UploadFileResponse>(response);
   }
 
   // ─── Admin Endpoints ───
