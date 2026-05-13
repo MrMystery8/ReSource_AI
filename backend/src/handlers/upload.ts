@@ -286,9 +286,10 @@ export const handler = async (
     const fileName = buildFileName(fileId, extension);
 
     // Store file via FileStore (S3)
+    let s3Key: string;
     try {
       const store = getFileStore();
-      await store.uploadFile(sessionId, fileId, fileBuffer, contentType, extension);
+      s3Key = await store.uploadFile(sessionId, fileId, fileBuffer, contentType, extension);
     } catch (err) {
       // Handle S3 unavailability gracefully — return error without failing session
       console.error('S3 upload failed:', err);
@@ -310,6 +311,7 @@ export const handler = async (
       fileId,
       fileName,
       contentType,
+      s3Key,
     };
 
     return {

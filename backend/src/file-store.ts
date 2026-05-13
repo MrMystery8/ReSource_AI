@@ -33,6 +33,7 @@ export class FileStore {
   /**
    * Upload a user-provided file to S3 after validating size and content type.
    *
+   * @returns The S3 key where the file was stored
    * @throws Error if file exceeds MAX_FILE_SIZE_BYTES (10 MB)
    * @throws Error if contentType is not in ALLOWED_CONTENT_TYPES
    */
@@ -42,7 +43,7 @@ export class FileStore {
     body: Buffer,
     contentType: string,
     extension: string,
-  ): Promise<void> {
+  ): Promise<string> {
     // Validate file size
     if (body.length > MAX_FILE_SIZE_BYTES) {
       throw new Error(
@@ -67,6 +68,8 @@ export class FileStore {
         ContentType: contentType,
       }),
     );
+
+    return key;
   }
 
   /**

@@ -71,7 +71,7 @@ describe('UploadHandler - POST /upload', () => {
     mockSend.mockReset();
     mockUploadFile.mockReset();
     mockSend.mockResolvedValue({ Item: undefined });
-    mockUploadFile.mockResolvedValue(undefined);
+    mockUploadFile.mockResolvedValue('uploads/unassociated/test-file-id.png');
   });
 
   it('returns 401 when the request is not authenticated', async () => {
@@ -97,6 +97,7 @@ describe('UploadHandler - POST /upload', () => {
         fileId: expect.any(String),
         fileName: expect.any(String),
         contentType: 'image/png',
+        s3Key: expect.any(String),
       })
     );
     expect(mockUploadFile).toHaveBeenCalledWith(

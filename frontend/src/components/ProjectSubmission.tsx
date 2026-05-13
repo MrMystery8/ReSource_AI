@@ -49,6 +49,8 @@ interface PhotoEntry {
   errorMessage?: string;
   /** fileId returned by the upload API once status === 'uploaded' */
   fileId?: string;
+  /** Full S3 key returned by the upload API once status === 'uploaded' */
+  s3Key?: string;
 }
 
 // ── Grade display helpers ─────────────────────────────────────────────────────
@@ -211,12 +213,12 @@ export function ProjectSubmission({
     setPhotos((prev) =>
       prev.map((p) =>
         p.id === entry.id
-          ? { ...p, status: 'uploaded', fileId: data.fileId }
+          ? { ...p, status: 'uploaded', fileId: data.fileId, s3Key: data.s3Key }
           : p
       )
     );
 
-    return data.fileId;
+    return data.s3Key;
   };
 
   const handleSubmit = async () => {
@@ -229,13 +231,13 @@ export function ProjectSubmission({
     try {
       // Upload any photos that haven't been uploaded yet
       const toUpload = photos.filter((p) => p.status === 'pending' || p.status === 'error');
-      const alreadyUploaded = photos.filter((p) => p.status === 'uploaded' && p.fileId);
+      const alreadyUploaded = photos.filter((p) => p.status === 'uploaded' && p.s3Key);
 
       const newFileIds: string[] = [];
       for (const entry of toUpload) {
         try {
-          const fileId = await uploadPhoto(entry);
-          newFileIds.push(fileId);
+          const s3Key = await uploadPhoto(entry);
+          newFileIds.push(s3Key);
         } catch (err) {
           const message = err instanceof Error ? err.message : 'Upload failed';
           setPhotos((prev) =>
@@ -248,7 +250,7 @@ export function ProjectSubmission({
       }
 
       const allFileIds = [
-        ...alreadyUploaded.map((p) => p.fileId as string),
+        ...alreadyUploaded.map((p) => p.s3Key as string),
         ...newFileIds,
       ];
 

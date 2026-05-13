@@ -344,6 +344,8 @@ export interface UploadFileResponse {
   fileId: string;
   fileName: string;
   contentType: string;
+  /** Full S3 object key, e.g. uploads/unassociated/uuid.jpg */
+  s3Key: string;
 }
 
 export interface PollSessionResponse {
