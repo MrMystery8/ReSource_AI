@@ -1,0 +1,27 @@
+{
+  "name": "resource-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ReSource AI E-Waste Triage System",
+  "workspaces": [
+    "shared",
+    "infra",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "test": "jest --config jest.config.ts --passWithNoTests",
+    "test:integration": "jest --config jest.integration.config.ts --passWithNoTests",
+    "test:infra": "jest --config infra/jest.config.ts --passWithNoTests"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "fast-check": "^4.8.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.4.0"
+  }
+}

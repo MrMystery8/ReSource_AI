@@ -1,0 +1,124 @@
+.triage-form {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.triage-form__title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.triage-form__field {
+  margin-bottom: 1.25rem;
+}
+
+.triage-form__label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.triage-form__required {
+  color: #d32f2f;
+}
+
+.triage-form__textarea {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  line-height: 1.5;
+  color: #1a1a2e;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.triage-form__textarea:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.triage-form__textarea::placeholder {
+  color: #999;
+}
+
+.triage-form__textarea--error {
+  border-color: #d32f2f;
+}
+
+.triage-form__textarea--error:focus {
+  box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.2);
+}
+
+.triage-form__textarea:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.triage-form__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  min-height: 1.25rem;
+}
+
+.triage-form__error {
+  font-size: 0.75rem;
+  color: #d32f2f;
+}
+
+.triage-form__counter {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.triage-form__counter--limit {
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+.triage-form__file-uploader {
+  margin-bottom: 1.25rem;
+}
+
+.triage-form__submit {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #1976d2;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.triage-form__submit:hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+.triage-form__submit:focus-visible {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+.triage-form__submit:disabled {
+  background-color: #bdbdbd;
+  cursor: not-allowed;
+}

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+*.js
+*.d.ts
+*.js.map
+*.d.ts.map
+
+# Keep source TypeScript files
+!jest.config.ts
+!jest.integration.config.ts
+!infra/jest.config.ts
+!vite.config.ts
+
+# CDK
+cdk.out/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend build
+frontend/dist/

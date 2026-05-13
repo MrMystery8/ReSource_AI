@@ -1,0 +1,350 @@
+/* ============================================================
+   ResultsView — Container
+   ============================================================ */
+
+.results-view {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.results-view__title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.results-view__stages {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.results-view__stage {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 1.5rem;
+}
+
+.results-view__stage:last-child {
+  border-bottom: none;
+}
+
+.results-view__error {
+  background-color: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #721c24;
+}
+
+.results-view__error strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.results-view__error p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.results-view__risk-level {
+  margin-top: 0.5rem;
+}
+
+.results-view__quick-verdict,
+.results-view__safety-gate {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================
+   ProgressIndicator
+   ============================================================ */
+
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.progress-indicator__spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 3px solid #90caf9;
+  border-top-color: #1976d2;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.progress-indicator__text {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #1565c0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   RiskBadge
+   ============================================================ */
+
+.risk-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.risk-badge--green {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.risk-badge--yellow {
+  background-color: #fff9c4;
+  color: #f9a825;
+}
+
+.risk-badge--orange {
+  background-color: #ffe0b2;
+  color: #e65100;
+}
+
+.risk-badge--red {
+  background-color: #ffcdd2;
+  color: #c62828;
+}
+
+/* ============================================================
+   StageCard
+   ============================================================ */
+
+.stage-card__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.stage-card__content {
+  margin: 0;
+  padding: 0;
+}
+
+.stage-card__item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.625rem;
+}
+
+.stage-card__label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 0.125rem;
+}
+
+.stage-card__value {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #1a1a2e;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   PartsMapTable
+   ============================================================ */
+
+.parts-map__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.parts-map__table-wrapper {
+  overflow-x: auto;
+}
+
+.parts-map__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.parts-map__table th,
+.parts-map__table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.parts-map__table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.parts-map__table tbody tr:hover {
+  background-color: #fafafa;
+}
+
+.parts-map__verdict {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.parts-map__verdict--salvage {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.parts-map__verdict--conditional {
+  background-color: #fff9c4;
+  color: #f9a825;
+}
+
+.parts-map__verdict--do-not-access {
+  background-color: #ffcdd2;
+  color: #c62828;
+}
+
+/* ============================================================
+   ImpactCard
+   ============================================================ */
+
+.impact-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.impact-card__title {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.impact-card__list {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.impact-card__item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.impact-card__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #555;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.impact-card__label::after {
+  content: ':';
+}
+
+.impact-card__value {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #1a1a2e;
+}
+
+/* ============================================================
+   ConceptImage
+   ============================================================ */
+
+.concept-image__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.concept-image__container {
+  position: relative;
+  max-width: 800px;
+}
+
+.concept-image__img {
+  max-width: 800px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+.concept-image__img--visible {
+  opacity: 1;
+}
+
+.concept-image__img--hidden {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.concept-image__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 300px;
+  background-color: #f5f5f5;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+}
+
+.concept-image__placeholder-text {
+  font-size: 0.875rem;
+  color: #999;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.concept-image__error {
+  padding: 1rem;
+  background-color: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  color: #721c24;
+  font-size: 0.875rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
