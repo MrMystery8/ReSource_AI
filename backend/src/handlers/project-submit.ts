@@ -432,7 +432,7 @@ export const handler = async (
     // 6. Invoke Claude via BedrockClient for grading analysis
     let rawText: string;
     try {
-      rawText = await bedrockClient.invokeTextModel(prompt);
+      rawText = await bedrockClient.invokeClaudeModel(prompt);
     } catch (err) {
       console.error('BedrockClient invocation failed:', err);
       return errorResponse(500, {

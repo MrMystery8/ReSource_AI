@@ -121,7 +121,7 @@ export const handler = async (
     const prompt = buildScopedPrompt(request.message, request.projectContext, history);
 
     // 7. Invoke Claude via BedrockClient
-    const reply = await bedrockClient.invokeTextModel(prompt);
+    const reply = await bedrockClient.invokeClaudeModel(prompt);
 
     // 8. Return ChatResponse
     const response: ChatResponse = { reply };
