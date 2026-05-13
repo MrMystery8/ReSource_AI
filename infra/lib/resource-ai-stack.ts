@@ -301,6 +301,26 @@ export class ResourceAiStack extends cdk.Stack {
       apiKeySourceType: apigateway.ApiKeySourceType.HEADER,
     });
 
+    // Gateway Responses: Add CORS headers to API Gateway error responses (4xx/5xx)
+    // that bypass Lambda (e.g., authorizer denials, missing API keys, throttling).
+    this.api.addGatewayResponse('Default4xx', {
+      type: apigateway.ResponseType.DEFAULT_4XX,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'*'",
+        'Access-Control-Allow-Headers': "'Content-Type,X-Api-Key,x-api-key,Authorization,x-session-id,X-Session-Id'",
+        'Access-Control-Allow-Methods': "'GET,POST,PUT,DELETE,OPTIONS'",
+      },
+    });
+
+    this.api.addGatewayResponse('Default5xx', {
+      type: apigateway.ResponseType.DEFAULT_5XX,
+      responseHeaders: {
+        'Access-Control-Allow-Origin': "'*'",
+        'Access-Control-Allow-Headers': "'Content-Type,X-Api-Key,x-api-key,Authorization,x-session-id,X-Session-Id'",
+        'Access-Control-Allow-Methods': "'GET,POST,PUT,DELETE,OPTIONS'",
+      },
+    });
+
     // API Key for authentication (Requirement 15.1)
     this.apiKey = this.api.addApiKey('ResourceAiApiKey', {
       apiKeyName: 'resource-ai-api-key',
