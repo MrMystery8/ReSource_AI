@@ -168,7 +168,7 @@ export class ResourceAiStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
-        allowHeaders: ['Content-Type', 'X-Api-Key', 'Authorization'],
+        allowHeaders: ['Content-Type', 'X-Api-Key', 'x-api-key', 'Authorization', 'x-session-id', 'X-Session-Id'],
       },
       deployOptions: { stageName: 'prod' },
       apiKeySourceType: apigateway.ApiKeySourceType.HEADER,

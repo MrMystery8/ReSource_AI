@@ -14,7 +14,7 @@ import {
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,x-session-id',
+  'Access-Control-Allow-Headers': 'Content-Type,X-Api-Key,x-api-key,Authorization,x-session-id',
 };
 
 /**
@@ -108,26 +108,12 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    // Extract session ID from custom header or query parameter
+    // Extract session ID from custom header or query parameter (optional — files can be uploaded before session creation)
     const sessionId =
       event.headers['x-session-id'] ??
       event.headers['X-Session-Id'] ??
-      event.queryStringParameters?.sessionId;
-
-    if (!sessionId) {
-      const errorResponse: ErrorResponse = {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Missing session identifier. Provide x-session-id header or sessionId query parameter.',
-          field: 'sessionId',
-        },
-      };
-      return {
-        statusCode: 400,
-        headers: CORS_HEADERS,
-        body: JSON.stringify(errorResponse),
-      };
-    }
+      event.queryStringParameters?.sessionId ??
+      'unassociated';
 
     // Extract content type from headers
     const contentType =
