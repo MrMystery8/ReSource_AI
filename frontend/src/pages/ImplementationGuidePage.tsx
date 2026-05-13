@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -12,7 +12,7 @@ import {
   Package,
   ListOrdered,
 } from 'lucide-react';
-import type { ImplementationGuide, StructuredUserContext, SubmissionResult } from '@resource-ai/shared';
+import type { ImplementationGuide, StructuredUserContext, SubmissionResult, Project } from '@resource-ai/shared';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
 import { ProjectChatbot } from '../components/ProjectChatbot';
@@ -110,14 +110,24 @@ function GuideError({ message, isTimeout, onRetry }: GuideErrorProps) {
 export function ImplementationGuidePage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { projectId: routeProjectId } = useParams<{ projectId: string }>();
   const { token } = useAuth();
 
   const state = location.state as GuidePageState | null;
+
+  // When navigating from history, routeProjectId is a real ID (not 'new').
+  // When navigating from triage results, routeProjectId is 'new' and state has the data.
+  const isViewingExisting = routeProjectId !== 'new' && !!routeProjectId && !state;
 
   const [guide, setGuide] = useState<ImplementationGuide | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isTimeout, setIsTimeout] = useState(false);
+
+  // When loading an existing project, we populate these from the fetched project
+  const [loadedProject, setLoadedProject] = useState<Project | null>(null);
+  const [isLoadingProject, setIsLoadingProject] = useState(false);
+  const [projectLoadError, setProjectLoadError] = useState<string | null>(null);
 
   // Chatbot state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -127,7 +137,9 @@ export function ImplementationGuidePage() {
   const [pointsEarned, setPointsEarned] = useState(0);
 
   // Project ID returned by the guide generate API
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string | null>(
+    isViewingExisting ? routeProjectId ?? null : null
+  );
 
   // Keep a stable ref to the latest request body so retry re-sends the same request
   const requestBodyRef = useRef<GuidePageState | null>(state);
@@ -182,7 +194,6 @@ export function ImplementationGuidePage() {
 
       // Ignore abort errors triggered by the timeout handler (it already set state)
       if (err instanceof Error && err.name === 'AbortError') {
-        // Timeout handler already set the error state
         return;
       }
 
@@ -192,17 +203,72 @@ export function ImplementationGuidePage() {
           : 'Failed to generate the implementation guide. Please try again.'
       );
     } finally {
-      // Only clear loading if we weren't aborted by the timeout
-      // (timeout handler already cleared it)
       if (!controller.signal.aborted) {
         setIsLoading(false);
       }
     }
   }, [token]);
 
-  // Fetch on mount
+  // ─── Load existing project from API (history navigation) ───
   useEffect(() => {
-    if (!state) return;
+    if (!isViewingExisting || !routeProjectId) return;
+
+    setIsLoadingProject(true);
+    setProjectLoadError(null);
+
+    const apiClient = new ApiClient(API_URL, API_KEY, () => token);
+    apiClient
+      .getProject(routeProjectId)
+      .then((project) => {
+        setLoadedProject(project);
+        // If the project already has a guide, show it directly
+        if (project.guide) {
+          setGuide(project.guide);
+        } else {
+          // No guide yet — trigger generation using the project's stored data
+          requestBodyRef.current = {
+            ideaTitle: project.ideaTitle,
+            ideaDescription: project.ideaDescription,
+            requiredComponents: project.requiredComponents,
+            additionalMaterials: project.additionalMaterials,
+            userContext: project.userContext,
+            sessionId: project.sessionId,
+          };
+        }
+      })
+      .catch((err) => {
+        setProjectLoadError(
+          err instanceof Error ? err.message : 'Failed to load project'
+        );
+      })
+      .finally(() => {
+        setIsLoadingProject(false);
+      });
+  }, [isViewingExisting, routeProjectId, token]);
+
+  // Once a project is loaded without a guide, generate one
+  useEffect(() => {
+    if (!isViewingExisting || !loadedProject || loadedProject.guide) return;
+    if (requestBodyRef.current) {
+      fetchGuide();
+    }
+  }, [isViewingExisting, loadedProject, fetchGuide]);
+
+  // Derive the effective state — either from router state (new) or loaded project (existing)
+  const effectiveState: GuidePageState | null = state ?? (loadedProject
+    ? {
+        ideaTitle: loadedProject.ideaTitle,
+        ideaDescription: loadedProject.ideaDescription,
+        requiredComponents: loadedProject.requiredComponents,
+        additionalMaterials: loadedProject.additionalMaterials,
+        userContext: loadedProject.userContext,
+        sessionId: loadedProject.sessionId,
+      }
+    : null);
+
+  // Fetch on mount — only for new guides (not when viewing existing projects)
+  useEffect(() => {
+    if (!state || isViewingExisting) return;
     requestBodyRef.current = state;
     fetchGuide();
 
@@ -218,8 +284,45 @@ export function ImplementationGuidePage() {
     setShowPoints(true);
   }, []);
 
-  // ─── Guard: no state passed ───
-  if (!state) {
+  // ─── Loading state for existing project fetch ───
+  if (isViewingExisting && isLoadingProject) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+          <p className="text-gray-400 text-sm">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Error state for existing project fetch ───
+  if (isViewingExisting && projectLoadError) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-center min-h-[60vh]"
+      >
+        <div className="glass-card p-8 w-full max-w-md text-center">
+          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Project Not Found</h2>
+          <p className="text-gray-400 text-sm mb-6">{projectLoadError}</p>
+          <button
+            onClick={() => navigate('/history')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to History
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // ─── Guard: no state and not viewing existing ───
+  if (!effectiveState) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -245,7 +348,7 @@ export function ImplementationGuidePage() {
     );
   }
 
-  const isBeginnerLevel = state.userContext.expertiseLevel === 'Beginner';
+  const isBeginnerLevel = effectiveState.userContext.expertiseLevel === 'Beginner';
 
   return (
     <motion.div
@@ -265,8 +368,8 @@ export function ImplementationGuidePage() {
 
       {/* Page title */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">{state.ideaTitle}</h1>
-        <p className="text-gray-400 text-sm mt-1">{state.ideaDescription}</p>
+        <h1 className="text-2xl font-bold text-white">{effectiveState.ideaTitle}</h1>
+        <p className="text-gray-400 text-sm mt-1">{effectiveState.ideaDescription}</p>
       </div>
 
       {/* Loading state */}
@@ -292,7 +395,7 @@ export function ImplementationGuidePage() {
               {guide.estimatedTime}
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-sm">
-              {state.userContext.expertiseLevel}
+              {effectiveState.userContext.expertiseLevel}
             </span>
           </div>
 
@@ -399,8 +502,8 @@ export function ImplementationGuidePage() {
                 <ProjectSubmission
                   projectId={projectId}
                   guideContext={{
-                    ideaTitle: state.ideaTitle,
-                    expectedOutcome: state.ideaDescription,
+                    ideaTitle: effectiveState.ideaTitle,
+                    expectedOutcome: effectiveState.ideaDescription,
                     steps: guide.steps.map((s) => s.instruction),
                   }}
                   onGraded={handleGraded}
@@ -426,10 +529,10 @@ export function ImplementationGuidePage() {
       {guide && (
         <ProjectChatbot
           projectContext={{
-            ideaTitle: state.ideaTitle,
+            ideaTitle: effectiveState.ideaTitle,
             materials: guide.materials,
             steps: guide.steps.map((s) => s.instruction),
-            deviceInfo: state.ideaDescription,
+            deviceInfo: effectiveState.ideaDescription,
           }}
           isOpen={isChatOpen}
           onToggle={() => setIsChatOpen((prev) => !prev)}

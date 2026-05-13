@@ -406,6 +406,13 @@ export class ApiClient {
     });
     await this.parseResponse<unknown>(response);
   }
+
+  async getProject(projectId: string): Promise<import('@resource-ai/shared').Project> {
+    const response = await this.request(`/projects/${projectId}`, {
+      method: 'GET',
+    });
+    return this.parseResponse<import('@resource-ai/shared').Project>(response);
+  }
 }
 
 // ─── Default Instance & Legacy Compatibility ───

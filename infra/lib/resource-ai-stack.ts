@@ -41,6 +41,7 @@ export class ResourceAiStack extends cdk.Stack {
   public readonly projectSubmitHandler: NodejsFunction;
   public readonly projectsListHandler: NodejsFunction;
   public readonly projectUpdateHandler: NodejsFunction;
+  public readonly projectGetHandler: NodejsFunction;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -336,6 +337,20 @@ export class ResourceAiStack extends cdk.Stack {
       },
     });
 
+    // ProjectGetHandler Lambda (GET /projects/:projectId)
+    this.projectGetHandler = new NodejsFunction(this, 'ProjectGetHandler', {
+      functionName: 'resource-ai-project-get-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'project-get.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+      },
+    });
+
     // --- IAM Permissions (least-privilege, no wildcard resource ARNs) ---
 
     // SubmitHandler: DynamoDB write + Lambda invoke (async invocation of PipelineOrchestrator)
@@ -391,6 +406,9 @@ export class ResourceAiStack extends cdk.Stack {
 
     // ProjectUpdateHandler: DynamoDB read/write on projects table
     this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
+
+    // ProjectGetHandler: DynamoDB read on projects table
+    this.projectsTable.grantReadData(this.projectGetHandler);
 
     // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
     const bedrockNovaPolicy = new iam.PolicyStatement({
@@ -592,6 +610,12 @@ export class ResourceAiStack extends cdk.Stack {
     // PATCH /projects/{projectId} — Update project (abandon/delete) (protected)
     const projectByIdResource = projectsResource.addResource('{projectId}');
     projectByIdResource.addMethod('PATCH', new apigateway.LambdaIntegration(this.projectUpdateHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // GET /projects/{projectId} — Get a single project by ID (protected)
+    projectByIdResource.addMethod('GET', new apigateway.LambdaIntegration(this.projectGetHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
     }), protectedMethodOptions);
