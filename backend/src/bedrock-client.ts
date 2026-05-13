@@ -9,7 +9,7 @@ import {
   BEDROCK_RETRY_DELAY_MS,
 } from '@resource-ai/shared';
 
-const DEFAULT_TEXT_MODEL = 'anthropic.claude-3-sonnet-20240229-v1:0';
+const DEFAULT_TEXT_MODEL = 'apac.anthropic.claude-3-5-sonnet-20241022-v2:0';
 const DEFAULT_IMAGE_MODEL = 'amazon.titan-image-generator-v1';
 
 function isTransientError(error: unknown): boolean {

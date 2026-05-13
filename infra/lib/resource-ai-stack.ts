@@ -148,14 +148,16 @@ export class ResourceAiStack extends cdk.Stack {
     this.sessionsTable.grantReadWriteData(this.pipelineOrchestrator);
     this.fileStorageBucket.grantReadWrite(this.pipelineOrchestrator);
 
-    // Bedrock InvokeModel permission - scoped to specific model resources
+    // Bedrock InvokeModel permission - scoped to inference profiles and models
     this.pipelineOrchestrator.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
       resources: [
-        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0`,
-        `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0`,
-        `arn:aws:bedrock:${this.region}::foundation-model/stability.stable-diffusion-xl-v1`,
+        // Cross-region inference profile for Claude 3.5 Sonnet v2 (APAC)
+        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/apac.anthropic.claude-3-5-sonnet-20241022-v2:0`,
+        // Foundation models in destination regions for cross-region inference
+        `arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0`,
+        // Titan Image Generator (direct invocation)
         `arn:aws:bedrock:${this.region}::foundation-model/amazon.titan-image-generator-v1`,
       ],
     }));
