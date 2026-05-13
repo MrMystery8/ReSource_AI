@@ -9,7 +9,7 @@ import {
   BEDROCK_RETRY_DELAY_MS,
 } from '@resource-ai/shared';
 
-const DEFAULT_TEXT_MODEL = 'apac.anthropic.claude-3-5-sonnet-20241022-v2:0';
+const DEFAULT_TEXT_MODEL = 'amazon.nova-pro-v1:0';
 const DEFAULT_IMAGE_MODEL = 'amazon.titan-image-generator-v1';
 
 function isTransientError(error: unknown): boolean {
@@ -36,23 +36,27 @@ export class BedrockClient {
   }
 
   /**
-   * Invoke a text generation model (Claude) and return the text response.
+   * Invoke a text generation model (Amazon Nova Pro) and return the text response.
    */
   async invokeTextModel(
     prompt: string,
     modelId: string = DEFAULT_TEXT_MODEL
   ): Promise<string> {
     const body = JSON.stringify({
-      anthropic_version: 'bedrock-2023-05-31',
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
+      schemaVersion: 'messages-v1',
+      messages: [{ role: 'user', content: [{ text: prompt }] }],
+      inferenceConfig: {
+        maxTokens: 4096,
+        topP: 0.9,
+        temperature: 0.7,
+      },
     });
 
     const responseBody = await this.invokeWithRetry(modelId, body);
     const parsed = JSON.parse(responseBody);
 
-    // Claude response format: { content: [{ type: "text", text: "..." }] }
-    const textContent = parsed.content?.[0]?.text;
+    // Nova response format: { output: { message: { content: [{ text: "..." }] } } }
+    const textContent = parsed.output?.message?.content?.[0]?.text;
     if (typeof textContent !== 'string') {
       throw new Error('Unexpected text model response format');
     }

@@ -153,10 +153,8 @@ export class ResourceAiStack extends cdk.Stack {
       effect: iam.Effect.ALLOW,
       actions: ['bedrock:InvokeModel'],
       resources: [
-        // Cross-region inference profile for Claude 3.5 Sonnet v2 (APAC)
-        `arn:aws:bedrock:${this.region}:${this.account}:inference-profile/apac.anthropic.claude-3-5-sonnet-20241022-v2:0`,
-        // Foundation models in destination regions for cross-region inference
-        `arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0`,
+        // Amazon Nova Pro (first-party, no Marketplace subscription needed)
+        `arn:aws:bedrock:${this.region}::foundation-model/amazon.nova-pro-v1:0`,
         // Titan Image Generator (direct invocation)
         `arn:aws:bedrock:${this.region}::foundation-model/amazon.titan-image-generator-v1`,
       ],
