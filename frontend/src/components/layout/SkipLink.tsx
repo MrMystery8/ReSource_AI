@@ -47,13 +47,13 @@ function injectSkipLinkStyles(): void {
       overflow: visible !important;
       clip: auto !important;
       white-space: normal !important;
-      background-color: var(--color-primary, #4f46e5) !important;
+      background-color: var(--color-primary, #059669) !important;
       color: #ffffff !important;
       font-size: 1rem !important;
       font-weight: 600 !important;
       border-radius: var(--radius-md, 8px) !important;
       text-decoration: none !important;
-      outline: 3px solid var(--color-primary-hover, #4338ca) !important;
+      outline: 3px solid var(--color-primary-hover, #047857) !important;
       outline-offset: 2px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
     }

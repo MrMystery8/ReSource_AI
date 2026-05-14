@@ -37,7 +37,7 @@ export interface BadgeProps {
 //   success  — green-800 (#166534) on green-100 (#dcfce7)  → ~8.2:1 ✓
 //   error    — red-800   (#991b1b) on red-100   (#fee2e2)  → ~8.0:1 ✓
 //   warning  — amber-800 (#92400e) on amber-100 (#fef3c7)  → ~7.5:1 ✓
-//   info     — indigo-800(#3730a3) on indigo-100(#e0e7ff)  → ~8.1:1 ✓
+//   info     — emerald-900(#064e3b) on emerald-50(#ecfdf5)  → ~8.5:1 ✓
 //
 // Dark theme uses lighter text on darker tinted backgrounds — same tokens
 // resolve to the dark-mode values defined in tokens.css.

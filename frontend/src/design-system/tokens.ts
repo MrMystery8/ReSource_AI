@@ -89,39 +89,39 @@ export interface RadiusScale {
  * Validates: Requirement 1.1 (surface, border, text, primary, error, success, warning)
  */
 export const LIGHT_TOKENS: ColorTokens = {
-  surface: '#ffffff',
-  'surface-elevated': '#f8fafc',
+  surface: '#fafdfb',
+  'surface-elevated': '#f2faf5',
   'surface-card': '#ffffff',
-  'border-default': '#e2e8f0',
-  'border-subtle': '#f1f5f9',
-  'text-primary': '#0f172a',
-  'text-secondary': '#475569',
-  'text-muted': '#94a3b8',
-  primary: '#4f46e5',
-  'primary-hover': '#4338ca',
+  'border-default': '#d6e8dc',
+  'border-subtle': '#e8f5ec',
+  'text-primary': '#1c1917',
+  'text-secondary': '#57534e',
+  'text-muted': '#a8a29e',
+  primary: '#059669',
+  'primary-hover': '#047857',
   error: '#dc2626',
-  success: '#16a34a',
+  success: '#059669',
   warning: '#d97706',
 };
 
 /**
  * Dark theme color tokens.
- * Uses desaturated variants rather than simple color inversion.
+ * Green-tinted near-black surfaces, emerald primary, amber accent.
  * Validates: Requirement 1.1, 2.7
  */
 export const DARK_TOKENS: ColorTokens = {
-  surface: '#09090b',
-  'surface-elevated': '#18181b',
-  'surface-card': '#1c1c22',
-  'border-default': '#27272a',
-  'border-subtle': '#1f1f23',
-  'text-primary': '#fafafa',
-  'text-secondary': '#a1a1aa',
-  'text-muted': '#71717a',
-  primary: '#818cf8',
-  'primary-hover': '#a5b4fc',
+  surface: '#080e09',
+  'surface-elevated': '#0f1710',
+  'surface-card': '#141c18',
+  'border-default': '#1e3028',
+  'border-subtle': '#172419',
+  'text-primary': '#f5f5f0',
+  'text-secondary': '#a8a29e',
+  'text-muted': '#78716c',
+  primary: '#34d399',
+  'primary-hover': '#6ee7b7',
   error: '#f87171',
-  success: '#4ade80',
+  success: '#34d399',
   warning: '#fbbf24',
 };
 

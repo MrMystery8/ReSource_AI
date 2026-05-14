@@ -13,45 +13,51 @@
    to Tailwind v4 utilities (e.g. bg-primary-600)
    ───────────────────────────────────────────── */
 @theme {
-  /* Indigo / Primary palette */
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* Emerald / Primary palette */
+  --color-primary-50:  #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
 
-  /* Slate palette (surfaces, borders, text) */
-  --color-slate-50:  #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
-  --color-slate-950: #020617;
+  /* Amber / Accent palette */
+  --color-accent-50:  #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
 
-  /* Zinc palette (dark-mode surfaces) */
-  --color-zinc-50:  #fafafa;
-  --color-zinc-100: #f4f4f5;
-  --color-zinc-200: #e4e4e7;
-  --color-zinc-300: #d4d4d8;
-  --color-zinc-400: #a1a1aa;
-  --color-zinc-500: #71717a;
-  --color-zinc-600: #52525b;
-  --color-zinc-700: #3f3f46;
-  --color-zinc-800: #27272a;
-  --color-zinc-850: #1f1f23;
-  --color-zinc-900: #18181b;
-  --color-zinc-925: #1c1c22;
-  --color-zinc-950: #09090b;
+  /* Stone palette (surfaces, borders, text — warm near-black) */
+  --color-stone-50:  #fafaf9;
+  --color-stone-100: #f5f5f4;
+  --color-stone-200: #e7e5e4;
+  --color-stone-300: #d6d3d1;
+  --color-stone-400: #a8a29e;
+  --color-stone-500: #78716c;
+  --color-stone-600: #57534e;
+  --color-stone-700: #44403c;
+  --color-stone-800: #292524;
+  --color-stone-900: #1c1917;
+  --color-stone-950: #0c0a09;
+
+  /* Dark surface palette (green-tinted near-black) */
+  --color-dark-50:  #f0fdf4;
+  --color-dark-100: #dcfce7;
+  --color-dark-800: #1a2420;
+  --color-dark-850: #141c18;
+  --color-dark-900: #0f1710;
+  --color-dark-925: #0d1410;
+  --color-dark-950: #080e09;
 
   /* Red / Error */
   --color-red-400: #f87171;
@@ -104,49 +110,56 @@
 
 /* ─────────────────────────────────────────────
    Light theme (default)
+   Warm white surfaces with a whisper of green,
+   emerald primary, amber accent.
    ───────────────────────────────────────────── */
 :root,
 [data-theme="light"] {
-  /* Surfaces */
-  --color-surface:          #ffffff;
-  --color-surface-elevated: #f8fafc;
+  /* Surfaces — warm white with a faint green tint */
+  --color-surface:          #fafdfb;
+  --color-surface-elevated: #f2faf5;
   --color-surface-card:     #ffffff;
 
-  /* Borders */
-  --color-border-default: #e2e8f0;
-  --color-border-subtle:  #f1f5f9;
+  /* Subtle gradient overlay for hero/page backgrounds */
+  --gradient-surface: linear-gradient(160deg, #f0fdf4 0%, #fafdfb 45%, #fffbeb 100%);
 
-  /* Text */
-  --color-text-primary:   #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted:     #94a3b8;
+  /* Borders — warm stone with green undertone */
+  --color-border-default: #d6e8dc;
+  --color-border-subtle:  #e8f5ec;
 
-  /* Brand / Interactive */
-  --color-primary:       #4f46e5;
-  --color-primary-hover: #4338ca;
+  /* Text — warm near-black (stone-900) */
+  --color-text-primary:   #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted:     #a8a29e;
+
+  /* Brand / Interactive — emerald */
+  --color-primary:       #059669;
+  --color-primary-hover: #047857;
+
+  /* Accent — amber */
+  --color-accent:        #d97706;
+  --color-accent-hover:  #b45309;
 
   /* Semantic status */
   --color-error:   #dc2626;
-  --color-success: #16a34a;
+  --color-success: #059669;
   --color-warning: #d97706;
 
   /* ── Elevation scale (light) ──
-     Each level adds a progressively larger, softer shadow.
-     All shadows use a dark base color at low opacity so they
-     remain visible against white/near-white surfaces. */
+     Green-tinted shadows for warmth. */
   --shadow-sm:
-    0 1px 2px 0 rgba(15, 23, 42, 0.06),
-    0 1px 3px 0 rgba(15, 23, 42, 0.08);
+    0 1px 2px 0 rgba(5, 150, 105, 0.06),
+    0 1px 3px 0 rgba(28, 25, 23, 0.07);
 
   --shadow-md:
-    0 2px 4px 0   rgba(15, 23, 42, 0.06),
-    0 4px 8px -1px rgba(15, 23, 42, 0.10),
-    0 1px 2px 0   rgba(15, 23, 42, 0.04);
+    0 2px 4px 0    rgba(5, 150, 105, 0.05),
+    0 4px 8px -1px rgba(28, 25, 23, 0.09),
+    0 1px 2px 0    rgba(28, 25, 23, 0.04);
 
   --shadow-lg:
-    0 4px 6px -1px  rgba(15, 23, 42, 0.08),
-    0 10px 20px -3px rgba(15, 23, 42, 0.12),
-    0 2px 4px -1px  rgba(15, 23, 42, 0.05);
+    0 4px 6px -1px   rgba(5, 150, 105, 0.06),
+    0 10px 20px -3px rgba(28, 25, 23, 0.10),
+    0 2px 4px -1px   rgba(28, 25, 23, 0.05);
 }
 
 /* ─────────────────────────────────────────────
@@ -154,10 +167,10 @@
    ───────────────────────────────────────────── */
 :root,
 [data-theme="light"] {
-  /* success badge: green-800 on green-50 — contrast ~8.2:1 */
-  --badge-success-fg:     #166534;
-  --badge-success-bg:     #f0fdf4;
-  --badge-success-border: #bbf7d0;
+  /* success badge: emerald-800 on emerald-50 — contrast ~8.2:1 */
+  --badge-success-fg:     #065f46;
+  --badge-success-bg:     #ecfdf5;
+  --badge-success-border: #a7f3d0;
 
   /* error badge: red-800 on red-50 — contrast ~8.0:1 */
   --badge-error-fg:     #991b1b;
@@ -169,63 +182,71 @@
   --badge-warning-bg:     #fffbeb;
   --badge-warning-border: #fde68a;
 
-  /* info badge: indigo-800 on indigo-50 — contrast ~8.1:1 */
-  --badge-info-fg:     #3730a3;
-  --badge-info-bg:     #eef2ff;
-  --badge-info-border: #c7d2fe;
+  /* info badge: emerald-900 on emerald-50 — contrast ~8.5:1 */
+  --badge-info-fg:     #064e3b;
+  --badge-info-bg:     #ecfdf5;
+  --badge-info-border: #6ee7b7;
 }
 
 /* ─────────────────────────────────────────────
    Dark theme
+   Deep near-black with green undertones,
+   emerald primary, amber accent.
    ───────────────────────────────────────────── */
 [data-theme="dark"] {
-  /* Surfaces */
-  --color-surface:          #09090b;
-  --color-surface-elevated: #18181b;
-  --color-surface-card:     #1c1c22;
+  /* Surfaces — green-tinted near-black */
+  --color-surface:          #080e09;
+  --color-surface-elevated: #0f1710;
+  --color-surface-card:     #141c18;
 
-  /* Borders */
-  --color-border-default: #27272a;
-  --color-border-subtle:  #1f1f23;
+  /* Subtle gradient overlay for hero/page backgrounds */
+  --gradient-surface: linear-gradient(160deg, #0a1a0c 0%, #080e09 50%, #100d06 100%);
 
-  /* Text */
-  --color-text-primary:   #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-text-muted:     #71717a;
+  /* Borders — dark green-tinted */
+  --color-border-default: #1e3028;
+  --color-border-subtle:  #172419;
 
-  /* Brand / Interactive — desaturated variants for dark mode */
-  --color-primary:       #818cf8;
-  --color-primary-hover: #a5b4fc;
+  /* Text — warm off-white */
+  --color-text-primary:   #f5f5f0;
+  --color-text-secondary: #a8a29e;
+  --color-text-muted:     #78716c;
 
-  /* Semantic status — desaturated/lighter for dark mode */
+  /* Brand / Interactive — lighter emerald for dark mode */
+  --color-primary:       #34d399;
+  --color-primary-hover: #6ee7b7;
+
+  /* Accent — amber for dark mode */
+  --color-accent:        #fbbf24;
+  --color-accent-hover:  #fcd34d;
+
+  /* Semantic status — lighter variants for dark mode */
   --color-error:   #f87171;
-  --color-success: #4ade80;
+  --color-success: #34d399;
   --color-warning: #fbbf24;
 
   /* ── Elevation scale (dark) ──
-     Dark surfaces use lighter shadows with higher opacity to
-     remain visible against near-black backgrounds. */
+     Green-tinted shadows for depth on dark surfaces. */
   --shadow-sm:
-    0 1px 2px 0 rgba(0, 0, 0, 0.40),
-    0 1px 3px 0 rgba(0, 0, 0, 0.30);
+    0 1px 2px 0 rgba(0, 0, 0, 0.50),
+    0 1px 3px 0 rgba(0, 0, 0, 0.40);
 
   --shadow-md:
-    0 2px 4px 0    rgba(0, 0, 0, 0.40),
-    0 4px 8px -1px rgba(0, 0, 0, 0.35),
-    0 1px 2px 0    rgba(0, 0, 0, 0.25);
+    0 2px 4px 0    rgba(0, 0, 0, 0.50),
+    0 4px 8px -1px rgba(0, 0, 0, 0.45),
+    0 1px 2px 0    rgba(0, 0, 0, 0.30);
 
   --shadow-lg:
-    0 4px 6px -1px   rgba(0, 0, 0, 0.45),
-    0 10px 20px -3px rgba(0, 0, 0, 0.40),
-    0 2px 4px -1px   rgba(0, 0, 0, 0.30);
+    0 4px 6px -1px   rgba(0, 0, 0, 0.55),
+    0 10px 20px -3px rgba(0, 0, 0, 0.50),
+    0 2px 4px -1px   rgba(0, 0, 0, 0.35);
 
   /* ── Badge semantic tokens (dark) ──
      Lighter text on dark tinted backgrounds — all pairs ≥4.5:1 */
 
-  /* success: green-300 on green-950 — contrast ~7.8:1 */
-  --badge-success-fg:     #86efac;
-  --badge-success-bg:     #052e16;
-  --badge-success-border: #166534;
+  /* success: emerald-300 on emerald-950 — contrast ~7.8:1 */
+  --badge-success-fg:     #6ee7b7;
+  --badge-success-bg:     #022c22;
+  --badge-success-border: #065f46;
 
   /* error: red-300 on red-950 — contrast ~7.5:1 */
   --badge-error-fg:     #fca5a5;
@@ -234,11 +255,11 @@
 
   /* warning: amber-300 on amber-950 — contrast ~7.2:1 */
   --badge-warning-fg:     #fcd34d;
-  --badge-warning-bg:     #451a03;
+  --badge-warning-bg:     #1c0f00;
   --badge-warning-border: #92400e;
 
-  /* info: indigo-300 on indigo-950 — contrast ~7.9:1 */
-  --badge-info-fg:     #a5b4fc;
-  --badge-info-bg:     #1e1b4b;
-  --badge-info-border: #3730a3;
+  /* info: emerald-300 on dark-950 — contrast ~7.9:1 */
+  --badge-info-fg:     #6ee7b7;
+  --badge-info-bg:     #022c22;
+  --badge-info-border: #047857;
 }
