@@ -23,7 +23,7 @@ export function StreakIndicator({ streak, size = 'md' }: StreakIndicatorProps) {
       className={`inline-flex items-center ${sizeConfig.container} rounded-full font-semibold border ${
         isActive
           ? 'bg-orange-500/10 text-orange-400 border-orange-500/30'
-          : 'bg-white/5 text-text-secondary border-white/10'
+          : 'bg-stone-100 text-text-secondary border-border-default'
       }`}
       role="status"
       aria-label={`${streak} week streak${isActive ? ', active' : ''}`}

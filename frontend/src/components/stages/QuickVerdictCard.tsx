@@ -8,9 +8,9 @@ interface Props {
 }
 
 function getSalvageColor(score: number): string {
-  if (score >= 4) return 'text-emerald-400';
-  if (score >= 3) return 'text-amber-400';
-  return 'text-rose-400';
+  if (score >= 4) return 'text-success-500';
+  if (score >= 3) return 'text-warning-500';
+  return 'text-danger-500';
 }
 
 function getSalvageBg(score: number): string {
@@ -21,9 +21,9 @@ function getSalvageBg(score: number): string {
 
 function getConfidenceLabel(confidence: string): { label: string; color: string } {
   switch (confidence) {
-    case 'high': return { label: 'High Confidence', color: 'text-emerald-400' };
-    case 'moderate': return { label: 'Moderate Confidence', color: 'text-amber-400' };
-    default: return { label: 'Low Confidence', color: 'text-rose-400' };
+    case 'high': return { label: 'High Confidence', color: 'text-success-500' };
+    case 'moderate': return { label: 'Moderate Confidence', color: 'text-warning-500' };
+    default: return { label: 'Low Confidence', color: 'text-danger-500' };
   }
 }
 
@@ -31,7 +31,7 @@ export function QuickVerdictCard({ data }: Props) {
   const conf = getConfidenceLabel(data.confidence);
 
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
+    <div className="card card-hover overflow-hidden">
       {/* Header with device name and risk */}
       <div className="p-6 pb-4 flex items-start justify-between gap-4">
         <div>
@@ -71,7 +71,7 @@ export function QuickVerdictCard({ data }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="rounded-xl p-4 bg-gradient-to-br from-primary-500/10 to-primary-500/5 border border-border-subtle sm:col-span-2"
+          className="rounded-xl p-4 bg-primary-50 border border-border-subtle sm:col-span-2"
         >
           <div className="flex items-center gap-2 mb-1">
             <Lightbulb className="w-4 h-4 text-primary-400" />
@@ -105,15 +105,15 @@ export function QuickVerdictCard({ data }: Props) {
       {data.safetyWarning && (
         <div className="mx-6 mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-300/90 leading-relaxed">{data.safetyWarning}</p>
+            <AlertTriangle className="w-4 h-4 text-warning-500 shrink-0 mt-0.5" />
+            <p className="text-xs text-warning-600/90 leading-relaxed">{data.safetyWarning}</p>
           </div>
         </div>
       )}
 
       {/* Missing Info */}
       {data.missingInfoNotes && (
-        <div className="mx-6 mb-6 p-3 rounded-lg bg-surface-elevated/50 border border-border-subtle">
+        <div className="mx-6 mb-6 p-3 rounded-lg bg-stone-50 border border-border-subtle">
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-text-muted shrink-0 mt-0.5" />
             <p className="text-xs text-text-muted leading-relaxed">{data.missingInfoNotes}</p>

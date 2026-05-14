@@ -13,10 +13,10 @@ const LEVEL_CONFIG: Record<
   { color: string; glow: string; bg: string; border: string; icon: typeof Leaf }
 > = {
   Recycler: {
-    color: 'text-emerald-400',
+    color: 'text-success-500',
     glow: 'shadow-emerald-400/40',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/30',
+    bg: 'bg-success-50',
+    border: 'border-success-100',
     icon: Leaf,
   },
   Salvager: {
@@ -34,10 +34,10 @@ const LEVEL_CONFIG: Record<
     icon: Award,
   },
   'Green Guardian': {
-    color: 'text-amber-400',
+    color: 'text-warning-500',
     glow: 'shadow-amber-400/40',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
+    bg: 'bg-warning-50',
+    border: 'border-warning-100',
     icon: Crown,
   },
 };
@@ -57,7 +57,7 @@ export function LevelBadge({ level, size = 'md', showLabel = true }: LevelBadgeP
     <motion.span
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={`inline-flex items-center ${sizeConfig.container} rounded-full font-semibold border shadow-lg ${config.bg} ${config.color} ${config.border} ${config.glow}`}
+      className={`inline-flex items-center ${sizeConfig.container} rounded-full font-semibold border  ${config.bg} ${config.color} ${config.border} ${config.glow}`}
       role="status"
       aria-label={`Level: ${level}`}
     >

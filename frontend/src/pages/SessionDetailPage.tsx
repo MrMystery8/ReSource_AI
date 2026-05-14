@@ -73,7 +73,7 @@ export function SessionDetailPage() {
           className="flex flex-col items-center gap-4"
         >
           <div className="w-10 h-10 border-2 border-teal-400/30 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-gray-400 text-sm">Loading session...</p>
+          <p className="text-text-secondary text-sm">Loading session...</p>
         </motion.div>
       </div>
     );
@@ -88,15 +88,15 @@ export function SessionDetailPage() {
         transition={{ duration: 0.4 }}
         className="flex items-center justify-center min-h-[60vh]"
       >
-        <div className="glass-card p-8 w-full max-w-md text-center">
-          <AlertCircle className="w-12 h-12 text-rose-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Session Not Found</h1>
-          <p className="text-gray-400 mb-6">
+        <div className="card p-8 w-full max-w-md text-center">
+          <AlertCircle className="w-12 h-12 text-danger-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-text-primary mb-2">Session Not Found</h1>
+          <p className="text-text-secondary mb-6">
             The session you're looking for doesn't exist or you don't have access to it.
           </p>
           <Link
             to="/history"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-700/30 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to History
@@ -115,7 +115,7 @@ export function SessionDetailPage() {
     >
       <Link
         to="/history"
-        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-stone-100 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to History

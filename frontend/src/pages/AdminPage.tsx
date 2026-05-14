@@ -33,15 +33,15 @@ function RiskBadge({ level }: { level: string | null }) {
   if (!level) return <span className="text-text-muted text-sm">—</span>;
 
   const colors: Record<string, string> = {
-    Green: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    Green: 'bg-success-50 text-success-600 border-success-100',
     Yellow: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
     Orange: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-    Red: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    Red: 'bg-danger-50 text-danger-500 border-danger-100',
   };
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${colors[level] ?? 'bg-gray-500/20 text-gray-300 border-gray-500/30'}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${colors[level] ?? 'bg-gray-500/20 text-text-secondary border-gray-500/30'}`}
     >
       {level}
     </span>
@@ -52,14 +52,14 @@ function RiskBadge({ level }: { level: string | null }) {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    complete: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    complete: 'bg-success-50 text-success-600 border-success-100',
     processing: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-    failed: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+    failed: 'bg-danger-50 text-danger-500 border-danger-100',
   };
 
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${colors[status] ?? 'bg-gray-500/20 text-gray-300 border-gray-500/30'}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${colors[status] ?? 'bg-gray-500/20 text-text-secondary border-gray-500/30'}`}
     >
       {status}
     </span>
@@ -88,37 +88,37 @@ function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 "
         onClick={onCancel}
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative glass-card p-6 w-full max-w-sm mx-4"
+        className="relative card p-6 w-full max-w-sm mx-4"
       >
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-amber-400" />
+          <div className="w-10 h-10 rounded-full bg-warning-50 border border-warning-100 flex items-center justify-center">
+            <Shield className="w-5 h-5 text-warning-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white">Confirm Role Change</h3>
+          <h3 className="text-lg font-semibold text-text-primary">Confirm Role Change</h3>
         </div>
         <p className="text-text-secondary text-sm mb-6">
-          Are you sure you want to change <span className="text-white font-medium">{userName}</span>&apos;s role to{' '}
+          Are you sure you want to change <span className="text-text-primary font-medium">{userName}</span>&apos;s role to{' '}
           <span className="text-primary-400 font-medium">{newRole}</span>?
         </p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-white bg-surface-elevated/50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary bg-stone-50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-text-primary bg-primary-600 hover:bg-primary-500 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
             Confirm
@@ -210,8 +210,8 @@ function UsersTab({ apiClient }: { apiClient: ApiClient }) {
   if (error && users.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
-        <AlertCircle className="w-5 h-5 text-rose-400" />
-        <span className="ml-2 text-rose-300">{error}</span>
+        <AlertCircle className="w-5 h-5 text-danger-500" />
+        <span className="ml-2 text-danger-500">{error}</span>
       </div>
     );
   }
@@ -219,9 +219,9 @@ function UsersTab({ apiClient }: { apiClient: ApiClient }) {
   return (
     <div>
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-          <p className="text-rose-300 text-sm">{error}</p>
+        <div className="mb-4 p-3 rounded-lg bg-danger-50 border border-danger-100 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-danger-500 shrink-0" />
+          <p className="text-danger-500 text-sm">{error}</p>
         </div>
       )}
 
@@ -262,7 +262,7 @@ function UsersTab({ apiClient }: { apiClient: ApiClient }) {
                 key={user.userId}
                 className="border-b border-border-subtle/50 hover:bg-surface-elevated/30 transition-colors"
               >
-                <td className="py-3 px-4 text-white font-medium">
+                <td className="py-3 px-4 text-text-primary font-medium">
                   {user.displayName}
                 </td>
                 <td className="py-3 px-4 text-text-secondary">{user.email}</td>
@@ -273,7 +273,7 @@ function UsersTab({ apiClient }: { apiClient: ApiClient }) {
                       onChange={(e) =>
                         handleRoleChange(user, e.target.value as UserRole)
                       }
-                      className="appearance-none bg-surface-elevated/50 border border-border-subtle rounded-lg px-3 py-1.5 pr-8 text-sm text-white focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/50 transition-colors cursor-pointer"
+                      className="appearance-none bg-stone-50 border border-border-subtle rounded-lg px-3 py-1.5 pr-8 text-sm text-text-primary focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/50 transition-colors cursor-pointer"
                     >
                       <option value="user">user</option>
                       <option value="manager">manager</option>
@@ -300,7 +300,7 @@ function UsersTab({ apiClient }: { apiClient: ApiClient }) {
             <button
               onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
               disabled={offset === 0}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-white bg-surface-elevated/50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary bg-stone-50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -310,7 +310,7 @@ function UsersTab({ apiClient }: { apiClient: ApiClient }) {
             <button
               onClick={() => setOffset(offset + PAGE_SIZE)}
               disabled={offset + PAGE_SIZE >= total}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-white bg-surface-elevated/50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary bg-stone-50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -397,8 +397,8 @@ function SessionsTab({ apiClient }: { apiClient: ApiClient }) {
   if (error && sessions.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
-        <AlertCircle className="w-5 h-5 text-rose-400" />
-        <span className="ml-2 text-rose-300">{error}</span>
+        <AlertCircle className="w-5 h-5 text-danger-500" />
+        <span className="ml-2 text-danger-500">{error}</span>
       </div>
     );
   }
@@ -415,19 +415,19 @@ function SessionsTab({ apiClient }: { apiClient: ApiClient }) {
             onChange={(e) => setUserIdFilter(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()}
             placeholder="Filter by user ID..."
-            className="w-full pl-9 pr-4 py-2 rounded-lg bg-surface-elevated/50 border border-border-subtle text-white placeholder-text-muted text-sm focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/50 transition-colors"
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-stone-50 border border-border-subtle text-text-primary placeholder-text-muted text-sm focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/50 transition-colors"
           />
         </div>
         <button
           onClick={handleFilterApply}
-          className="px-3 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 transition-colors"
+          className="px-3 py-2 rounded-lg text-sm font-medium text-text-primary bg-primary-600 hover:bg-primary-500 transition-colors"
         >
           Filter
         </button>
         {appliedFilter && (
           <button
             onClick={handleFilterClear}
-            className="px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-white bg-surface-elevated/50 border border-border-subtle hover:border-border-default transition-colors"
+            className="px-3 py-2 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary bg-stone-50 border border-border-subtle hover:border-border-default transition-colors"
           >
             Clear
           </button>
@@ -435,9 +435,9 @@ function SessionsTab({ apiClient }: { apiClient: ApiClient }) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-          <p className="text-rose-300 text-sm">{error}</p>
+        <div className="mb-4 p-3 rounded-lg bg-danger-50 border border-danger-100 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-danger-500 shrink-0" />
+          <p className="text-danger-500 text-sm">{error}</p>
         </div>
       )}
 
@@ -469,7 +469,7 @@ function SessionsTab({ apiClient }: { apiClient: ApiClient }) {
                 key={session.sessionId}
                 className="border-b border-border-subtle/50 hover:bg-surface-elevated/30 transition-colors"
               >
-                <td className="py-3 px-4 text-white font-mono text-xs">
+                <td className="py-3 px-4 text-text-primary font-mono text-xs">
                   {session.sessionId.slice(0, 8)}...
                 </td>
                 <td className="py-3 px-4 text-text-secondary font-mono text-xs">
@@ -507,7 +507,7 @@ function SessionsTab({ apiClient }: { apiClient: ApiClient }) {
             <button
               onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
               disabled={offset === 0}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-white bg-surface-elevated/50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary bg-stone-50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
@@ -517,7 +517,7 @@ function SessionsTab({ apiClient }: { apiClient: ApiClient }) {
             <button
               onClick={() => setOffset(offset + PAGE_SIZE)}
               disabled={offset + PAGE_SIZE >= total}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-white bg-surface-elevated/50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary bg-stone-50 border border-border-subtle hover:border-border-default transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
@@ -551,7 +551,7 @@ export function AdminPage() {
     >
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
           <Shield className="w-6 h-6 text-primary-400" />
           Admin Panel
         </h1>
@@ -561,7 +561,7 @@ export function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="glass-card overflow-hidden">
+      <div className="card overflow-hidden">
         <div className="flex border-b border-border-subtle">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -573,7 +573,7 @@ export function AdminPage() {
                 className={`relative flex items-center gap-2 px-6 py-3.5 text-sm font-medium transition-colors ${
                   isActive
                     ? 'text-primary-400'
-                    : 'text-text-secondary hover:text-white'
+                    : 'text-text-secondary hover:text-text-primary'
                 }`}
               >
                 <Icon className="w-4 h-4" />

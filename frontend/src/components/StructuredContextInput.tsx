@@ -79,7 +79,7 @@ function SegmentedButtonGroup<T extends string>({
               isLast && 'rounded-r-xl',
               isSelected
                 ? 'bg-primary-500/20 text-primary-300 border-primary-500/40'
-                : 'bg-surface-elevated/40 text-text-secondary hover:bg-surface-elevated/70 hover:text-text-primary',
+                : 'bg-stone-100 text-text-secondary hover:bg-stone-200 hover:text-text-primary',
             ]
               .filter(Boolean)
               .join(' ')}
@@ -127,7 +127,7 @@ function ChipSelect<T extends string>({
               'px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60',
               isSelected
                 ? 'bg-primary-500/20 text-primary-300 border-primary-500/40 shadow-sm shadow-primary-500/10'
-                : 'bg-surface-elevated/40 text-text-secondary border-border-subtle hover:bg-surface-elevated/70 hover:text-text-primary hover:border-primary-500/30',
+                : 'bg-stone-100 text-text-secondary border-border-subtle hover:bg-stone-200 hover:text-text-primary hover:border-primary-500/30',
             ]
               .filter(Boolean)
               .join(' ')}
@@ -166,7 +166,7 @@ function FieldWrapper({ label, icon, description, htmlFor, required, children }:
         <span className="text-text-muted">{icon}</span>
         <span className="text-sm font-medium text-text-primary">{label}</span>
         {required && (
-          <span className="text-rose-400 text-xs" aria-label="required">
+          <span className="text-danger-500 text-xs" aria-label="required">
             *
           </span>
         )}
@@ -262,7 +262,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
             onChange={handleTimeChange}
             className={[
               'w-full appearance-none rounded-xl px-4 py-2.5 pr-10 text-sm transition-all duration-200',
-              'bg-surface-elevated/50 border border-border-subtle',
+              'bg-stone-50 border border-border-subtle',
               'focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/40',
               value.timeCommitment ? 'text-text-primary' : 'text-text-muted',
             ].join(' ')}

@@ -22,35 +22,33 @@ import type { UserStatsResponse, UserLevel } from '@resource-ai/shared';
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
-// Level color mapping
-const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string; glow: string }> = {
+const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string; bar: string }> = {
   Recycler: {
-    text: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/30',
-    glow: 'shadow-emerald-500/20',
+    text: 'text-primary-700',
+    bg: 'bg-primary-50',
+    border: 'border-primary-200',
+    bar: 'bg-primary-500',
   },
   Salvager: {
-    text: 'text-blue-400',
-    bg: 'bg-blue-500/10',
-    border: 'border-blue-500/30',
-    glow: 'shadow-blue-500/20',
+    text: 'text-info-600',
+    bg: 'bg-info-50',
+    border: 'border-info-100',
+    bar: 'bg-info-500',
   },
   'E-Waste Champion': {
-    text: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    border: 'border-purple-500/30',
-    glow: 'shadow-purple-500/20',
+    text: 'text-accent-600',
+    bg: 'bg-accent-50',
+    border: 'border-accent-200',
+    bar: 'bg-accent-500',
   },
   'Green Guardian': {
-    text: 'text-amber-400',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
-    glow: 'shadow-amber-500/20',
+    text: 'text-warning-600',
+    bg: 'bg-warning-50',
+    border: 'border-warning-100',
+    bar: 'bg-warning-500',
   },
 };
 
-// Toast component
 function Toast({
   message,
   type,
@@ -67,14 +65,16 @@ function Toast({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      className={`fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg backdrop-blur-xl ${
+      initial={{ opacity: 0, y: -12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-md border shadow-[0_4px_12px_oklch(0_0_0/0.06)] ${
         type === 'success'
-          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-          : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+          ? 'bg-success-50 border-success-100 text-success-600'
+          : 'bg-danger-50 border-danger-100 text-danger-600'
       }`}
+      role="alert"
+      aria-live="polite"
     >
       {type === 'success' ? (
         <CheckCircle className="w-4 h-4 shrink-0" />
@@ -82,7 +82,7 @@ function Toast({
         <AlertCircle className="w-4 h-4 shrink-0" />
       )}
       <span className="text-sm font-medium">{message}</span>
-      <button onClick={onClose} className="ml-2 hover:opacity-70 transition-opacity">
+      <button onClick={onClose} className="ml-2 hover:opacity-70 transition-opacity" aria-label="Dismiss">
         <X className="w-3.5 h-3.5" />
       </button>
     </motion.div>
@@ -92,26 +92,20 @@ function Toast({
 export function ProfilePage() {
   const { user, token, updateProfile } = useAuth();
 
-  // Display name editing state
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(user?.displayName ?? '');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Gamification stats
   const [stats, setStats] = useState<UserStatsResponse | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState(false);
 
-  // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  // Fetch gamification stats
   const fetchStats = useCallback(async () => {
     if (!token) return;
-
     setStatsLoading(true);
     setStatsError(false);
-
     try {
       const client = new ApiClient(API_URL, API_KEY, () => token);
       const data = await client.getStats();
@@ -127,7 +121,6 @@ export function ProfilePage() {
     fetchStats();
   }, [fetchStats]);
 
-  // Handle save display name
   const handleSave = async () => {
     const trimmed = editName.trim();
     if (!trimmed || trimmed === user?.displayName) {
@@ -135,12 +128,11 @@ export function ProfilePage() {
       setEditName(user?.displayName ?? '');
       return;
     }
-
     setIsSaving(true);
     try {
       await updateProfile(trimmed);
       setIsEditing(false);
-      setToast({ message: 'Profile updated successfully', type: 'success' });
+      setToast({ message: 'Profile updated', type: 'success' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to update profile';
       setToast({ message, type: 'error' });
@@ -159,7 +151,6 @@ export function ProfilePage() {
     if (e.key === 'Escape') handleCancel();
   };
 
-  // Calculate progress bar values
   const currentLevel = stats?.level ?? 'Recycler';
   const currentThreshold = LEVEL_THRESHOLDS.find((t) => t.level === currentLevel);
   const pointsInLevel = (stats?.points ?? 0) - (currentThreshold?.minPoints ?? 0);
@@ -168,7 +159,6 @@ export function ProfilePage() {
     ? 100
     : Math.min(100, Math.round((pointsInLevel / levelRange) * 100));
 
-  // Map earned badges
   const earnedBadgeIds = new Set(
     stats?.badges?.filter((b) => b.earnedAt !== null).map((b) => b.id) ?? []
   );
@@ -180,45 +170,35 @@ export function ProfilePage() {
 
   return (
     <>
-      {/* Toast notifications */}
       <AnimatePresence>
         {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
+          <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
         )}
       </AnimatePresence>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="max-w-4xl mx-auto px-4 py-8 space-y-6"
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="space-y-6"
       >
         {/* Page Title */}
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-white">Profile</h1>
+        <div>
+          <h1 className="text-2xl font-semibold text-text-primary">Profile</h1>
           <p className="text-text-secondary text-sm mt-1">
             Manage your account and track your progress
           </p>
         </div>
 
         {/* User Info Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="glass-card p-6"
-        >
-          <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-            <User className="w-5 h-5 text-primary-400" />
+        <section className="card p-6" aria-labelledby="account-heading">
+          <h2 id="account-heading" className="text-base font-semibold text-text-primary mb-5 flex items-center gap-2">
+            <User className="w-4.5 h-4.5 text-primary-600" />
             Account Information
           </h2>
 
           <div className="space-y-4">
-            {/* Display Name (editable) */}
+            {/* Display Name */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
@@ -233,16 +213,16 @@ export function ProfilePage() {
                       onKeyDown={handleKeyDown}
                       maxLength={100}
                       autoFocus
-                      className="flex-1 px-3 py-2 rounded-lg bg-surface-elevated/50 border border-border-subtle text-white placeholder-text-muted focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-400/50 transition-colors text-sm"
+                      className="flex-1 px-3 py-2 rounded-md bg-white border border-border-default text-text-primary placeholder-text-muted focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-colors text-sm"
                     />
                     <button
                       onClick={handleSave}
                       disabled={isSaving || !editName.trim()}
-                      className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="p-2 rounded-md bg-success-50 border border-success-100 text-success-600 hover:bg-success-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       aria-label="Save display name"
                     >
                       {isSaving ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-emerald-400" />
+                        <div className="w-4 h-4 border-2 border-success-200 border-t-success-600 rounded-full animate-spin" />
                       ) : (
                         <Check className="w-4 h-4" />
                       )}
@@ -250,7 +230,7 @@ export function ProfilePage() {
                     <button
                       onClick={handleCancel}
                       disabled={isSaving}
-                      className="p-2 rounded-lg bg-white/5 border border-white/10 text-text-secondary hover:text-white hover:bg-white/10 transition-colors"
+                      className="p-2 rounded-md bg-stone-100 border border-border-default text-text-secondary hover:text-text-primary hover:bg-stone-200 transition-colors"
                       aria-label="Cancel editing"
                     >
                       <X className="w-4 h-4" />
@@ -258,13 +238,13 @@ export function ProfilePage() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mt-1.5">
-                    <p className="text-white font-medium">{user?.displayName ?? '—'}</p>
+                    <p className="text-text-primary font-medium">{user?.displayName ?? '—'}</p>
                     <button
                       onClick={() => {
                         setEditName(user?.displayName ?? '');
                         setIsEditing(true);
                       }}
-                      className="p-1.5 rounded-md text-text-muted hover:text-primary-400 hover:bg-primary-500/10 transition-colors"
+                      className="p-1.5 rounded-md text-text-muted hover:text-primary-600 hover:bg-primary-50 transition-colors"
                       aria-label="Edit display name"
                     >
                       <Pencil className="w-3.5 h-3.5" />
@@ -274,11 +254,9 @@ export function ProfilePage() {
               </div>
             </div>
 
-            {/* Email (read-only) */}
+            {/* Email */}
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Email
-              </label>
+              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">Email</label>
               <div className="flex items-center gap-2 mt-1.5">
                 <Mail className="w-4 h-4 text-text-muted" />
                 <p className="text-text-secondary text-sm">{user?.email ?? '—'}</p>
@@ -287,12 +265,10 @@ export function ProfilePage() {
 
             {/* Role */}
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Role
-              </label>
+              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">Role</label>
               <div className="flex items-center gap-2 mt-1.5">
                 <Shield className="w-4 h-4 text-text-muted" />
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-500/10 border border-primary-500/30 text-primary-300 capitalize">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 border border-primary-200 text-primary-700 capitalize">
                   {user?.role ?? 'user'}
                 </span>
               </div>
@@ -300,9 +276,7 @@ export function ProfilePage() {
 
             {/* Member Since */}
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Member Since
-              </label>
+              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">Member Since</label>
               <div className="flex items-center gap-2 mt-1.5">
                 <Calendar className="w-4 h-4 text-text-muted" />
                 <p className="text-text-secondary text-sm">
@@ -317,144 +291,114 @@ export function ProfilePage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </section>
 
-        {/* Gamification Stats Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass-card p-6"
-        >
-          <h2 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-400" />
-            Gamification Stats
+        {/* Gamification Stats */}
+        <section className="card p-6" aria-labelledby="stats-heading">
+          <h2 id="stats-heading" className="text-base font-semibold text-text-primary mb-5 flex items-center gap-2">
+            <Trophy className="w-4.5 h-4.5 text-accent-500" />
+            Progress
           </h2>
 
           {statsLoading ? (
-            <div className="space-y-4 animate-pulse">
-              <div className="h-16 rounded-lg bg-white/5" />
-              <div className="h-8 rounded-lg bg-white/5 w-2/3" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="space-y-4 animate-pulse" aria-busy="true">
+              <div className="h-14 rounded-md bg-stone-100" />
+              <div className="h-6 rounded-md bg-stone-100 w-2/3" />
+              <div className="grid grid-cols-3 gap-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 rounded-lg bg-white/5" />
+                  <div key={i} className="h-20 rounded-md bg-stone-100" />
                 ))}
               </div>
             </div>
           ) : statsError ? (
             <div className="text-center py-8">
-              <AlertCircle className="w-10 h-10 text-text-muted mx-auto mb-3" />
-              <p className="text-text-secondary text-sm">
-                Unable to load gamification stats.
-              </p>
-              <p className="text-text-muted text-xs mt-1">
-                Stats will appear here once the service is available.
-              </p>
+              <AlertCircle className="w-8 h-8 text-stone-300 mx-auto mb-3" />
+              <p className="text-text-secondary text-sm">Unable to load stats</p>
               <button
                 onClick={fetchStats}
-                className="mt-4 text-sm text-primary-400 hover:text-primary-300 transition-colors"
+                className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
                 Try again
               </button>
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Level + Progress Bar */}
+              {/* Level + Progress */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-sm font-semibold px-3 py-1 rounded-full ${levelColors.bg} border ${levelColors.border} ${levelColors.text} shadow-md ${levelColors.glow}`}
-                    >
-                      {currentLevel}
-                    </span>
-                  </div>
+                  <span className={`text-sm font-medium px-2.5 py-1 rounded-full border ${levelColors.bg} ${levelColors.border} ${levelColors.text}`}>
+                    {currentLevel}
+                  </span>
                   {stats?.nextLevel && (
                     <span className="text-xs text-text-muted">
                       {stats.pointsToNextLevel} pts to {stats.nextLevel}
                     </span>
                   )}
                 </div>
-                <div className="w-full h-3 rounded-full bg-white/5 border border-white/10 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-stone-200 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className={`h-full rounded-full bg-gradient-to-r ${
-                      currentLevel === 'Recycler'
-                        ? 'from-emerald-500 to-emerald-400'
-                        : currentLevel === 'Salvager'
-                          ? 'from-blue-500 to-blue-400'
-                          : currentLevel === 'E-Waste Champion'
-                            ? 'from-purple-500 to-purple-400'
-                            : 'from-amber-500 to-amber-400'
-                    }`}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    className={`h-full rounded-full ${levelColors.bar}`}
                   />
                 </div>
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {/* Points */}
-                <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
-                  <Star className="w-5 h-5 text-amber-400 mx-auto mb-1.5" />
-                  <p className="text-xl font-bold text-white">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-md bg-stone-50 border border-border-subtle p-4 text-center">
+                  <Star className="w-4.5 h-4.5 text-accent-500 mx-auto mb-1.5" />
+                  <p className="text-lg font-semibold text-text-primary tabular-nums">
                     {(stats?.points ?? 0).toLocaleString()}
                   </p>
-                  <p className="text-xs text-text-muted mt-0.5">Total Points</p>
+                  <p className="text-xs text-text-muted mt-0.5">Points</p>
                 </div>
-
-                {/* Streak */}
-                <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center">
-                  <Flame className="w-5 h-5 text-orange-400 mx-auto mb-1.5" />
-                  <p className="text-xl font-bold text-white">{stats?.streak ?? 0}</p>
-                  <p className="text-xs text-text-muted mt-0.5">Week Streak</p>
+                <div className="rounded-md bg-stone-50 border border-border-subtle p-4 text-center">
+                  <Flame className="w-4.5 h-4.5 text-accent-400 mx-auto mb-1.5" />
+                  <p className="text-lg font-semibold text-text-primary tabular-nums">{stats?.streak ?? 0}</p>
+                  <p className="text-xs text-text-muted mt-0.5">Streak</p>
                 </div>
-
-                {/* Sessions */}
-                <div className="rounded-xl bg-white/5 border border-white/10 p-4 text-center col-span-2 sm:col-span-1">
-                  <Trophy className="w-5 h-5 text-primary-400 mx-auto mb-1.5" />
-                  <p className="text-xl font-bold text-white">
-                    {stats?.totalSessions ?? 0}
-                  </p>
+                <div className="rounded-md bg-stone-50 border border-border-subtle p-4 text-center">
+                  <Trophy className="w-4.5 h-4.5 text-primary-500 mx-auto mb-1.5" />
+                  <p className="text-lg font-semibold text-text-primary tabular-nums">{stats?.totalSessions ?? 0}</p>
                   <p className="text-xs text-text-muted mt-0.5">Sessions</p>
                 </div>
               </div>
 
-              {/* Badges Grid */}
+              {/* Badges */}
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Badges</h3>
+                <h3 className="text-sm font-medium text-text-primary mb-3">Badges</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {BADGE_DEFINITIONS.map((badge) => {
                     const isEarned = earnedBadgeIds.has(badge.id);
                     const earnedInfo = earnedBadgesMap.get(badge.id);
 
                     return (
-                      <motion.div
+                      <div
                         key={badge.id}
-                        whileHover={{ scale: 1.02 }}
-                        className={`rounded-xl p-4 border transition-all ${
+                        className={`rounded-md p-3.5 border transition-all ${
                           isEarned
-                            ? 'bg-white/5 border-white/15 shadow-md'
-                            : 'bg-white/[0.02] border-white/5 opacity-40 grayscale'
+                            ? 'bg-white border-border-default shadow-[0_1px_3px_oklch(0_0_0/0.04)]'
+                            : 'bg-stone-50 border-border-subtle opacity-50'
                         }`}
                       >
                         <div className="text-center">
-                          <span className="text-2xl block mb-2" role="img" aria-label={badge.name}>
-                            {badge.icon}
-                          </span>
-                          <p
-                            className={`text-xs font-semibold ${
-                              isEarned ? 'text-white' : 'text-text-muted'
-                            }`}
-                          >
+                          <div className={`w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center ${
+                            isEarned ? 'bg-primary-50' : 'bg-stone-100'
+                          }`}>
+                            <span className="text-lg" role="img" aria-label={badge.name}>
+                              {badge.icon}
+                            </span>
+                          </div>
+                          <p className={`text-xs font-medium ${isEarned ? 'text-text-primary' : 'text-text-muted'}`}>
                             {badge.name}
                           </p>
-                          <p className="text-[10px] text-text-muted mt-0.5 leading-tight">
+                          <p className="text-[11px] text-text-muted mt-0.5 leading-tight">
                             {badge.description}
                           </p>
                           {isEarned && earnedInfo?.earnedAt && (
-                            <p className="text-[10px] text-primary-400 mt-1.5">
+                            <p className="text-[11px] text-primary-600 mt-1.5 font-medium">
                               {new Date(earnedInfo.earnedAt).toLocaleDateString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -463,14 +407,14 @@ export function ProfilePage() {
                             </p>
                           )}
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
             </div>
           )}
-        </motion.div>
+        </section>
       </motion.div>
     </>
   );

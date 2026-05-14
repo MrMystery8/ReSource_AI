@@ -239,7 +239,7 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
         <motion.p
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xs text-rose-400 flex items-center gap-1.5"
+          className="text-xs text-danger-500 flex items-center gap-1.5"
           role="alert"
         >
           <AlertCircle className="w-3.5 h-3.5" />
@@ -265,7 +265,7 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
                   key={file.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-elevated/50 border border-border-subtle"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-stone-50 border border-border-subtle"
                 >
                   {isImageFile(file.name) ? (
                     <Image className="w-4 h-4 text-primary-400 shrink-0" />
@@ -281,10 +281,10 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
                     />
                   )}
                   {file.status === 'success' && (
-                    <FileCheck className="w-4 h-4 text-emerald-400" />
+                    <FileCheck className="w-4 h-4 text-success-500" />
                   )}
                   {file.status === 'error' && (
-                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                    <AlertCircle className="w-4 h-4 text-danger-500" />
                   )}
                 </motion.li>
               ))}

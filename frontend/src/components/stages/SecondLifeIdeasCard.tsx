@@ -10,8 +10,8 @@ const CATEGORY_CONFIG: Record<IdeaCategory, { label: string; icon: React.ReactNo
   beginner: {
     label: 'Beginner',
     icon: <BookOpen className="w-4 h-4" />,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
+    color: 'text-success-500',
+    bg: 'bg-success-50',
     border: 'border-emerald-500/20',
   },
   'stem-learning': {
@@ -24,8 +24,8 @@ const CATEGORY_CONFIG: Record<IdeaCategory, { label: string; icon: React.ReactNo
   'practical-creative': {
     label: 'Practical & Creative',
     icon: <Palette className="w-4 h-4" />,
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
+    color: 'text-warning-500',
+    bg: 'bg-warning-50',
     border: 'border-amber-500/20',
   },
 };
@@ -38,7 +38,7 @@ function IdeaCard({ idea, index }: { idea: ProjectIdea; index: number }) {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.1 }}
-      className="rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 transition-all overflow-hidden"
+      className="rounded-xl bg-stone-100 border border-border-subtle hover:border-primary-500/30 transition-all overflow-hidden"
     >
       {/* Card Header */}
       <div className="p-4 pb-3">
@@ -98,11 +98,11 @@ function IdeaCard({ idea, index }: { idea: ProjectIdea; index: number }) {
 
 export function SecondLifeIdeasCard({ data }: Props) {
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
+    <div className="card card-hover overflow-hidden">
       {/* Header */}
       <div className="p-6 pb-4 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <Lightbulb className="w-5 h-5 text-emerald-400" />
+        <div className="w-9 h-9 rounded-lg bg-success-50 border border-emerald-500/20 flex items-center justify-center">
+          <Lightbulb className="w-5 h-5 text-success-500" />
         </div>
         <div>
           <h3 className="text-lg font-semibold text-text-primary">Safe Second Life Ideas</h3>

@@ -15,8 +15,8 @@ const CATEGORY_CONFIG: Record<
   beginner: {
     label: 'Beginner',
     icon: <BookOpen className="w-4 h-4" />,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
+    color: 'text-success-500',
+    bg: 'bg-success-50',
     border: 'border-emerald-500/20',
   },
   'stem-learning': {
@@ -29,8 +29,8 @@ const CATEGORY_CONFIG: Record<
   'practical-creative': {
     label: 'Practical & Creative',
     icon: <Palette className="w-4 h-4" />,
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
+    color: 'text-warning-500',
+    bg: 'bg-warning-50',
     border: 'border-amber-500/20',
   },
 };
@@ -51,7 +51,7 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.1 }}
       onClick={() => onClick(idea)}
-      className="w-full text-left rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 hover:bg-surface-elevated/60 transition-all overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+      className="w-full text-left rounded-xl bg-stone-100 border border-border-subtle hover:border-primary-500/30 hover:bg-stone-100 transition-all overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500/50"
       aria-label={`View implementation guide for: ${idea.title}`}
     >
       {/* Card Header */}

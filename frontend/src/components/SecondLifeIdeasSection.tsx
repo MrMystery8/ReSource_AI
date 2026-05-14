@@ -26,12 +26,12 @@ export function SecondLifeIdeasSection({
   const filteredIdeas = filterIdeasByExpertise(ideas, userExpertise);
 
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
+    <div className="card card-hover overflow-hidden">
       {/* Header */}
       <div className="p-6 pb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-emerald-400" />
+          <div className="w-9 h-9 rounded-lg bg-success-50 border border-emerald-500/20 flex items-center justify-center">
+            <Lightbulb className="w-5 h-5 text-success-500" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-text-primary">Safe Second Life Ideas</h3>
@@ -61,11 +61,11 @@ export function SecondLifeIdeasSection({
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mx-6 mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-start gap-2"
+          className="mx-6 mb-4 p-3 rounded-lg bg-danger-50 border border-danger-100 flex items-start gap-2"
           role="alert"
         >
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-rose-300">{reloadError}</p>
+          <AlertCircle className="w-4 h-4 text-danger-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-danger-500">{reloadError}</p>
         </motion.div>
       )}
 

@@ -8,15 +8,15 @@ export interface RiskBadgeProps {
 
 const RISK_CONFIG: Record<RiskLevel, { bg: string; text: string; border: string; icon: React.ReactNode }> = {
   Green: {
-    bg: 'bg-emerald-500/10',
-    text: 'text-emerald-400',
-    border: 'border-emerald-500/30',
+    bg: 'bg-success-50',
+    text: 'text-success-500',
+    border: 'border-success-100',
     icon: <ShieldCheck className="w-3.5 h-3.5" />,
   },
   Yellow: {
-    bg: 'bg-amber-500/10',
-    text: 'text-amber-400',
-    border: 'border-amber-500/30',
+    bg: 'bg-warning-50',
+    text: 'text-warning-500',
+    border: 'border-warning-100',
     icon: <Shield className="w-3.5 h-3.5" />,
   },
   Orange: {
@@ -26,9 +26,9 @@ const RISK_CONFIG: Record<RiskLevel, { bg: string; text: string; border: string;
     icon: <ShieldAlert className="w-3.5 h-3.5" />,
   },
   Red: {
-    bg: 'bg-rose-500/10',
-    text: 'text-rose-400',
-    border: 'border-rose-500/30',
+    bg: 'bg-danger-50',
+    text: 'text-danger-500',
+    border: 'border-danger-100',
     icon: <ShieldAlert className="w-3.5 h-3.5" />,
   },
 };

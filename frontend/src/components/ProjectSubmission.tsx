@@ -59,11 +59,11 @@ const GRADE_CONFIG: Record<
   SubmissionResult['grade'],
   { label: string; color: string; bg: string; border: string }
 > = {
-  A: { label: 'Excellent', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
-  B: { label: 'Good', color: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30' },
-  C: { label: 'Satisfactory', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30' },
+  A: { label: 'Excellent', color: 'text-success-500', bg: 'bg-success-50', border: 'border-success-100' },
+  B: { label: 'Good', color: 'text-primary-500', bg: 'bg-primary-50', border: 'border-primary-200' },
+  C: { label: 'Satisfactory', color: 'text-warning-500', bg: 'bg-warning-50', border: 'border-warning-100' },
   D: { label: 'Needs Improvement', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30' },
-  F: { label: 'Participation', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30' },
+  F: { label: 'Participation', color: 'text-danger-500', bg: 'bg-danger-50', border: 'border-danger-100' },
 };
 
 // ── Utility ───────────────────────────────────────────────────────────────────
@@ -345,7 +345,7 @@ export function ProjectSubmission({
                 <span className={`text-sm font-semibold ${GRADE_CONFIG[result.grade].color}`}>
                   {GRADE_CONFIG[result.grade].label}
                 </span>
-                <span className="ml-auto flex items-center gap-1 text-sm font-bold text-emerald-400">
+                <span className="ml-auto flex items-center gap-1 text-sm font-bold text-success-500">
                   <Star className="w-3.5 h-3.5" />
                   +{result.points} pts
                 </span>
@@ -370,13 +370,13 @@ export function ProjectSubmission({
           <div className="flex items-center gap-2">
             <Image className="w-4 h-4 text-text-muted" />
             <span className="text-sm font-medium text-text-primary">Project Photos</span>
-            <span className="text-rose-400 text-xs" aria-label="required">*</span>
+            <span className="text-danger-500 text-xs" aria-label="required">*</span>
           </div>
           <span
             className={`text-xs font-medium ${
               readyCount < MIN_PHOTOS || readyCount > MAX_PHOTOS
-                ? 'text-rose-400'
-                : 'text-emerald-400'
+                ? 'text-danger-500'
+                : 'text-success-500'
             }`}
             aria-live="polite"
           >
@@ -445,7 +445,7 @@ export function ProjectSubmission({
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
-              className="mt-2 text-xs text-rose-400 flex items-center gap-1.5"
+              className="mt-2 text-xs text-danger-500 flex items-center gap-1.5"
               role="alert"
             >
               <AlertCircle className="w-3.5 h-3.5 shrink-0" />
@@ -469,7 +469,7 @@ export function ProjectSubmission({
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="relative aspect-square rounded-lg overflow-hidden border border-border-subtle bg-surface-elevated/40"
+                  className="relative aspect-square rounded-lg overflow-hidden border border-border-subtle bg-stone-100"
                 >
                   <img
                     src={photo.previewUrl}
@@ -480,17 +480,17 @@ export function ProjectSubmission({
                   {/* Status overlay */}
                   {photo.status === 'uploading' && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                      <Loader2 className="w-5 h-5 text-text-primary animate-spin" />
                     </div>
                   )}
                   {photo.status === 'uploaded' && (
                     <div className="absolute top-1 right-1">
-                      <CheckCircle className="w-4 h-4 text-emerald-400 drop-shadow" />
+                      <CheckCircle className="w-4 h-4 text-success-500 drop-shadow" />
                     </div>
                   )}
                   {photo.status === 'error' && (
                     <div className="absolute inset-0 bg-rose-900/60 flex items-center justify-center">
-                      <AlertCircle className="w-5 h-5 text-rose-300" />
+                      <AlertCircle className="w-5 h-5 text-danger-500" />
                     </div>
                   )}
 
@@ -502,7 +502,7 @@ export function ProjectSubmission({
                       className="absolute top-1 left-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
                       aria-label={`Remove ${photo.file.name}`}
                     >
-                      <X className="w-3 h-3 text-white" />
+                      <X className="w-3 h-3 text-text-primary" />
                     </button>
                   )}
 
@@ -526,14 +526,14 @@ export function ProjectSubmission({
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            className="rounded-lg bg-rose-500/10 border border-rose-500/30 p-3 flex items-start gap-2"
+            className="rounded-lg bg-danger-50 border border-danger-100 p-3 flex items-start gap-2"
             role="alert"
           >
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-danger-500 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-rose-300">{submitError}</p>
+              <p className="text-sm text-danger-500">{submitError}</p>
               {retriesExhausted && (
-                <p className="text-xs text-rose-400/70 mt-1">
+                <p className="text-xs text-danger-500/70 mt-1">
                   Maximum retry attempts reached. Please refresh the page to try again.
                 </p>
               )}
@@ -555,13 +555,13 @@ export function ProjectSubmission({
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="w-full relative overflow-hidden rounded-xl px-6 py-3.5 font-medium text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group"
+          className="w-full relative overflow-hidden rounded-xl px-6 py-3.5 font-medium text-text-primary transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group"
           whileHover={canSubmit ? { scale: 1.01 } : {}}
           whileTap={canSubmit ? { scale: 0.99 } : {}}
         >
           {/* Button gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 opacity-90 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity" />
+          <div className="absolute inset-0 bg-primary-600 group-hover:bg-primary-700 transition-colors" />
+          <div className="absolute inset-0 " />
 
           <span className="relative flex items-center justify-center gap-2">
             {isSubmitting ? (

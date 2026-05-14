@@ -17,10 +17,10 @@ const LEVEL_GRADIENT: Record<UserLevel, string> = {
 };
 
 const LEVEL_BG: Record<UserLevel, string> = {
-  Recycler: 'bg-emerald-500/20',
+  Recycler: 'bg-success-50',
   Salvager: 'bg-blue-500/20',
   'E-Waste Champion': 'bg-purple-500/20',
-  'Green Guardian': 'bg-amber-500/20',
+  'Green Guardian': 'bg-warning-50',
 };
 
 export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: ProgressBarProps) {
@@ -51,7 +51,7 @@ export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: Pro
             {nextLevel}
           </span>
         ) : (
-          <span className="text-xs font-medium text-amber-400">
+          <span className="text-xs font-medium text-warning-500">
             Max Level!
           </span>
         )}

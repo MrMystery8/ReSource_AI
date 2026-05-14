@@ -35,12 +35,12 @@ export function ImpactCard({ data }: ImpactCardProps) {
       transition={{ duration: 0.4 }}
     >
       {/* Gradient border effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-emerald-500/10 to-primary-500/20 rounded-2xl" />
-      <div className="relative m-[1px] rounded-2xl bg-surface-card backdrop-blur-xl p-6">
+      <div className="absolute inset-0 bg-primary-50 rounded-2xl" />
+      <div className="relative m-[1px] rounded-2xl bg-surface-card  p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-emerald-500 flex items-center justify-center">
-            <Award className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center">
+            <Award className="w-5 h-5 text-text-primary" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-text-primary">ReSource Impact Card</h3>
@@ -56,7 +56,7 @@ export function ImpactCard({ data }: ImpactCardProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.04 }}
-              className="flex items-start gap-3 p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 transition-colors"
+              className="flex items-start gap-3 p-3 rounded-xl bg-stone-100 border border-border-subtle hover:border-primary-500/30 transition-colors"
             >
               <span className="text-primary-400 mt-0.5 shrink-0">{icon}</span>
               <div className="min-w-0">

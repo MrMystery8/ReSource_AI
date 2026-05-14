@@ -7,14 +7,14 @@ export interface PartsMapTableProps {
 }
 
 const VERDICT_CONFIG: Record<PartVerdict, { bg: string; text: string; border: string }> = {
-  Salvage: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-  Conditional: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/30' },
-  'Do Not Access': { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/30' },
+  Salvage: { bg: 'bg-success-50', text: 'text-success-500', border: 'border-success-100' },
+  Conditional: { bg: 'bg-warning-50', text: 'text-warning-500', border: 'border-warning-100' },
+  'Do Not Access': { bg: 'bg-danger-50', text: 'text-danger-500', border: 'border-danger-100' },
 };
 
 export function PartsMapTable({ data }: PartsMapTableProps) {
   return (
-    <div className="glass-card glass-card-hover p-6 space-y-4">
+    <div className="card card-hover p-6 space-y-4">
       <div className="flex items-center gap-2">
         <Wrench className="w-5 h-5 text-primary-400" />
         <h3 className="text-lg font-semibold text-text-primary">Reusable Parts Map</h3>
@@ -42,7 +42,7 @@ export function PartsMapTable({ data }: PartsMapTableProps) {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.04 }}
-                  className="hover:bg-surface-elevated/40 transition-colors"
+                  className="hover:bg-stone-100 transition-colors"
                 >
                   <td className="px-4 py-3 font-medium text-text-primary">{row.partResource}</td>
                   <td className="px-4 py-3 text-text-secondary">{row.likelyPresence}</td>

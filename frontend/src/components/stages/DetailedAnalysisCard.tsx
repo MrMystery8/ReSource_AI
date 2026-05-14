@@ -8,7 +8,7 @@ interface Props {
 
 function getConditionColor(score: number): string {
   if (score >= 4) return 'bg-emerald-400';
-  if (score >= 3) return 'bg-amber-400';
+  if (score >= 3) return 'bg-warning-400';
   if (score >= 2) return 'bg-orange-400';
   return 'bg-rose-400';
 }
@@ -26,7 +26,7 @@ function ComponentCard({ component, index }: { component: ComponentEntry; index:
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.05 }}
-      className="p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 transition-colors"
+      className="p-3 rounded-xl bg-stone-100 border border-border-subtle hover:border-primary-500/30 transition-colors"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2">
@@ -34,13 +34,13 @@ function ComponentCard({ component, index }: { component: ComponentEntry; index:
           <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
             component.type === 'internal'
               ? 'bg-primary-500/10 text-primary-400 border border-primary-500/20'
-              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              : 'bg-success-50 text-success-500 border border-emerald-500/20'
           }`}>
             {component.type}
           </span>
         </div>
         {component.requiresSupervision && (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-warning-50 text-warning-500 border border-amber-500/20">
             ⚠ Supervision
           </span>
         )}
@@ -58,9 +58,9 @@ function ComponentCard({ component, index }: { component: ComponentEntry; index:
           />
         </div>
         <span className={`text-[10px] font-medium ${
-          component.conditionScore >= 4 ? 'text-emerald-400' :
-          component.conditionScore >= 3 ? 'text-amber-400' :
-          component.conditionScore >= 2 ? 'text-orange-400' : 'text-rose-400'
+          component.conditionScore >= 4 ? 'text-success-500' :
+          component.conditionScore >= 3 ? 'text-warning-500' :
+          component.conditionScore >= 2 ? 'text-orange-400' : 'text-danger-500'
         }`}>
           {component.conditionScore}/5 {getConditionLabel(component.conditionScore)}
         </span>
@@ -71,7 +71,7 @@ function ComponentCard({ component, index }: { component: ComponentEntry; index:
 
 export function DetailedAnalysisCard({ data }: Props) {
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
+    <div className="card card-hover overflow-hidden">
       {/* Header */}
       <div className="p-6 pb-4 flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
@@ -91,7 +91,7 @@ export function DetailedAnalysisCard({ data }: Props) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-emerald-500/5 border border-primary-500/20"
+          className="p-4 rounded-xl bg-primary-50 border border-primary-500/20"
         >
           <div className="flex items-center gap-2 mb-2">
             <FileText className="w-4 h-4 text-primary-400" />
@@ -131,7 +131,7 @@ export function DetailedAnalysisCard({ data }: Props) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
-          className="p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle"
+          className="p-4 rounded-xl bg-stone-50 border border-border-subtle"
         >
           <span className="text-xs font-semibold text-text-muted uppercase tracking-wide block mb-2">Diagnostic Verdict</span>
           <p className="text-sm text-text-primary leading-relaxed">{data.diagnosticVerdict}</p>
