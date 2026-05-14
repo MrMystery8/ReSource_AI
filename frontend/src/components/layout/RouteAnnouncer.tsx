@@ -105,7 +105,9 @@ export function RouteAnnouncer(): JSX.Element {
         if (!mainContent.hasAttribute('tabindex')) {
           mainContent.setAttribute('tabindex', '-1');
         }
-        mainContent.focus({ preventScroll: false });
+        // Keep accessibility focus behavior without forcing a scroll jump
+        // that can place content under the sticky header on route changes.
+        mainContent.focus({ preventScroll: true });
       }
     }, 100);
 
