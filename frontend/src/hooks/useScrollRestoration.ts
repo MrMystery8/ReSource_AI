@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigationType } from 'react-router-dom';
 
 const STORAGE_KEY = 'scroll-positions';
 
@@ -69,28 +69,20 @@ function getSavedPosition(pathname: string): number {
  */
 export function useScrollRestoration(): void {
   const location = useLocation();
+  const navigationType = useNavigationType();
   const prevPathnameRef = useRef<string | null>(null);
-  const prevHistoryIndexRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const currentPathname = location.pathname;
     const prevPathname = prevPathnameRef.current;
-    
-    // Get the current history index (React Router tracks this in history.state)
-    const currentHistoryIndex = (window.history.state as { idx?: number } | null)?.idx;
-    const prevHistoryIndex = prevHistoryIndexRef.current;
 
     // Save the scroll position of the route we are navigating AWAY from
     if (prevPathname !== null && prevPathname !== currentPathname) {
       savePosition(prevPathname, window.scrollY);
     }
 
-    // Determine if this is a back/forward navigation
-    // If the history index changed but we're not on a new page, it's back/forward
-    const isBackForward = 
-      prevHistoryIndex !== undefined && 
-      currentHistoryIndex !== undefined && 
-      currentHistoryIndex !== prevHistoryIndex;
+    // React Router marks browser back/forward as POP.
+    const isBackForward = navigationType === 'POP';
 
     // Restore scroll position only for back/forward, otherwise scroll to top
     const targetY = isBackForward ? getSavedPosition(currentPathname) : 0;
@@ -110,10 +102,9 @@ export function useScrollRestoration(): void {
 
     // Update refs for the next navigation
     prevPathnameRef.current = currentPathname;
-    prevHistoryIndexRef.current = currentHistoryIndex;
 
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [location.pathname]);
+  }, [location.pathname, navigationType]);
 }
