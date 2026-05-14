@@ -240,6 +240,21 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
               <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                 {completedStages.length}/{totalExpectedStages} stages
               </span>
+              {/* Tiny vision indicator — green dot = images analyzed, invisible otherwise */}
+              {status === 'complete' && sessionInputs?.fileIds && sessionInputs.fileIds.length > 0 && (
+                <span
+                  className="inline-block w-1 h-1 rounded-full"
+                  style={{ backgroundColor: '#22c55e', opacity: 0.7 }}
+                  title="v"
+                />
+              )}
+              {status === 'complete' && !sessionInputs && session.inputs?.fileIds && session.inputs.fileIds.length > 0 && (
+                <span
+                  className="inline-block w-1 h-1 rounded-full"
+                  style={{ backgroundColor: '#22c55e', opacity: 0.7 }}
+                  title="v"
+                />
+              )}
             </div>
           </div>
 
