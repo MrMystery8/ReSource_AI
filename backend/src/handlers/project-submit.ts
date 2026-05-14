@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, HeadObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { ErrorResponse } from '@resource-ai/shared';
 import { BedrockClient } from '../bedrock-client';
 import { gradeToPoints } from '../grading/grade-points';
@@ -174,6 +174,25 @@ async function validatePhoto(key: string): Promise<PhotoMetadata> {
   };
 }
 
+// --- S3 photo fetch helper ---
+
+async function fetchPhotoBytes(key: string): Promise<{ bytes: Buffer; mediaType: string } | null> {
+  try {
+    const result = await s3Client.send(
+      new GetObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+      })
+    );
+    const bytes = Buffer.from(await result.Body!.transformToByteArray());
+    const mediaType = result.ContentType ?? 'image/jpeg';
+    return { bytes, mediaType };
+  } catch (err) {
+    console.warn(`[ProjectSubmit] Failed to fetch photo bytes for "${key}":`, err);
+    return null;
+  }
+}
+
 // --- Grading prompt builder ---
 
 function buildGradingPrompt(
@@ -187,14 +206,7 @@ function buildGradingPrompt(
       ? steps.map((s, i) => `  ${i + 1}. ${s}`).join('\n')
       : '  (no steps provided)';
 
-  const photosText = photos
-    .map(
-      (p, i) =>
-        `  Photo ${i + 1}: ${p.key} (${p.contentType}, ${(p.sizeBytes / 1024).toFixed(1)} KB)`
-    )
-    .join('\n');
-
-  return `You are an expert evaluator for e-waste recycling projects. A user has submitted photos of their completed recycling project for grading.
+  return `You are an expert evaluator for e-waste recycling projects. A user has submitted ${photos.length} photo(s) of their completed recycling project for grading. The photos are attached to this message — examine them carefully.
 
 ## Project Details
 
@@ -205,27 +217,20 @@ function buildGradingPrompt(
 **Project Steps:**
 ${stepsText}
 
-## Submitted Photos
-
-The user has submitted ${photos.length} photo(s) of their completed project:
-${photosText}
-
 ## Grading Instructions
 
-Based on the project description, expected outcome, and the number of photos submitted (which indicates the user's effort and documentation), evaluate the submission and assign a grade.
-
-Consider the following criteria:
-- **Execution Quality**: How well the project appears to have been completed based on the documentation
-- **Completeness**: Whether the submission demonstrates all key steps were followed
-- **Effort and Documentation**: The thoroughness of the photo documentation (${photos.length} photo(s) submitted)
-- **Creativity**: Any creative adaptations or improvements to the standard approach
+Examine the attached photos and evaluate the submission based on:
+- **Execution Quality**: Does the completed project match the expected outcome? Is the build quality good?
+- **Completeness**: Do the photos show evidence that all key steps were followed?
+- **Effort and Documentation**: Are the photos clear and well-taken? Do they show the project from multiple angles?
+- **Creativity**: Any creative adaptations, improvements, or personal touches visible in the photos?
 
 Assign a grade from A to F:
-- **A (Excellent)**: Outstanding execution, thorough documentation, creative approach
-- **B (Good)**: Good execution, adequate documentation, follows the guide well
-- **C (Satisfactory)**: Acceptable execution, basic documentation, most steps completed
-- **D (Needs Improvement)**: Partial completion, minimal documentation, significant gaps
-- **F (Participation)**: Minimal effort, very limited documentation, but attempted the project
+- **A (Excellent)**: Outstanding execution clearly visible in photos, project matches or exceeds expected outcome, creative touches evident
+- **B (Good)**: Good execution visible, project largely matches expected outcome, solid documentation
+- **C (Satisfactory)**: Acceptable execution, project partially matches expected outcome, basic photo documentation
+- **D (Needs Improvement)**: Partial completion visible, significant gaps between expected and actual outcome
+- **F (Participation)**: Minimal effort visible in photos, project barely started or photos don't show relevant work
 
 You MUST respond with ONLY valid JSON (no markdown, no code blocks) in the following structure:
 
@@ -235,7 +240,7 @@ You MUST respond with ONLY valid JSON (no markdown, no code blocks) in the follo
 }
 
 The "grade" field must be exactly one of: A, B, C, D, F
-The "feedback" field must be a helpful, encouraging paragraph of 2-4 sentences.
+The "feedback" field must be a helpful, encouraging paragraph of 2-4 sentences referencing what you can see in the photos.
 
 Respond with ONLY the JSON object, no other text.`;
 }
@@ -429,10 +434,23 @@ export const handler = async (
     // 5. Build grading prompt with photo references and expected outcome
     const prompt = buildGradingPrompt(req.guideContext, photos);
 
-    // 6. Invoke Claude via BedrockClient for grading analysis
+    // 5.5 Fetch actual photo bytes from S3 for multimodal AI analysis
+    const photoImages: Array<{ bytes: Buffer; mediaType: string }> = [];
+    for (const photo of photos) {
+      const fetched = await fetchPhotoBytes(photo.key);
+      if (fetched) {
+        photoImages.push(fetched);
+      }
+    }
+
+    // 6. Invoke model for grading — multimodal if we have images, text-only as fallback
     let rawText: string;
     try {
-      rawText = await bedrockClient.invokeClaudeModel(prompt);
+      if (photoImages.length > 0) {
+        rawText = await bedrockClient.invokeMultimodalModel(prompt, photoImages);
+      } else {
+        rawText = await bedrockClient.invokeClaudeModel(prompt);
+      }
     } catch (err) {
       console.error('BedrockClient invocation failed:', err);
       return errorResponse(500, {

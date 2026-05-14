@@ -222,6 +222,10 @@ export class PromptBuilder {
    */
   private buildUserInputsSection(session: TriageSession): string {
     const { deviceIdentity, failureSymptoms, userContext, fileIds } = session.inputs;
+    const imageNote = fileIds.length > 0
+      ? `${fileIds.length} image(s) attached — examine the photos carefully for device identification, visible damage, component condition, and any safety hazards.`
+      : 'No images provided — rely on text descriptions only. Be more conservative in risk assessment.';
+
     return `## User Inputs
 Device Identity: ${deviceIdentity}
 Failure Symptoms: ${failureSymptoms}
@@ -230,7 +234,7 @@ User Context:
   - Motivation: ${userContext.motivation}
   - Material Availability: ${userContext.materialAvailability}
   - Time Commitment: ${userContext.timeCommitment}
-Files Provided: ${fileIds.length} file(s)`;
+Evidence Images: ${imageNote}`;
   }
 
   /**

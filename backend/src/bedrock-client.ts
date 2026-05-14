@@ -13,6 +13,19 @@ import {
 const DEFAULT_TEXT_MODEL = 'apac.amazon.nova-pro-v1:0';
 const DEFAULT_IMAGE_MODEL = 'amazon.titan-image-generator-v1';
 
+/**
+ * Convert a MIME type to the format string expected by Nova's image content block.
+ */
+function mediaTypeToFormat(mediaType: string): string {
+  switch (mediaType) {
+    case 'image/jpeg': return 'jpeg';
+    case 'image/png': return 'png';
+    case 'image/webp': return 'webp';
+    case 'image/gif': return 'gif';
+    default: return 'jpeg';
+  }
+}
+
 function isTransientError(error: unknown): boolean {
   return (
     error instanceof ThrottlingException ||
@@ -60,6 +73,55 @@ export class BedrockClient {
     const textContent = parsed.output?.message?.content?.[0]?.text;
     if (typeof textContent !== 'string') {
       throw new Error('Unexpected text model response format');
+    }
+    return textContent;
+  }
+
+  /**
+   * Invoke a text generation model with multimodal content (text + images).
+   * Images are passed as base64-encoded inline content alongside the text prompt.
+   *
+   * @param prompt - The text prompt
+   * @param images - Array of { bytes, mediaType } for each image to include
+   * @param modelId - The model to invoke (defaults to Nova Pro)
+   */
+  async invokeMultimodalModel(
+    prompt: string,
+    images: Array<{ bytes: Buffer; mediaType: string }>,
+    modelId: string = DEFAULT_TEXT_MODEL
+  ): Promise<string> {
+    // Build content array: images first, then text prompt
+    const content: Array<Record<string, unknown>> = [];
+
+    for (const image of images) {
+      content.push({
+        image: {
+          format: mediaTypeToFormat(image.mediaType),
+          source: {
+            bytes: image.bytes.toString('base64'),
+          },
+        },
+      });
+    }
+
+    content.push({ text: prompt });
+
+    const body = JSON.stringify({
+      schemaVersion: 'messages-v1',
+      messages: [{ role: 'user', content }],
+      inferenceConfig: {
+        maxTokens: 4096,
+        topP: 0.9,
+        temperature: 0.7,
+      },
+    });
+
+    const responseBody = await this.invokeWithRetry(modelId, body);
+    const parsed = JSON.parse(responseBody);
+
+    const textContent = parsed.output?.message?.content?.[0]?.text;
+    if (typeof textContent !== 'string') {
+      throw new Error('Unexpected multimodal model response format');
     }
     return textContent;
   }

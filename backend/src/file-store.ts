@@ -2,6 +2,7 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
+  ListObjectsV2Command,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import {
@@ -9,6 +10,14 @@ import {
   ALLOWED_CONTENT_TYPES,
   PRESIGNED_URL_EXPIRY_SECONDS,
 } from '@resource-ai/shared';
+
+/**
+ * Represents a fetched image with its bytes and media type.
+ */
+export interface FetchedImage {
+  bytes: Buffer;
+  mediaType: string;
+}
 
 /**
  * FileStore — S3 access layer for file upload, retrieval, and pre-signed URL generation.
@@ -107,5 +116,86 @@ export class FileStore {
     );
 
     return key;
+  }
+
+  /**
+   * Fetch an image from S3 by its full key. Returns the raw bytes and content type.
+   */
+  async fetchFile(key: string): Promise<FetchedImage> {
+    const result = await this.s3.send(
+      new GetObjectCommand({
+        Bucket: this.bucketName,
+        Key: key,
+      }),
+    );
+
+    const bytes = Buffer.from(await result.Body!.transformToByteArray());
+    const mediaType = result.ContentType ?? 'application/octet-stream';
+
+    return { bytes, mediaType };
+  }
+
+  /**
+   * Resolve fileIds to their full S3 keys by listing objects with the fileId prefix.
+   * Files are stored as uploads/{sessionId}/{fileId}.{ext} — but the sessionId at upload
+   * time may be 'unassociated' if uploaded before session creation.
+   *
+   * This method searches both the session-specific prefix and the 'unassociated' prefix.
+   */
+  async resolveFileKeys(fileIds: string[], sessionId?: string): Promise<string[]> {
+    const keys: string[] = [];
+
+    for (const fileId of fileIds) {
+      // Try session-specific path first, then unassociated
+      const prefixes = sessionId
+        ? [`uploads/${sessionId}/${fileId}`, `uploads/unassociated/${fileId}`]
+        : [`uploads/unassociated/${fileId}`];
+
+      let found = false;
+      for (const prefix of prefixes) {
+        const result = await this.s3.send(
+          new ListObjectsV2Command({
+            Bucket: this.bucketName,
+            Prefix: prefix,
+            MaxKeys: 1,
+          }),
+        );
+
+        if (result.Contents && result.Contents.length > 0) {
+          keys.push(result.Contents[0].Key!);
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        console.warn(`[FileStore] Could not resolve fileId "${fileId}" to an S3 key`);
+      }
+    }
+
+    return keys;
+  }
+
+  /**
+   * Fetch multiple images from S3 by fileIds. Only returns image files (jpeg, png, webp, gif).
+   * Non-image files are skipped.
+   */
+  async fetchImages(fileIds: string[], sessionId?: string): Promise<FetchedImage[]> {
+    const keys = await this.resolveFileKeys(fileIds, sessionId);
+    const images: FetchedImage[] = [];
+
+    for (const key of keys) {
+      try {
+        const file = await this.fetchFile(key);
+        // Only include image types
+        if (file.mediaType.startsWith('image/')) {
+          images.push(file);
+        }
+      } catch (err) {
+        console.warn(`[FileStore] Failed to fetch file "${key}":`, err);
+      }
+    }
+
+    return images;
   }
 }

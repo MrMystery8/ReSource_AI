@@ -1,14 +1,14 @@
 import { PipelineStageConfig, TriageSession } from '@resource-ai/shared';
 import { BedrockClient } from '../bedrock-client';
-import { FileStore } from '../file-store';
+import { FileStore, FetchedImage } from '../file-store';
 import { PromptBuilder } from './prompt-builder';
 
 /**
  * StageExecutor — Executes a single pipeline stage by building a prompt,
  * invoking the appropriate Bedrock model, and parsing the response.
  *
- * For text stages: constructs a text prompt, invokes the text model, and
- * parses the JSON response.
+ * For text stages: constructs a text prompt, fetches any uploaded images from S3,
+ * and invokes the model with multimodal content (text + images) when images are available.
  *
  * For image stages: constructs an image prompt, invokes the image model,
  * stores the generated image via FileStore, and returns the S3 key.
@@ -45,7 +45,8 @@ export class StageExecutor {
   }
 
   /**
-   * Execute a text generation stage: build prompt, invoke model, parse JSON response.
+   * Execute a text generation stage: build prompt, fetch images if available,
+   * invoke model (multimodal if images exist), parse JSON response.
    */
   private async executeTextStage(
     stage: PipelineStageConfig,
@@ -53,7 +54,19 @@ export class StageExecutor {
     accumulatedOutputs: Record<string, unknown>,
   ): Promise<unknown> {
     const prompt = this.promptBuilder.buildPrompt(stage, session, accumulatedOutputs);
-    const rawResponse = await this.bedrockClient.invokeTextModel(prompt);
+
+    // Fetch uploaded images from S3 for multimodal analysis
+    const images = await this.fetchSessionImages(session);
+
+    let rawResponse: string;
+    if (images.length > 0) {
+      // Use multimodal invocation — AI can see the device photos
+      rawResponse = await this.bedrockClient.invokeMultimodalModel(prompt, images);
+    } else {
+      // Text-only invocation
+      rawResponse = await this.bedrockClient.invokeTextModel(prompt);
+    }
+
     return this.parseJsonResponse(rawResponse);
   }
 
@@ -68,6 +81,25 @@ export class StageExecutor {
     const imageBuffer = await this.bedrockClient.invokeImageModel(prompt);
     const s3Key = await this.fileStore.storeGeneratedImage(session.sessionId, imageBuffer);
     return { imageUrl: s3Key };
+  }
+
+  /**
+   * Fetch uploaded images from S3 for the given session.
+   * Only fetches image files (skips PDFs, docs, etc.).
+   * Returns empty array if no images or if fetching fails.
+   */
+  private async fetchSessionImages(session: TriageSession): Promise<FetchedImage[]> {
+    const fileIds = session.inputs.fileIds;
+    if (!fileIds || fileIds.length === 0) {
+      return [];
+    }
+
+    try {
+      return await this.fileStore.fetchImages(fileIds, session.sessionId);
+    } catch (err) {
+      console.warn('[StageExecutor] Failed to fetch session images, proceeding without them:', err);
+      return [];
+    }
   }
 
   /**
