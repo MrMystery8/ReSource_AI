@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
 import { Lightbulb, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { IdeaCard } from './IdeaCard';
-import { filterIdeasByExpertise } from '../utils/filterIdeasByExpertise';
 
 export interface SecondLifeIdeasSectionProps {
   ideas: ProjectIdea[];
@@ -25,9 +24,11 @@ export function SecondLifeIdeasSection({
   isReloading,
   reloadError,
 }: SecondLifeIdeasSectionProps) {
-  // Split ideas: user-matched ones come first (shown at index 0), others follow
-  const matchedIdeas = filterIdeasByExpertise(ideas, userExpertise);
-  const otherIdeas = ideas.filter((idea) => !matchedIdeas.includes(idea));
+  // The AI generates ideas with the first 3 tailored to the user's expertise level.
+  // We split at index 3: first 3 are "matched", the rest are "other skill levels".
+  const MATCHED_COUNT = 3;
+  const matchedIdeas = ideas.slice(0, MATCHED_COUNT);
+  const otherIdeas = ideas.slice(MATCHED_COUNT);
 
   // Carousel order: matched first, then others
   const allIdeas = [...matchedIdeas, ...otherIdeas];
@@ -95,8 +96,8 @@ export function SecondLifeIdeasSection({
               className="text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              {matchedIdeas.length} matched to your expertise
-              {otherIdeas.length > 0 && ` · ${otherIdeas.length} more available`}
+              {matchedIdeas.length} for your level
+              {otherIdeas.length > 0 && ` · ${otherIdeas.length} at other levels`}
             </span>
           </div>
         </div>
@@ -200,23 +201,23 @@ export function SecondLifeIdeasSection({
                     const isMatched = globalIndex < matchedIdeas.length;
                     return (
                       <div key={`${idea.title}-${globalIndex}`} className="relative">
-                        {/* "Other levels" label for non-matched ideas */}
-                        {!isMatched && (
+                        {/* Matched indicator — subtle left border accent */}
+                        {isMatched && (
                           <div
-                            className="absolute -top-px left-0 right-0 h-0.5 rounded-t-xl z-10"
-                            style={{ backgroundColor: 'var(--color-border-default)' }}
+                            className="absolute top-2 bottom-2 left-0 w-0.5 rounded-full z-10"
+                            style={{ backgroundColor: 'var(--color-primary)' }}
                           />
                         )}
                         <div
                           style={{
-                            opacity: isMatched ? 1 : 0.72,
+                            opacity: isMatched ? 1 : 0.65,
                             transition: 'opacity 0.2s',
                           }}
                           onMouseEnter={(e) => {
                             if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '1';
                           }}
                           onMouseLeave={(e) => {
-                            if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '0.72';
+                            if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '0.65';
                           }}
                         >
                           <IdeaCard
@@ -325,23 +326,30 @@ export function SecondLifeIdeasSection({
               </div>
             )}
 
-            {/* Expertise legend — only shown when there are mixed-level ideas */}
-            {otherIdeas.length > 0 && (
+            {/* Expertise legend — always shown when carousel has more than 3 ideas */}
+            {allIdeas.length > VISIBLE_COUNT && (
               <div
-                className="mt-3 flex items-center gap-4 text-[11px]"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mt-4 flex items-center gap-5 text-xs px-1"
+                style={{ color: 'var(--color-text-secondary)' }}
               >
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-2">
                   <span
-                    className="inline-block w-2 h-2 rounded-full"
-                    style={{ backgroundColor: 'var(--color-primary)' }}
+                    className="inline-block w-2.5 h-2.5 rounded-full ring-2"
+                    style={{
+                      backgroundColor: 'var(--color-primary)',
+                      boxShadow: '0 0 6px var(--color-primary)',
+                      ringColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
+                    }}
                   />
                   Matched to your level
                 </span>
-                <span className="flex items-center gap-1.5">
+                <span className="flex items-center gap-2">
                   <span
-                    className="inline-block w-2 h-2 rounded-full"
-                    style={{ backgroundColor: 'var(--color-border-default)' }}
+                    className="inline-block w-2.5 h-2.5 rounded-full"
+                    style={{
+                      backgroundColor: 'var(--color-text-muted)',
+                      opacity: 0.6,
+                    }}
                   />
                   Other skill levels
                 </span>

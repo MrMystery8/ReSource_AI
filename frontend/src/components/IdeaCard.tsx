@@ -110,7 +110,7 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
             className="font-medium"
             style={{ color: 'var(--color-text-secondary)' }}
           >
-            {SKILL_LEVEL_LABELS[idea.skillLevel]}
+            {SKILL_LEVEL_LABELS[idea.skillLevel] ?? idea.skillLevel ?? 'Beginner'}
           </span>
         </p>
       </div>

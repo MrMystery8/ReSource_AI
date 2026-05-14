@@ -34,15 +34,29 @@ If device condition or internal state information is incomplete, default to the 
 Provide: probable device identity, component profile (listing internal and external components with function and condition score 1-5), failure pattern analysis, diagnostic verdict, and a verdict summary (max 30 words).
 Limit your response to 350 words maximum.`,
 
-  secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 7 Safe Second Life Ideas spanning all skill levels.
+  secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 7 Safe Second Life Ideas spanning multiple skill levels.
 Categories: beginner, STEM/learning, and practical/creative.
-Each idea must include: project title, brief description (max 90 words), skillLevel, required components from the device, and additional materials needed.
-Generate ideas across ALL skill levels (Beginner, Intermediate, Advanced, Professional) so users of any expertise can find something suitable.
-IMPORTANT: Tailor the first 3 ideas to the user's stated expertise level, motivation, material availability, and time commitment. The remaining 4 ideas should cover other skill levels.
-- skillLevel field: MUST be one of "Beginner", "Intermediate", "Advanced", or "Professional" and must reflect the actual difficulty of the project
+Each idea MUST include ALL of these fields (no field may be empty or omitted):
+  - category: one of "beginner", "stem-learning", or "practical-creative"
+  - title: a short project name
+  - description: brief description (max 90 words)
+  - skillLevel: REQUIRED — MUST be exactly one of "Beginner", "Intermediate", "Advanced", or "Professional" (case-sensitive, no other values allowed)
+  - requiredComponents: array of components from the device
+  - additionalMaterials: array of extra materials needed
+
+SKILL LEVEL RULES (CRITICAL):
+- The user's expertise level is provided in User Inputs. The FIRST 3 ideas MUST have a skillLevel that matches or is below the user's stated expertise level:
+  * If user is "Beginner" → first 3 ideas must all be skillLevel "Beginner"
+  * If user is "Intermediate" → first 3 ideas can be "Beginner" or "Intermediate"
+  * If user is "Expert" → first 3 ideas can be "Beginner", "Intermediate", or "Advanced"
+- The REMAINING 4 ideas MUST cover OTHER skill levels not used in the first 3. Include a mix of higher and/or lower levels.
+- EVERY idea MUST have a non-empty skillLevel field. Never omit it.
+
+TAILORING RULES:
 - Motivation: prioritise ideas that align with the user's stated motivation for the first 3 ideas
-- Material Availability: only suggest ideas achievable with the user's available tools and workspace
-- Time Commitment: only suggest ideas completable within the user's stated time commitment for the first 3 ideas`,
+- Material Availability: only suggest ideas achievable with the user's available tools
+- Time Commitment: the first 3 ideas should be completable within the user's stated time commitment
+- The remaining 4 ideas may have different time/tool requirements`,
 
   nextSteps: `You are a safe recovery advisor. Produce Safe Next Steps and Recovery Route.
 Provide: safe first actions (3-5 ordered steps), parts to keep, parts to avoid, overall recommendation, trash warnings, local recovery note, and hazard warnings referencing the Safety Gate hazard list.
@@ -94,11 +108,11 @@ const OUTPUT_SCHEMAS: Record<StageKey, string> = {
   secondLifeIdeas: JSON.stringify({
     ideas: [{
       category: 'beginner | stem-learning | practical-creative',
-      title: 'string',
-      description: 'string (max 90 words)',
-      skillLevel: 'Beginner | Intermediate | Advanced | Professional',
-      requiredComponents: ['string'],
-      additionalMaterials: ['string'],
+      title: 'string (required)',
+      description: 'string (max 90 words, required)',
+      skillLevel: 'REQUIRED: exactly one of Beginner | Intermediate | Advanced | Professional',
+      requiredComponents: ['string (required, at least 1)'],
+      additionalMaterials: ['string (can be empty array)'],
     }],
   }, null, 2),
 
