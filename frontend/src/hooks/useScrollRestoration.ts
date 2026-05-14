@@ -54,11 +54,13 @@ function getSavedPosition(pathname: string): number {
 /**
  * useScrollRestoration
  *
- * Preserves and restores the window scroll position per route pathname.
+ * Scrolls to top on navigation by default (when clicking nav links).
+ * Only restores scroll position when using browser back/forward buttons.
  * - When the route changes, the previous route's scroll position is saved to
  *   sessionStorage before the new route renders.
- * - After the new route renders, the saved scroll position for that route is
- *   restored (using requestAnimationFrame to ensure the DOM is ready).
+ * - After the new route renders:
+ *   - If navigating via back/forward (history.state.idx changed), restore saved position
+ *   - Otherwise (clicking nav links), scroll to top
  * - Positions are retained for the duration of the browser session.
  *
  * Usage: call this hook once inside AppShell or at the router level.
@@ -68,30 +70,41 @@ function getSavedPosition(pathname: string): number {
 export function useScrollRestoration(): void {
   const location = useLocation();
   const prevPathnameRef = useRef<string | null>(null);
+  const prevHistoryIndexRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const currentPathname = location.pathname;
     const prevPathname = prevPathnameRef.current;
+    
+    // Get the current history index (React Router tracks this in history.state)
+    const currentHistoryIndex = (window.history.state as { idx?: number } | null)?.idx;
+    const prevHistoryIndex = prevHistoryIndexRef.current;
 
     // Save the scroll position of the route we are navigating AWAY from
     if (prevPathname !== null && prevPathname !== currentPathname) {
-      // At this point window.scrollY still reflects the previous route's position
-      // because the effect runs synchronously before the browser paints the new route
       savePosition(prevPathname, window.scrollY);
     }
 
-    // Restore the scroll position for the route we are navigating TO
-    const savedY = getSavedPosition(currentPathname);
+    // Determine if this is a back/forward navigation
+    // If the history index changed but we're not on a new page, it's back/forward
+    const isBackForward = 
+      prevHistoryIndex !== undefined && 
+      currentHistoryIndex !== undefined && 
+      currentHistoryIndex !== prevHistoryIndex;
+
+    // Restore scroll position only for back/forward, otherwise scroll to top
+    const targetY = isBackForward ? getSavedPosition(currentPathname) : 0;
 
     // Use requestAnimationFrame to wait for the DOM to finish rendering the new
     // route before scrolling, preventing the restore from being overridden by
     // React's own DOM updates.
     const rafId = requestAnimationFrame(() => {
-      window.scrollTo({ top: savedY, behavior: 'instant' });
+      window.scrollTo({ top: targetY, behavior: 'instant' });
     });
 
-    // Update the ref to the current pathname for the next navigation
+    // Update refs for the next navigation
     prevPathnameRef.current = currentPathname;
+    prevHistoryIndexRef.current = currentHistoryIndex;
 
     return () => {
       cancelAnimationFrame(rafId);
