@@ -2,9 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { MAX_FIELD_LENGTH } from '@resource-ai/shared';
 import type { StructuredUserContext } from '@resource-ai/shared';
-import { Cpu, AlertTriangle, Send, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Cpu, AlertTriangle, Send, Zap } from 'lucide-react';
 import { StructuredContextInput } from './StructuredContextInput';
-import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 
 export interface TriageFormData {
@@ -48,14 +47,14 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
   },
   exit: { opacity: 0, y: 20, transition: { duration: 0.3 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0, 0, 0.2, 1] as const } },
 };
 
 export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps) {
@@ -99,153 +98,256 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
     }
   };
 
+  // Count completed sections for progress
+  const completedSections = [
+    isFieldValid(deviceIdentity),
+    isFieldValid(failureSymptoms),
+    isContextComplete(userContext),
+  ].filter(Boolean).length;
+
   return (
     <motion.div
-      className="max-w-2xl mx-auto"
+      className="max-w-3xl mx-auto py-6 sm:py-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
       exit="exit"
     >
-      <Card elevation="md" className="p-6 sm:p-8">
-        <form onSubmit={handleSubmit} noValidate>
-          {/* Form Header */}
-          <motion.div variants={itemVariants} className="mb-8 text-center">
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Page Header */}
+        <motion.div variants={itemVariants} className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
             <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-4"
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{
-                backgroundColor: 'var(--color-surface-elevated)',
-                borderColor: 'var(--color-border-default)',
+                backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
               }}
             >
-              <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
-              <span className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>
-                AI-Powered Analysis
-              </span>
+              <Zap className="w-5 h-5" style={{ color: 'var(--color-primary)' }} aria-hidden />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-              E-Waste Device Triage
+            <div>
+              <h1
+                className="text-2xl font-bold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Device Triage
+              </h1>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                Analyze salvage potential, safety risks, and second-life ideas
+              </p>
+            </div>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="flex items-center gap-2 mt-4">
+            {[0, 1, 2].map((step) => (
+              <div
+                key={step}
+                className="h-1 flex-1 rounded-full transition-colors duration-300"
+                style={{
+                  backgroundColor: step < completedSections
+                    ? 'var(--color-primary)'
+                    : 'var(--color-border-default)',
+                }}
+                role="presentation"
+              />
+            ))}
+            <span
+              className="text-xs font-medium ml-2 tabular-nums"
+              style={{ color: completedSections === 3 ? 'var(--color-success)' : 'var(--color-text-muted)' }}
+            >
+              {completedSections}/3
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Section 1: Device Description */}
+        <motion.section variants={itemVariants} className="mb-6">
+          <div
+            className="rounded-xl border p-5"
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              borderColor: 'var(--color-border-default)',
+            }}
+          >
+            <h2
+              className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              <span
+                className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
+                  color: 'var(--color-primary)',
+                }}
+              >
+                1
+              </span>
+              Device Details
             </h2>
-            <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
-              Describe your device and we'll analyze its salvage potential, safety risks, and second-life opportunities.
-            </p>
-          </motion.div>
 
-          {/* Form Fields */}
-          {TEXT_FIELDS.map((field) => {
-            const value = field.name === 'deviceIdentity' ? deviceIdentity : failureSymptoms;
-            const setter = field.name === 'deviceIdentity' ? setDeviceIdentity : setFailureSymptoms;
-            const charCount = value.length;
-            const isFocused = focusedField === field.name;
-            const hasValue = value.trim().length > 0;
+            <div className="space-y-4">
+              {TEXT_FIELDS.map((field) => {
+                const value = field.name === 'deviceIdentity' ? deviceIdentity : failureSymptoms;
+                const setter = field.name === 'deviceIdentity' ? setDeviceIdentity : setFailureSymptoms;
+                const charCount = value.length;
+                const isFocused = focusedField === field.name;
 
-            return (
-              <motion.div key={field.name} variants={itemVariants} className="mb-5">
-                {/* Visible label above field — requirement 7.2, 10.6 */}
-                <label
-                  htmlFor={`triage-${field.name}`}
-                  className="flex items-center gap-2 mb-1.5"
-                >
-                  <span
-                    className="transition-colors duration-200"
-                    style={{ color: isFocused ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
-                  >
-                    {field.icon}
-                  </span>
-                  <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                    {field.label}
-                  </span>
-                  <span
-                    className="text-xs"
-                    style={{ color: 'var(--color-error)' }}
-                    aria-hidden="true"
-                  >
-                    *
-                  </span>
-                </label>
-                <p className="text-xs mb-2 ml-6" style={{ color: 'var(--color-text-muted)' }}>
-                  {field.description}
-                </p>
-                <textarea
-                  id={`triage-${field.name}`}
-                  className="w-full rounded-lg px-3 py-2 text-sm leading-relaxed resize-none border transition-colors duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-[var(--color-text-muted)]"
-                  style={{
-                    backgroundColor: 'var(--color-surface-card)',
-                    color: 'var(--color-text-primary)',
-                    borderColor: 'var(--color-border-default)',
-                    outline: isFocused ? `2px solid var(--color-primary)` : undefined,
-                    outlineOffset: '0px',
-                  }}
-                  name={field.name}
-                  value={value}
-                  onChange={handleTextChange(setter)}
-                  onFocus={() => setFocusedField(field.name)}
-                  onBlur={() => setFocusedField(null)}
-                  placeholder={field.placeholder}
-                  required
-                  maxLength={MAX_FIELD_LENGTH}
-                  rows={3}
-                  aria-describedby={`${field.name}-counter`}
-                  disabled={disabled}
-                />
-                <div className="flex justify-between items-center mt-1.5 px-1">
-                  {hasValue && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="inline-flex items-center"
-                      aria-hidden="true"
+                return (
+                  <div key={field.name}>
+                    <label
+                      htmlFor={`triage-${field.name}`}
+                      className="flex items-center gap-2 mb-1.5"
                     >
-                      <CheckCircle2
-                        className="w-3.5 h-3.5"
-                        style={{ color: 'var(--color-success)' }}
-                      />
-                    </motion.span>
-                  )}
-                  <span
-                    id={`${field.name}-counter`}
-                    className="text-xs ml-auto"
-                    style={{ color: charCount >= MAX_FIELD_LENGTH ? 'var(--color-error)' : 'var(--color-text-muted)' }}
-                    aria-live="polite"
-                  >
-                    {charCount}/{MAX_FIELD_LENGTH}
-                  </span>
-                </div>
-              </motion.div>
-            );
-          })}
+                      <span
+                        className="transition-colors duration-200"
+                        style={{ color: isFocused ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                      >
+                        {field.icon}
+                      </span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                        {field.label}
+                      </span>
+                      <span
+                        className="text-xs"
+                        style={{ color: 'var(--color-error)' }}
+                        aria-hidden="true"
+                      >
+                        *
+                      </span>
+                    </label>
+                    <p className="text-xs mb-2 ml-6" style={{ color: 'var(--color-text-muted)' }}>
+                      {field.description}
+                    </p>
+                    <textarea
+                      id={`triage-${field.name}`}
+                      className="w-full rounded-lg px-3 py-2.5 text-sm leading-relaxed resize-none border transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-[var(--color-text-muted)]"
+                      style={{
+                        backgroundColor: 'var(--color-surface-elevated)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: isFocused ? 'var(--color-primary)' : 'var(--color-border-default)',
+                        boxShadow: isFocused ? '0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent)' : 'none',
+                      }}
+                      name={field.name}
+                      value={value}
+                      onChange={handleTextChange(setter)}
+                      onFocus={() => setFocusedField(field.name)}
+                      onBlur={() => setFocusedField(null)}
+                      placeholder={field.placeholder}
+                      required
+                      maxLength={MAX_FIELD_LENGTH}
+                      rows={3}
+                      aria-describedby={`${field.name}-counter`}
+                      disabled={disabled}
+                    />
+                    <div className="flex justify-end mt-1 px-1">
+                      <span
+                        id={`${field.name}-counter`}
+                        className="text-xs tabular-nums"
+                        style={{ color: charCount >= MAX_FIELD_LENGTH ? 'var(--color-error)' : 'var(--color-text-muted)' }}
+                        aria-live="polite"
+                      >
+                        {charCount}/{MAX_FIELD_LENGTH}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.section>
 
-          {/* Structured User Context */}
-          <motion.div variants={itemVariants} className="mb-5">
+        {/* Section 2: Your Context */}
+        <motion.section variants={itemVariants} className="mb-6">
+          <div
+            className="rounded-xl border p-5"
+            style={{
+              backgroundColor: 'var(--color-surface-card)',
+              borderColor: 'var(--color-border-default)',
+            }}
+          >
+            <h2
+              className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              <span
+                className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
+                  color: 'var(--color-primary)',
+                }}
+              >
+                2
+              </span>
+              Your Context
+            </h2>
+
             <StructuredContextInput
               value={userContext}
               onChange={setUserContext}
             />
-          </motion.div>
+          </div>
+        </motion.section>
 
-          {/* File Uploader */}
-          {fileUploader && (
-            <motion.div variants={itemVariants} className="mb-6">
-              {fileUploader}
-            </motion.div>
-          )}
-
-          {/* Submit Button */}
-          <motion.div variants={itemVariants}>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-              disabled={!isFormValid || disabled}
-              isLoading={disabled}
-              leftIcon={!disabled ? <Send className="w-4 h-4" /> : undefined}
+        {/* Section 3: Evidence Upload */}
+        {fileUploader && (
+          <motion.section variants={itemVariants} className="mb-8">
+            <div
+              className="rounded-xl border p-5"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border-default)',
+              }}
             >
-              {disabled ? 'Submitting...' : 'Analyze Device'}
-            </Button>
-          </motion.div>
-        </form>
-      </Card>
+              <h2
+                className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <span
+                  className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
+                    color: 'var(--color-primary)',
+                  }}
+                >
+                  3
+                </span>
+                Evidence Photos
+                <span className="text-xs font-normal normal-case tracking-normal" style={{ color: 'var(--color-text-muted)' }}>
+                  (optional)
+                </span>
+              </h2>
+
+              {fileUploader}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Submit Button */}
+        <motion.div variants={itemVariants}>
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            className="w-full"
+            disabled={!isFormValid || disabled}
+            isLoading={disabled}
+            leftIcon={!disabled ? <Send className="w-4 h-4" /> : undefined}
+          >
+            {disabled ? 'Analyzing...' : 'Analyze Device'}
+          </Button>
+
+          {!isFormValid && !disabled && (
+            <p
+              className="text-xs text-center mt-2"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Complete all required fields to submit
+            </p>
+          )}
+        </motion.div>
+      </form>
     </motion.div>
   );
 }

@@ -12,7 +12,7 @@ import { ApiClient } from '../services/api';
 import type { UserStatsResponse, BadgeInfo, ProjectIdea, ExpertiseLevel, StructuredUserContext } from '@resource-ai/shared';
 
 // ---------------------------------------------------------------------------
-// ARIA live region announcer — Validates: Requirements 10.9
+// ARIA live region announcer
 // ---------------------------------------------------------------------------
 interface LiveAnnouncerProps {
   message: string;
@@ -54,7 +54,7 @@ export function TriagePage() {
     fileIds?: string[];
   } | null>(null);
 
-  // ARIA live region state — Validates: Requirements 10.9
+  // ARIA live region state
   const [announcement, setAnnouncement] = useState<{
     message: string;
     politeness: 'polite' | 'assertive';
@@ -159,7 +159,7 @@ export function TriagePage() {
         // Dispatch event so NavBar can refresh user data (points/level)
         window.dispatchEvent(new Event('gamification:updated'));
 
-        // Announce success to screen readers — Validates: Requirements 10.9
+        // Announce success to screen readers
         setAnnouncement({ message: 'Triage session submitted successfully.', politeness: 'polite' });
       } catch (err) {
         console.error('[TriagePage] Failed to fetch gamification stats:', err);
@@ -190,7 +190,7 @@ export function TriagePage() {
     setCurrentBadgeIndex((prev) => prev + 1);
   }, []);
 
-  // Announce submission errors to screen readers — Validates: Requirements 10.9
+  // Announce submission errors to screen readers
   useEffect(() => {
     if (error) {
       setAnnouncement({ message: `Submission failed: ${error}`, politeness: 'assertive' });
@@ -217,7 +217,7 @@ export function TriagePage() {
 
   return (
     <>
-      {/* ARIA live region for async operation announcements — Validates: Requirements 10.9 */}
+      {/* ARIA live region for async operation announcements */}
       {announcement && (
         <LiveAnnouncer
           message={announcement.message}
@@ -227,7 +227,7 @@ export function TriagePage() {
 
       {error && (
         <div
-          className="mb-6 p-4 rounded-xl backdrop-blur-sm"
+          className="max-w-3xl mx-auto mt-6 p-4 rounded-xl"
           style={{
             backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
             border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
