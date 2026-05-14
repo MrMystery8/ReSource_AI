@@ -95,11 +95,17 @@ export function useScrollRestoration(): void {
     // Restore scroll position only for back/forward, otherwise scroll to top
     const targetY = isBackForward ? getSavedPosition(currentPathname) : 0;
 
-    // Use requestAnimationFrame to wait for the DOM to finish rendering the new
-    // route before scrolling, preventing the restore from being overridden by
-    // React's own DOM updates.
+    // Scroll immediately to prevent any flash of wrong position
+    window.scrollTo(0, targetY);
+
+    // Also schedule a second scroll after render to ensure it sticks
     const rafId = requestAnimationFrame(() => {
-      window.scrollTo({ top: targetY, behavior: 'instant' });
+      window.scrollTo(0, targetY);
+      
+      // And one more after a tick to be absolutely sure
+      setTimeout(() => {
+        window.scrollTo(0, targetY);
+      }, 0);
     });
 
     // Update refs for the next navigation
