@@ -181,8 +181,8 @@ export function TriagePage() {
   return (
     <>
       {error && (
-        <div className="mb-6 p-4 rounded-md bg-danger-50 border border-danger-100" role="alert">
-          <p className="text-danger-600 text-sm font-medium">{error}</p>
+        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-sm" role="alert">
+          <p className="text-rose-300 text-sm font-medium">{error}</p>
         </div>
       )}
 

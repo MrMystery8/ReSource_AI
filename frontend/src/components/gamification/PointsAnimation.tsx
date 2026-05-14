@@ -59,10 +59,10 @@ export function PointsAnimation({ points, visible, onComplete }: PointsAnimation
             transition={{ duration: 0.5, times: [0, 0.6, 1] }}
             className="text-center"
           >
-            <span className="text-4xl sm:text-5xl font-bold text-primary-600 drop-">
+            <span className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-emerald-300 via-teal-200 to-cyan-300 bg-clip-text text-transparent drop-shadow-lg">
               +{points}
             </span>
-            <p className="text-sm sm:text-base text-success-600/80 font-medium mt-1">
+            <p className="text-sm sm:text-base text-emerald-300/80 font-medium mt-1">
               points earned!
             </p>
           </motion.div>

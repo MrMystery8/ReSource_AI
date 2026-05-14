@@ -25,7 +25,7 @@ export function BadgeUnlockToast({ badge, visible, onDismiss }: BadgeUnlockToast
           aria-live="assertive"
           aria-label={`Badge unlocked: ${badge.name}`}
         >
-          <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-surface-card  border border-warning-100 shadow-xl shadow-amber-500/10">
+          <div className="flex items-center gap-3 px-5 py-4 rounded-xl bg-surface-800/95 backdrop-blur-xl border border-amber-500/30 shadow-xl shadow-amber-500/10">
             {/* Badge Icon */}
             <motion.div
               initial={{ rotate: -20, scale: 0.5 }}
@@ -39,10 +39,10 @@ export function BadgeUnlockToast({ badge, visible, onDismiss }: BadgeUnlockToast
 
             {/* Text Content */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-warning-500 uppercase tracking-wide">
+              <p className="text-xs font-semibold text-amber-400 uppercase tracking-wide">
                 Badge Unlocked!
               </p>
-              <p className="text-sm font-bold text-text-primary truncate mt-0.5">
+              <p className="text-sm font-bold text-white truncate mt-0.5">
                 {badge.name}
               </p>
               <p className="text-xs text-text-secondary mt-0.5 line-clamp-1">
@@ -53,7 +53,7 @@ export function BadgeUnlockToast({ badge, visible, onDismiss }: BadgeUnlockToast
             {/* Dismiss Button */}
             <button
               onClick={onDismiss}
-              className="flex-shrink-0 p-1 rounded-md text-text-secondary hover:text-text-primary hover:bg-stone-200 transition-colors"
+              className="flex-shrink-0 p-1 rounded-md text-text-secondary hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Dismiss notification"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

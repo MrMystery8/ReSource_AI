@@ -65,21 +65,21 @@ function ProjectStatusIndicator({ status }: { status: ProjectHistoryEntry['statu
   switch (status) {
     case 'in-progress':
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-warning-600">
+        <span className="inline-flex items-center gap-1 text-xs text-amber-300">
           <Loader2 className="w-3 h-3 animate-spin" />
           In Progress
         </span>
       );
     case 'completed':
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-success-600">
+        <span className="inline-flex items-center gap-1 text-xs text-emerald-300">
           <CheckCircle2 className="w-3 h-3" />
           Completed
         </span>
       );
     case 'abandoned':
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-text-secondary">
+        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
           <XCircle className="w-3 h-3" />
           Abandoned
         </span>
@@ -90,11 +90,11 @@ function ProjectStatusIndicator({ status }: { status: ProjectHistoryEntry['statu
 /** Grade badge for completed projects */
 function GradeBadge({ grade }: { grade: 'A' | 'B' | 'C' | 'D' | 'F' }) {
   const colorMap: Record<string, string> = {
-    A: 'bg-success-50 text-success-600 border-success-100',
+    A: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
     B: 'bg-primary-500/20 text-primary-300 border-primary-500/30',
-    C: 'bg-warning-50 text-warning-600 border-warning-100',
+    C: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
     D: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-    F: 'bg-danger-50 text-danger-500 border-danger-100',
+    F: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
   };
 
   return (
@@ -138,7 +138,7 @@ function ConfirmDialog({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 "
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onCancel}
         aria-hidden="true"
       />
@@ -149,22 +149,22 @@ function ConfirmDialog({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.15 }}
-        className="relative z-10 card p-6 w-full max-w-sm"
+        className="relative z-10 glass-card p-6 w-full max-w-sm"
       >
-        <h3 id="confirm-dialog-title" className="text-lg font-bold text-text-primary mb-2">
+        <h3 id="confirm-dialog-title" className="text-lg font-bold text-white mb-2">
           {title}
         </h3>
         <p className="text-text-secondary text-sm mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary bg-surface-elevated border border-border-subtle hover:text-text-primary transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-text-secondary bg-surface-elevated border border-border-subtle hover:text-white transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 rounded-lg text-sm font-medium text-text-primary transition-colors ${confirmClassName}`}
+            className={`px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors ${confirmClassName}`}
           >
             {confirmLabel}
           </button>
@@ -216,14 +216,14 @@ export function ProjectHistoryTab({
   if (error && projects.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="card p-8 w-full max-w-md text-center">
-          <AlertTriangle className="w-12 h-12 text-warning-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-text-primary mb-2">Unable to load projects</h2>
+        <div className="glass-card p-8 w-full max-w-md text-center">
+          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Unable to load projects</h2>
           <p className="text-text-secondary text-sm mb-6">{error}</p>
           {onRetry && (
             <button
               onClick={onRetry}
-              className="px-4 py-2 rounded-lg font-medium text-text-primary bg-primary-600 hover:bg-primary-500 transition-colors"
+              className="px-4 py-2 rounded-lg font-medium text-white bg-primary-600 hover:bg-primary-500 transition-colors"
             >
               Try Again
             </button>
@@ -242,11 +242,11 @@ export function ProjectHistoryTab({
         transition={{ duration: 0.3 }}
         className="flex items-center justify-center min-h-[40vh]"
       >
-        <div className="card p-10 w-full max-w-md text-center">
+        <div className="glass-card p-10 w-full max-w-md text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-500/10 border border-primary-500/20 mb-5">
             <Zap className="w-8 h-8 text-primary-400" />
           </div>
-          <h2 className="text-xl font-bold text-text-primary mb-2">No projects yet</h2>
+          <h2 className="text-xl font-bold text-white mb-2">No projects yet</h2>
           <p className="text-text-secondary text-sm">
             Click an idea card during a triage session to start your first recycling project.
           </p>
@@ -259,13 +259,13 @@ export function ProjectHistoryTab({
     <>
       {/* Error banner for load-more errors */}
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-danger-50 border border-danger-100 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-danger-500 shrink-0" />
-          <p className="text-danger-500 text-sm flex-1">{error}</p>
+        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+          <p className="text-rose-300 text-sm flex-1">{error}</p>
           {onRetry && (
             <button
               onClick={onRetry}
-              className="text-xs text-danger-500 underline hover:text-rose-200 transition-colors shrink-0"
+              className="text-xs text-rose-300 underline hover:text-rose-200 transition-colors shrink-0"
             >
               Retry
             </button>
@@ -282,7 +282,7 @@ export function ProjectHistoryTab({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index < PAGE_SIZE ? index * 0.04 : 0 }}
           >
-            <div className="card p-4 group">
+            <div className="glass-card p-4 group">
               <div className="flex items-center justify-between gap-4">
                 {/* Left: project info — clickable for in-progress and completed */}
                 <button
@@ -300,7 +300,7 @@ export function ProjectHistoryTab({
                       className={`font-medium truncate ${
                         project.status === 'abandoned'
                           ? 'text-text-muted'
-                          : 'text-text-primary group-hover:text-primary-300 transition-colors'
+                          : 'text-white group-hover:text-primary-300 transition-colors'
                       }`}
                     >
                       {project.ideaTitle}
@@ -336,7 +336,7 @@ export function ProjectHistoryTab({
                       }}
                       aria-label={`Abandon project: ${project.ideaTitle}`}
                       title="Abandon project"
-                      className="p-1.5 rounded-lg text-text-muted hover:text-warning-500 hover:bg-warning-50 transition-colors"
+                      className="p-1.5 rounded-lg text-text-muted hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
                     >
                       <Ban className="w-4 h-4" />
                     </button>
@@ -350,7 +350,7 @@ export function ProjectHistoryTab({
                     }}
                     aria-label={`Delete project: ${project.ideaTitle}`}
                     title="Delete project"
-                    className="p-1.5 rounded-lg text-text-muted hover:text-danger-500 hover:bg-danger-50 transition-colors"
+                    className="p-1.5 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -372,7 +372,7 @@ export function ProjectHistoryTab({
           <button
             onClick={onLoadMore}
             disabled={isLoadingMore}
-            className="px-6 py-2.5 rounded-lg font-medium text-text-primary bg-stone-50 border border-border-subtle hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+            className="px-6 py-2.5 rounded-lg font-medium text-white bg-surface-elevated/50 border border-border-subtle hover:bg-surface-elevated/70 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
           >
             {isLoadingMore ? (
               <>

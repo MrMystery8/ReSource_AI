@@ -145,16 +145,16 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
   if (!session) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        className="max-w-4xl mx-auto space-y-5"
+        transition={{ duration: 0.3 }}
+        className="max-w-4xl mx-auto space-y-6"
       >
         {/* Status Header Skeleton */}
-        <div className="card p-4 flex items-center gap-3">
+        <div className="glass-card p-5 flex items-center gap-3">
           <motion.div
-            className="w-2.5 h-2.5 rounded-full bg-primary-500"
+            className="w-3 h-3 rounded-full bg-primary-400"
             animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           />
@@ -187,25 +187,25 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
 
   return (
     <motion.div
-      className="max-w-4xl mx-auto space-y-5"
+      className="max-w-4xl mx-auto space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Status Header */}
-      <motion.div {...fadeInUp} className="card p-4">
+      <motion.div {...fadeInUp} className="glass-card p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {status === 'processing' && (
               <motion.div
-                className="w-2.5 h-2.5 rounded-full bg-primary-500"
+                className="w-3 h-3 rounded-full bg-primary-400"
                 animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               />
             )}
-            {status === 'complete' && <CheckCircle2 className="w-4.5 h-4.5 text-success-500" />}
-            {status === 'failed' && <AlertCircle className="w-4.5 h-4.5 text-danger-500" />}
+            {status === 'complete' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
+            {status === 'failed' && <AlertCircle className="w-5 h-5 text-rose-400" />}
             <span className="text-sm font-medium text-text-primary">
               {status === 'processing'
                 ? 'Analyzing your device...'
@@ -216,21 +216,21 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
           </div>
           <div className="flex items-center gap-3">
             {status === 'processing' && currentStage && (
-              <span className="text-xs text-text-muted bg-stone-100 px-2.5 py-1 rounded-md">
+              <span className="text-xs text-text-muted bg-surface-elevated px-3 py-1 rounded-full">
                 {STAGE_NAMES[currentStage] ?? currentStage}
               </span>
             )}
-            <span className="text-xs text-text-muted tabular-nums">
-              {completedStages.length}/{totalExpectedStages}
+            <span className="text-xs text-text-muted">
+              {completedStages.length}/{totalExpectedStages} stages
             </span>
           </div>
         </div>
 
         {/* Progress bar */}
         {status === 'processing' && (
-          <div className="mt-3 h-1.5 rounded-full bg-stone-200 overflow-hidden">
+          <div className="mt-3 h-1.5 rounded-full bg-surface-elevated overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-primary-500"
+              className="h-full rounded-full bg-gradient-to-r from-primary-500 to-emerald-400"
               animate={{ width: `${(completedStages.length / totalExpectedStages) * 100}%` }}
               transition={{ duration: 0.5 }}
             />
@@ -249,19 +249,19 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
       {status === 'failed' && error && (
         <motion.div
           {...fadeInUp}
-          className="p-4 rounded-md bg-danger-50 border border-danger-100"
+          className="p-5 rounded-xl bg-rose-500/10 border border-rose-500/30"
           role="alert"
         >
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-4.5 h-4.5 text-danger-500 shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-danger-600">
+              <p className="text-sm font-medium text-rose-300">
                 Error in stage: {error.stage}
               </p>
-              <p className="text-sm text-danger-500 mt-1">{error.message}</p>
+              <p className="text-sm text-rose-300/80 mt-1">{error.message}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-danger-100 border border-danger-200 text-danger-600 text-xs font-medium hover:bg-danger-200 transition-colors"
+                className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-medium hover:bg-rose-500/30 transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Try Again
@@ -343,8 +343,8 @@ function renderStage(key: string, data: unknown): React.ReactNode {
         return <ConceptImage data={data as { imageUrl: string }} />;
       default:
         return (
-          <div className="card card-hover p-5">
-            <h3 className="text-base font-semibold text-text-primary mb-3">{STAGE_NAMES[key] ?? key}</h3>
+          <div className="glass-card glass-card-hover p-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-3">{STAGE_NAMES[key] ?? key}</h3>
             <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-auto">
               {JSON.stringify(data, null, 2)}
             </pre>
@@ -354,15 +354,15 @@ function renderStage(key: string, data: unknown): React.ReactNode {
   } catch (err) {
     console.error(`[ResultsView] Error rendering stage "${key}":`, err, 'Data:', data);
     return (
-      <div className="card p-5 border-danger-200">
+      <div className="glass-card p-6 border border-rose-500/30">
         <div className="flex items-start gap-3">
-          <AlertCircle className="w-4.5 h-4.5 text-danger-500 shrink-0" />
+          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
           <div>
-            <h3 className="text-sm font-medium text-danger-600">
+            <h3 className="text-sm font-medium text-rose-300">
               Failed to render: {STAGE_NAMES[key] ?? key}
             </h3>
-            <p className="text-xs text-danger-500 mt-1">
-              An error occurred while displaying this stage.
+            <p className="text-xs text-rose-300/70 mt-1">
+              An error occurred while displaying this stage. Check the console for details.
             </p>
           </div>
         </div>

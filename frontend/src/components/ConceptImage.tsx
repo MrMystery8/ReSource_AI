@@ -12,7 +12,7 @@ export function ConceptImage({ data }: ConceptImageProps) {
   const [error, setError] = useState(false);
 
   return (
-    <div className="card card-hover p-6 space-y-4">
+    <div className="glass-card glass-card-hover p-6 space-y-4">
       <div className="flex items-center gap-2">
         <ImageIcon className="w-5 h-5 text-primary-400" />
         <h3 className="text-lg font-semibold text-text-primary">Concept Visual</h3>
@@ -24,7 +24,7 @@ export function ConceptImage({ data }: ConceptImageProps) {
             <motion.div
               initial={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center min-h-[300px] bg-stone-50"
+              className="flex flex-col items-center justify-center min-h-[300px] bg-surface-elevated/50"
             >
               <motion.div
                 animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
@@ -40,7 +40,7 @@ export function ConceptImage({ data }: ConceptImageProps) {
 
         {error && (
           <div className="flex items-center justify-center min-h-[200px] bg-rose-500/5">
-            <div className="flex items-center gap-2 text-danger-500">
+            <div className="flex items-center gap-2 text-rose-400">
               <AlertCircle className="w-5 h-5" />
               <span className="text-sm">Failed to load concept image</span>
             </div>

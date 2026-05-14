@@ -11,7 +11,7 @@ export interface SkeletonStageProps {
  */
 export function SkeletonStage({ label }: SkeletonStageProps) {
   return (
-    <div className="card p-6 space-y-4 opacity-60">
+    <div className="glass-card p-6 space-y-4 opacity-60">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

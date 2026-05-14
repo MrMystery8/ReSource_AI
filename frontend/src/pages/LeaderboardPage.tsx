@@ -8,38 +8,47 @@ import type { LeaderboardResponse, LeaderboardEntry, UserLevel } from '@resource
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
+// Medal icons for top 3 ranks
+const RANK_MEDALS: Record<number, string> = {
+  1: '🥇',
+  2: '🥈',
+  3: '🥉',
+};
+
+// Level color mapping (matches ProfilePage)
 const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string }> = {
   Recycler: {
-    text: 'text-primary-700',
-    bg: 'bg-primary-50',
-    border: 'border-primary-200',
+    text: 'text-emerald-400',
+    bg: 'bg-emerald-500/10',
+    border: 'border-emerald-500/30',
   },
   Salvager: {
-    text: 'text-info-600',
-    bg: 'bg-info-50',
-    border: 'border-info-100',
+    text: 'text-blue-400',
+    bg: 'bg-blue-500/10',
+    border: 'border-blue-500/30',
   },
   'E-Waste Champion': {
-    text: 'text-accent-600',
-    bg: 'bg-accent-50',
-    border: 'border-accent-200',
+    text: 'text-purple-400',
+    bg: 'bg-purple-500/10',
+    border: 'border-purple-500/30',
   },
   'Green Guardian': {
-    text: 'text-warning-600',
-    bg: 'bg-warning-50',
-    border: 'border-warning-100',
+    text: 'text-amber-400',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
   },
 };
 
+// Row animation variants
 const rowVariants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, x: -20 },
   visible: (i: number) => ({
     opacity: 1,
-    y: 0,
+    x: 0,
     transition: {
-      delay: i * 0.03,
-      duration: 0.25,
-      ease: [0.16, 1, 0.3, 1] as const,
+      delay: i * 0.05,
+      duration: 0.3,
+      ease: [0, 0, 0.2, 1] as const,
     },
   }),
 };
@@ -72,20 +81,21 @@ export function LeaderboardPage() {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
 
+  // Check if current user is in the displayed entries
   const currentUserInList = data?.entries.some((entry) => entry.isCurrentUser) ?? false;
   const currentUserRank = data?.currentUserRank;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-      className="space-y-6"
+      transition={{ duration: 0.4 }}
+      className="max-w-4xl mx-auto px-4 py-8 space-y-6"
     >
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-text-primary flex items-center gap-2.5">
-          <Trophy className="w-5 h-5 text-accent-500" />
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <Trophy className="w-6 h-6 text-amber-400" />
           Leaderboard
         </h1>
         <p className="text-text-secondary text-sm mt-1">
@@ -93,8 +103,13 @@ export function LeaderboardPage() {
         </p>
       </div>
 
-      {/* Main Content */}
-      <div className="card p-5 sm:p-6">
+      {/* Main Content Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="glass-card p-6"
+      >
         {isLoading ? (
           <LoadingSkeleton />
         ) : error ? (
@@ -103,43 +118,51 @@ export function LeaderboardPage() {
           <>
             <LeaderboardTable entries={data.entries} />
 
+            {/* Show current user's rank if not in top 20 */}
             {!currentUserInList && currentUserRank !== null && (
-              <div className="mt-5 pt-4 border-t border-border-subtle">
-                <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-md bg-primary-50 border border-primary-200">
-                  <span className="text-sm text-primary-700">
-                    Your rank: <span className="font-semibold">#{currentUserRank}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-6 pt-4 border-t border-white/10"
+              >
+                <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-primary-500/10 border border-primary-500/30">
+                  <span className="text-sm text-primary-300">
+                    Your rank: <span className="font-bold text-white">#{currentUserRank}</span>
                   </span>
                 </div>
-              </div>
+              </motion.div>
             )}
           </>
         ) : (
           <EmptyState />
         )}
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
 
+// ─── Sub-components ───
+
 function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
   return (
-    <div className="overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6">
+    <div className="overflow-x-auto">
       <table className="w-full" role="table">
         <thead>
-          <tr className="border-b border-border-default">
-            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-2.5 px-3 w-14">
+          <tr className="border-b border-white/10">
+            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3 w-16">
               Rank
             </th>
-            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-2.5 px-3">
+            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3">
               Player
             </th>
-            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-2.5 px-3 hidden sm:table-cell">
+            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3 hidden sm:table-cell">
               Level
             </th>
-            <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wide py-2.5 px-3">
+            <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3">
               Points
             </th>
-            <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wide py-2.5 px-3 hidden sm:table-cell">
+            <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3 hidden sm:table-cell">
               Badges
             </th>
           </tr>
@@ -156,6 +179,7 @@ function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
 
 function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
   const levelColors = LEVEL_COLORS[entry.level];
+  const medal = RANK_MEDALS[entry.rank];
 
   return (
     <motion.tr
@@ -163,21 +187,21 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       variants={rowVariants}
       initial="hidden"
       animate="visible"
-      className={`border-b border-border-subtle transition-colors ${
+      className={`border-b border-white/5 transition-colors ${
         entry.isCurrentUser
-          ? 'bg-primary-50'
-          : 'hover:bg-stone-50'
+          ? 'bg-primary-500/10 border-l-2 border-l-primary-500'
+          : 'hover:bg-white/[0.02]'
       }`}
     >
       {/* Rank */}
       <td className="py-3 px-3">
-        {entry.rank <= 3 ? (
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-accent-50 border border-accent-200 text-xs font-bold text-accent-700">
-            {entry.rank}
+        {medal ? (
+          <span className="text-xl" role="img" aria-label={`Rank ${entry.rank}`}>
+            {medal}
           </span>
         ) : (
-          <span className="text-sm font-medium text-text-secondary tabular-nums pl-1.5">
-            {entry.rank}
+          <span className="text-sm font-semibold text-text-secondary">
+            #{entry.rank}
           </span>
         )}
       </td>
@@ -187,13 +211,13 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
         <div className="flex items-center gap-2">
           <span
             className={`text-sm font-medium ${
-              entry.isCurrentUser ? 'text-primary-700' : 'text-text-primary'
+              entry.isCurrentUser ? 'text-primary-300' : 'text-white'
             }`}
           >
             {entry.displayName}
           </span>
           {entry.isCurrentUser && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 border border-primary-200 text-primary-700">
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-500/20 border border-primary-500/30 text-primary-300">
               You
             </span>
           )}
@@ -203,7 +227,7 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       {/* Level Badge */}
       <td className="py-3 px-3 hidden sm:table-cell">
         <span
-          className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${levelColors.bg} ${levelColors.border} ${levelColors.text}`}
+          className={`inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full ${levelColors.bg} border ${levelColors.border} ${levelColors.text}`}
         >
           {entry.level}
         </span>
@@ -211,14 +235,14 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
 
       {/* Points */}
       <td className="py-3 px-3 text-right">
-        <span className="text-sm font-semibold text-text-primary tabular-nums">
+        <span className="text-sm font-semibold text-white">
           {entry.points.toLocaleString()}
         </span>
       </td>
 
       {/* Badge Count */}
       <td className="py-3 px-3 text-right hidden sm:table-cell">
-        <span className="text-sm text-text-secondary tabular-nums">
+        <span className="text-sm text-text-secondary">
           {entry.badgeCount}
         </span>
       </td>
@@ -228,20 +252,22 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
 
 function LoadingSkeleton() {
   return (
-    <div className="space-y-3 animate-pulse" aria-busy="true" aria-label="Loading leaderboard">
-      <div className="flex items-center gap-4 py-3 border-b border-border-default">
-        <div className="h-3 w-10 rounded bg-stone-200" />
-        <div className="h-3 w-28 rounded bg-stone-200" />
-        <div className="h-3 w-20 rounded bg-stone-200 hidden sm:block" />
-        <div className="h-3 w-14 rounded bg-stone-200 ml-auto" />
+    <div className="space-y-3 animate-pulse">
+      {/* Header row skeleton */}
+      <div className="flex items-center gap-4 py-3 border-b border-white/10">
+        <div className="h-3 w-12 rounded bg-white/5" />
+        <div className="h-3 w-32 rounded bg-white/5" />
+        <div className="h-3 w-20 rounded bg-white/5 hidden sm:block" />
+        <div className="h-3 w-16 rounded bg-white/5 ml-auto" />
       </div>
+      {/* Row skeletons */}
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 py-3">
-          <div className="h-5 w-7 rounded-full bg-stone-100" />
-          <div className="h-4 w-24 rounded bg-stone-100" />
-          <div className="h-5 w-20 rounded-full bg-stone-100 hidden sm:block" />
-          <div className="h-4 w-12 rounded bg-stone-100 ml-auto" />
-          <div className="h-4 w-6 rounded bg-stone-100 hidden sm:block" />
+          <div className="h-5 w-8 rounded bg-white/5" />
+          <div className="h-4 w-28 rounded bg-white/5" />
+          <div className="h-5 w-24 rounded-full bg-white/5 hidden sm:block" />
+          <div className="h-4 w-14 rounded bg-white/5 ml-auto" />
+          <div className="h-4 w-6 rounded bg-white/5 hidden sm:block" />
         </div>
       ))}
     </div>
@@ -251,12 +277,12 @@ function LoadingSkeleton() {
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="text-center py-12">
-      <AlertCircle className="w-10 h-10 text-stone-300 mx-auto mb-3" />
-      <p className="text-text-primary text-sm font-medium mb-1">Unable to load leaderboard</p>
+      <AlertCircle className="w-10 h-10 text-text-muted mx-auto mb-3" />
+      <p className="text-text-secondary text-sm mb-1">Unable to load leaderboard</p>
       <p className="text-text-muted text-xs mb-4">{message}</p>
       <button
         onClick={onRetry}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-stone-100 border border-border-default text-text-primary text-sm font-medium hover:bg-stone-200 transition-colors"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500/10 border border-primary-500/30 text-primary-300 text-sm font-medium hover:bg-primary-500/20 transition-colors"
       >
         <RefreshCw className="w-4 h-4" />
         Try again
@@ -268,10 +294,10 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 function EmptyState() {
   return (
     <div className="text-center py-12">
-      <Trophy className="w-10 h-10 text-stone-300 mx-auto mb-3" />
-      <p className="text-text-primary text-sm font-medium">No leaderboard data yet</p>
+      <Trophy className="w-10 h-10 text-text-muted mx-auto mb-3" />
+      <p className="text-text-secondary text-sm">No leaderboard data yet</p>
       <p className="text-text-muted text-xs mt-1">
-        Complete triage sessions to earn points and appear here.
+        Complete triage sessions to earn points and appear on the leaderboard.
       </p>
     </div>
   );

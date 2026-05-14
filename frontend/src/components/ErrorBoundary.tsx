@@ -39,11 +39,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-surface flex items-center justify-center p-6">
-          <div className="card max-w-lg w-full p-8 text-center space-y-6">
+        <div className="min-h-screen bg-gradient-animated flex items-center justify-center p-6">
+          <div className="glass-card max-w-lg w-full p-8 text-center space-y-6">
             {/* Error Icon */}
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-danger-50 border border-danger-100">
-              <AlertTriangle className="w-8 h-8 text-danger-500" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30">
+              <AlertTriangle className="w-8 h-8 text-rose-400" />
             </div>
 
             {/* Title */}
@@ -59,8 +59,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
             {/* Error Details */}
             {this.state.error && (
-              <div className="text-left p-4 rounded-xl bg-stone-50 border border-border-subtle overflow-auto max-h-40">
-                <p className="text-xs font-mono text-danger-500 break-all">
+              <div className="text-left p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle overflow-auto max-h-40">
+                <p className="text-xs font-mono text-rose-300 break-all">
                   {this.state.error.message}
                 </p>
                 {this.state.errorInfo && (
@@ -74,7 +74,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             {/* Retry Button */}
             <button
               onClick={this.handleReset}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-text-primary text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-sm font-medium transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
               Reload Application

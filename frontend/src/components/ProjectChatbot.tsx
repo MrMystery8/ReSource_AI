@@ -232,7 +232,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
         aria-label={isOpen ? 'Close project chatbot' : 'Open project chatbot'}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        className="fixed bottom-6 right-6 z-40 flex items-center justify-center rounded-full bg-primary-500 text-text-primary  shadow-primary-500/30 hover:bg-primary-400 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card"
+        className="fixed bottom-6 right-6 z-40 flex items-center justify-center rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30 hover:bg-primary-400 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card"
         style={{ width: 52, height: 52, minWidth: 44, minHeight: 44 }}
       >
         <AnimatePresence mode="wait" initial={false}>
@@ -274,7 +274,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
             className="fixed bottom-[76px] right-6 z-40 flex flex-col w-[min(380px,calc(100vw-3rem))] h-[min(520px,calc(100vh-120px))] rounded-2xl bg-surface-card border border-border-subtle shadow-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border-subtle bg-stone-100 shrink-0">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border-subtle bg-surface-elevated/60 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
                   <MessageCircle className="w-4 h-4 text-primary-400" aria-hidden="true" />
@@ -324,12 +324,12 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                       msg.role === 'user'
                         ? 'bg-primary-500/20 text-primary-100 rounded-br-sm'
                         : msg.id === errorMessageId
-                          ? 'bg-danger-50 border border-danger-100 text-danger-500 rounded-bl-sm'
+                          ? 'bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-bl-sm'
                           : 'bg-surface-elevated text-text-primary rounded-bl-sm',
                     ].join(' ')}
                   >
                     {msg.id === errorMessageId && (
-                      <AlertCircle className="w-3.5 h-3.5 inline-block mr-1.5 mb-0.5 text-danger-500" aria-hidden="true" />
+                      <AlertCircle className="w-3.5 h-3.5 inline-block mr-1.5 mb-0.5 text-rose-400" aria-hidden="true" />
                     )}
                     {msg.content}
 
@@ -338,7 +338,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                       <button
                         onClick={handleRetry}
                         disabled={isLoading}
-                        className="mt-2 flex items-center gap-1.5 text-xs text-danger-500 hover:text-rose-200 transition-colors disabled:opacity-50"
+                        className="mt-2 flex items-center gap-1.5 text-xs text-rose-300 hover:text-rose-200 transition-colors disabled:opacity-50"
                         aria-label="Retry last message"
                       >
                         <RefreshCw className="w-3 h-3" aria-hidden="true" />
@@ -375,7 +375,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 border-t border-border-subtle bg-stone-100 px-3 py-3">
+            <div className="shrink-0 border-t border-border-subtle bg-surface-elevated/40 px-3 py-3">
               <div className="flex items-end gap-2">
                 <div className="flex-1 relative">
                   <textarea
@@ -406,7 +406,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                   onClick={() => void sendMessage(inputValue)}
                   disabled={!canSend}
                   aria-label="Send message"
-                  className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary-500 text-text-primary hover:bg-primary-400 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
+                  className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary-500 text-white hover:bg-primary-400 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
                 >
                   <Send className="w-4 h-4" aria-hidden="true" />
                 </button>
@@ -417,7 +417,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                 id="char-count"
                 className={[
                   'mt-1.5 text-right text-[10px] transition-colors',
-                  isOverLimit ? 'text-danger-500' : charsRemaining <= 50 ? 'text-warning-500' : 'text-text-muted',
+                  isOverLimit ? 'text-rose-400' : charsRemaining <= 50 ? 'text-amber-400' : 'text-text-muted',
                 ].join(' ')}
                 aria-live="polite"
               >

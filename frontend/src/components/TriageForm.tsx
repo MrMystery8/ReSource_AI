@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { MAX_FIELD_LENGTH } from '@resource-ai/shared';
 import type { StructuredUserContext } from '@resource-ai/shared';
-import { Cpu, AlertTriangle, Send } from 'lucide-react';
+import { Cpu, AlertTriangle, Send, Sparkles } from 'lucide-react';
 import { StructuredContextInput } from './StructuredContextInput';
 
 export interface TriageFormData {
@@ -41,6 +41,20 @@ const TEXT_FIELDS: TextFieldConfig[] = [
     description: 'What went wrong? Any safety concerns?',
   },
 ];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+  exit: { opacity: 0, y: 20, transition: { duration: 0.3 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
+};
 
 export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps) {
   const [deviceIdentity, setDeviceIdentity] = useState('');
@@ -85,23 +99,27 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
 
   return (
     <motion.form
-      className="card p-6 sm:p-8 max-w-2xl mx-auto"
+      className="glass-card p-6 sm:p-8 max-w-2xl mx-auto"
       onSubmit={handleSubmit}
       noValidate
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
     >
       {/* Form Header */}
-      <div className="mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold text-text-primary">
+      <motion.div variants={itemVariants} className="mb-8 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 mb-4">
+          <Sparkles className="w-3.5 h-3.5 text-primary-400" />
+          <span className="text-xs font-medium text-primary-300">AI-Powered Analysis</span>
+        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">
           E-Waste Device Triage
         </h2>
-        <p className="text-sm text-text-secondary mt-1.5 max-w-md">
+        <p className="text-sm text-text-secondary max-w-md mx-auto">
           Describe your device and we'll analyze its salvage potential, safety risks, and second-life opportunities.
         </p>
-      </div>
+      </motion.div>
 
       {/* Form Fields */}
       {TEXT_FIELDS.map((field) => {
@@ -112,97 +130,116 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
         const hasValue = value.trim().length > 0;
 
         return (
-          <div key={field.name} className="mb-5">
+          <motion.div
+            key={field.name}
+            variants={itemVariants}
+            className="mb-5"
+          >
             <label
               htmlFor={`triage-${field.name}`}
-              className="flex items-center gap-2 mb-1.5"
+              className="flex items-center gap-2 mb-2"
             >
-              <span className={`transition-colors duration-150 ${isFocused ? 'text-primary-600' : 'text-text-muted'}`}>
+              <span className={`transition-colors duration-200 ${isFocused ? 'text-primary-400' : 'text-text-muted'}`}>
                 {field.icon}
               </span>
               <span className="text-sm font-medium text-text-primary">
                 {field.label}
               </span>
-              <span className="text-danger-500 text-xs" aria-label="required">*</span>
+              <span className="text-rose-400 text-xs" aria-label="required">*</span>
             </label>
-            <p id={`${field.name}-desc`} className="text-xs text-text-muted mb-2 ml-6">
-              {field.description}
-            </p>
-            <textarea
-              id={`triage-${field.name}`}
-              className={`w-full bg-white text-text-primary placeholder-text-muted rounded-md px-3.5 py-2.5 text-sm leading-relaxed resize-none border transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                isFocused
-                  ? 'border-primary-500 ring-2 ring-primary-100'
-                  : 'border-border-default hover:border-stone-400'
-              }`}
-              name={field.name}
-              value={value}
-              onChange={handleTextChange(setter)}
-              onFocus={() => setFocusedField(field.name)}
-              onBlur={() => setFocusedField(null)}
-              placeholder={field.placeholder}
-              required
-              maxLength={MAX_FIELD_LENGTH}
-              rows={3}
-              aria-describedby={`${field.name}-desc ${field.name}-counter`}
-              disabled={disabled}
-            />
-            <div className="flex justify-between items-center mt-1.5 px-0.5">
+            <p className="text-xs text-text-muted mb-2 ml-6">{field.description}</p>
+            <div className={`relative rounded-xl transition-all duration-300 ${
+              isFocused
+                ? 'ring-2 ring-primary-500/50 shadow-lg shadow-primary-500/10'
+                : 'ring-1 ring-border-subtle'
+            }`}>
+              <textarea
+                id={`triage-${field.name}`}
+                className="w-full bg-surface-elevated/50 text-text-primary placeholder-text-muted rounded-xl px-4 py-3 text-sm leading-relaxed resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                name={field.name}
+                value={value}
+                onChange={handleTextChange(setter)}
+                onFocus={() => setFocusedField(field.name)}
+                onBlur={() => setFocusedField(null)}
+                placeholder={field.placeholder}
+                required
+                maxLength={MAX_FIELD_LENGTH}
+                rows={3}
+                aria-describedby={`${field.name}-counter`}
+                disabled={disabled}
+              />
+            </div>
+            <div className="flex justify-between items-center mt-1.5 px-1">
               {hasValue && (
-                <span className="text-xs text-success-600 flex items-center gap-1">
-                  <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Filled
-                </span>
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-xs text-emerald-400"
+                >
+                  ✓
+                </motion.span>
               )}
               <span
                 id={`${field.name}-counter`}
-                className={`text-xs ml-auto tabular-nums ${
-                  charCount >= MAX_FIELD_LENGTH ? 'text-danger-500' : 'text-text-muted'
+                className={`text-xs ml-auto ${
+                  charCount >= MAX_FIELD_LENGTH ? 'text-rose-400' : 'text-text-muted'
                 }`}
                 aria-live="polite"
               >
                 {charCount}/{MAX_FIELD_LENGTH}
               </span>
             </div>
-          </div>
+          </motion.div>
         );
       })}
 
       {/* Structured User Context */}
-      <div className="mb-5">
+      <motion.div variants={itemVariants} className="mb-5">
         <StructuredContextInput
           value={userContext}
           onChange={setUserContext}
         />
-      </div>
+      </motion.div>
 
       {/* File Uploader */}
       {fileUploader && (
-        <div className="mb-6">
+        <motion.div variants={itemVariants} className="mb-6">
           {fileUploader}
-        </div>
+        </motion.div>
       )}
 
       {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={!isFormValid || disabled}
-        className="w-full rounded-md px-6 py-3 font-medium text-text-primary bg-primary-600 hover:bg-primary-700 active:bg-primary-800 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
-      >
-        {disabled ? (
-          <>
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            <span>Analyzing...</span>
-          </>
-        ) : (
-          <>
-            <Send className="w-4 h-4" />
-            <span>Analyze Device</span>
-          </>
-        )}
-      </button>
+      <motion.div variants={itemVariants}>
+        <motion.button
+          type="submit"
+          disabled={!isFormValid || disabled}
+          className="w-full relative overflow-hidden rounded-xl px-6 py-3.5 font-medium text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group"
+          whileHover={isFormValid && !disabled ? { scale: 1.01 } : {}}
+          whileTap={isFormValid && !disabled ? { scale: 0.99 } : {}}
+        >
+          {/* Button gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 opacity-90 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity" />
+
+          <span className="relative flex items-center justify-center gap-2">
+            {disabled ? (
+              <>
+                <motion.div
+                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                />
+                <span>Submitting...</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>Analyze Device</span>
+              </>
+            )}
+          </span>
+        </motion.button>
+      </motion.div>
     </motion.form>
   );
 }

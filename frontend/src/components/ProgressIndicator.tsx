@@ -7,7 +7,7 @@ export interface ProgressIndicatorProps {
 
 export function ProgressIndicator({ stageName }: ProgressIndicatorProps) {
   return (
-    <div className="card p-5" role="status" aria-live="polite">
+    <div className="glass-card p-5" role="status" aria-live="polite">
       <div className="flex items-center gap-4">
         <motion.div
           animate={{ rotate: 360 }}
@@ -19,7 +19,7 @@ export function ProgressIndicator({ stageName }: ProgressIndicatorProps) {
           <p className="text-sm font-medium text-text-primary">Processing: {stageName}</p>
           <div className="mt-2 h-1.5 rounded-full bg-surface-elevated overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-primary-500"
+              className="h-full rounded-full bg-gradient-to-r from-primary-500 to-emerald-400"
               initial={{ width: '0%' }}
               animate={{ width: ['0%', '70%', '40%', '90%', '60%'] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
