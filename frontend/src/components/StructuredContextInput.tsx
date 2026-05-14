@@ -6,283 +6,266 @@ import type {
   StructuredUserContext,
   TimeCommitment,
 } from '@resource-ai/shared';
-import { BookOpen, ChevronDown, Clock, Lightbulb, Wrench } from 'lucide-react';
+import {
+  BookOpen,
+  Clock,
+  Lightbulb,
+  Wrench,
+  GraduationCap,
+  Zap,
+  Leaf,
+  PiggyBank,
+  Palette,
+  Hammer,
+  Settings,
+  Timer,
+  Coffee,
+  CalendarDays,
+} from 'lucide-react';
 
 export interface StructuredContextInputProps {
   value: Partial<StructuredUserContext>;
   onChange: (context: Partial<StructuredUserContext>) => void;
 }
 
-// ── Option definitions ────────────────────────────────────────────────────────
+// ── Option definitions with icons ─────────────────────────────────────────────
 
-const EXPERTISE_OPTIONS: ExpertiseLevel[] = ['Beginner', 'Intermediate', 'Expert'];
-
-const MOTIVATION_OPTIONS: Motivation[] = [
-  'Learn Something New',
-  'Environmental Impact',
-  'Save Money',
-  'Creative Project',
+const EXPERTISE_OPTIONS: { value: ExpertiseLevel; label: string; icon: React.ReactNode; hint: string }[] = [
+  { value: 'Beginner',     label: 'Beginner',      icon: <BookOpen className="w-3.5 h-3.5" />,      hint: 'New to DIY' },
+  { value: 'Intermediate', label: 'Intermediate',   icon: <GraduationCap className="w-3.5 h-3.5" />, hint: 'Some experience' },
+  { value: 'Expert',       label: 'Expert',         icon: <Zap className="w-3.5 h-3.5" />,           hint: 'Seasoned builder' },
 ];
 
-const MATERIAL_OPTIONS: MaterialAvailability[] = [
-  'Basic Household Tools',
-  'Some Electronics Tools',
-  'Full Workshop',
+const MOTIVATION_OPTIONS: { value: Motivation; label: string; icon: React.ReactNode }[] = [
+  { value: 'Learn Something New',  label: 'Learn',       icon: <GraduationCap className="w-3.5 h-3.5" /> },
+  { value: 'Environmental Impact', label: 'Eco Impact',  icon: <Leaf className="w-3.5 h-3.5" /> },
+  { value: 'Save Money',           label: 'Save Money',  icon: <PiggyBank className="w-3.5 h-3.5" /> },
+  { value: 'Creative Project',     label: 'Creative',    icon: <Palette className="w-3.5 h-3.5" /> },
 ];
 
-const TIME_OPTIONS: TimeCommitment[] = [
-  'Under 1 Hour',
-  '1-3 Hours',
-  'Half Day',
-  'Multi-Day Project',
+const MATERIAL_OPTIONS: { value: MaterialAvailability; label: string; icon: React.ReactNode; hint: string }[] = [
+  { value: 'Basic Household Tools',   label: 'Basic',     icon: <Hammer className="w-3.5 h-3.5" />,   hint: 'Screwdrivers, pliers' },
+  { value: 'Some Electronics Tools',  label: 'Electronics', icon: <Settings className="w-3.5 h-3.5" />, hint: 'Multimeter, soldering' },
+  { value: 'Full Workshop',           label: 'Workshop',  icon: <Wrench className="w-3.5 h-3.5" />,   hint: 'Full toolkit' },
 ];
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+const TIME_OPTIONS: { value: TimeCommitment; label: string; icon: React.ReactNode }[] = [
+  { value: 'Under 1 Hour',      label: '< 1 Hour',   icon: <Timer className="w-3.5 h-3.5" /> },
+  { value: '1-3 Hours',         label: '1–3 Hours',  icon: <Coffee className="w-3.5 h-3.5" /> },
+  { value: 'Half Day',          label: 'Half Day',   icon: <Clock className="w-3.5 h-3.5" /> },
+  { value: 'Multi-Day Project', label: 'Multi-Day',  icon: <CalendarDays className="w-3.5 h-3.5" /> },
+];
 
-interface SegmentedButtonGroupProps<T extends string> {
+// ── Pill chip component ───────────────────────────────────────────────────────
+
+interface PillChipProps {
+  label: string;
+  hint?: string;
+  icon: React.ReactNode;
+  isSelected: boolean;
+  onClick: () => void;
   id: string;
-  options: T[];
-  value: T | undefined;
-  onChange: (value: T) => void;
-  ariaLabel: string;
 }
 
-function SegmentedButtonGroup<T extends string>({
-  id,
-  options,
-  value,
-  onChange,
-  ariaLabel,
-}: SegmentedButtonGroupProps<T>) {
+function PillChip({ label, hint, icon, isSelected, onClick, id }: PillChipProps) {
   return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="flex rounded-xl overflow-hidden border border-border-subtle"
+    <motion.button
+      key={id}
+      type="button"
+      id={id}
+      aria-pressed={isSelected}
+      onClick={onClick}
+      whileTap={{ scale: 0.94 }}
+      className="relative flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors duration-150 focus:outline-none focus-visible:ring-2 cursor-pointer select-none"
+      style={{
+        backgroundColor: isSelected
+          ? 'color-mix(in srgb, var(--color-primary) 15%, transparent)'
+          : 'var(--color-surface-elevated)',
+        borderColor: isSelected
+          ? 'color-mix(in srgb, var(--color-primary) 50%, transparent)'
+          : 'var(--color-border-default)',
+        color: isSelected ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+        boxShadow: isSelected
+          ? '0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+          : 'none',
+      }}
     >
-      {options.map((option, index) => {
-        const isSelected = value === option;
-        const isFirst = index === 0;
-        const isLast = index === options.length - 1;
-
-        return (
-          <button
-            key={option}
-            type="button"
-            id={`${id}-${option.replace(/\s+/g, '-').toLowerCase()}`}
-            aria-pressed={isSelected}
-            onClick={() => onChange(option)}
-            className={[
-              'flex-1 px-3 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60 focus-visible:ring-inset',
-              !isFirst && 'border-l border-border-subtle',
-              isFirst && 'rounded-l-xl',
-              isLast && 'rounded-r-xl',
-              isSelected
-                ? 'bg-primary-500/20 text-primary-300 border-primary-500/40'
-                : 'bg-surface-elevated/40 text-text-secondary hover:bg-surface-elevated/70 hover:text-text-primary',
-            ]
-              .filter(Boolean)
-              .join(' ')}
+      {/* Selected dot indicator */}
+      {isSelected && (
+        <motion.span
+          layoutId={undefined}
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] as const }}
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, transparent)',
+          }}
+        />
+      )}
+      <span className="relative flex items-center gap-2">
+        <span
+          style={{
+            color: isSelected ? 'var(--color-primary)' : 'var(--color-text-muted)',
+          }}
+        >
+          {icon}
+        </span>
+        <span>{label}</span>
+        {hint && (
+          <span
+            className="hidden sm:inline text-xs font-normal"
+            style={{ color: isSelected ? 'color-mix(in srgb, var(--color-primary) 70%, transparent)' : 'var(--color-text-muted)' }}
           >
-            {option}
-          </button>
-        );
-      })}
-    </div>
+            · {hint}
+          </span>
+        )}
+      </span>
+    </motion.button>
   );
 }
 
-interface ChipSelectProps<T extends string> {
-  id: string;
-  options: T[];
-  value: T | undefined;
-  onChange: (value: T) => void;
-  ariaLabel: string;
-}
+// ── Field section ─────────────────────────────────────────────────────────────
 
-function ChipSelect<T extends string>({
-  id,
-  options,
-  value,
-  onChange,
-  ariaLabel,
-}: ChipSelectProps<T>) {
-  return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="flex flex-wrap gap-2"
-    >
-      {options.map((option) => {
-        const isSelected = value === option;
-
-        return (
-          <button
-            key={option}
-            type="button"
-            id={`${id}-${option.replace(/\s+/g, '-').toLowerCase()}`}
-            aria-pressed={isSelected}
-            onClick={() => onChange(option)}
-            className={[
-              'px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60',
-              isSelected
-                ? 'bg-primary-500/20 text-primary-300 border-primary-500/40 shadow-sm shadow-primary-500/10'
-                : 'bg-surface-elevated/40 text-text-secondary border-border-subtle hover:bg-surface-elevated/70 hover:text-text-primary hover:border-primary-500/30',
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          >
-            {option}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── Field wrapper ─────────────────────────────────────────────────────────────
-
-interface FieldWrapperProps {
+interface FieldSectionProps {
   label: string;
   icon: React.ReactNode;
   description: string;
-  htmlFor?: string;
   required?: boolean;
   children: React.ReactNode;
 }
 
-function FieldWrapper({ label, icon, description, htmlFor, required, children }: FieldWrapperProps) {
+function FieldSection({ label, icon, description, required, children }: FieldSectionProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="mb-5"
-    >
-      <label
-        htmlFor={htmlFor}
-        className="flex items-center gap-2 mb-1.5"
-      >
-        <span className="text-text-muted">{icon}</span>
-        <span className="text-sm font-medium text-text-primary">{label}</span>
-        {required && (
-          <span className="text-rose-400 text-xs" aria-label="required">
-            *
+    <div className="space-y-2.5">
+      <div>
+        <div className="flex items-center gap-2 mb-0.5">
+          <span style={{ color: 'var(--color-text-muted)' }}>{icon}</span>
+          <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+            {label}
           </span>
-        )}
-      </label>
-      <p className="text-xs text-text-muted mb-2 ml-6">{description}</p>
+          {required && (
+            <span className="text-xs" style={{ color: 'var(--color-error)' }} aria-hidden="true">
+              *
+            </span>
+          )}
+        </div>
+        <p className="text-xs ml-6" style={{ color: 'var(--color-text-muted)' }}>
+          {description}
+        </p>
+      </div>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 export function StructuredContextInput({ value, onChange }: StructuredContextInputProps) {
-  const handleExpertiseChange = (level: ExpertiseLevel) => {
-    onChange({ ...value, expertiseLevel: level });
-  };
-
-  const handleMotivationChange = (motivation: Motivation) => {
-    onChange({ ...value, motivation });
-  };
-
-  const handleMaterialChange = (materialAvailability: MaterialAvailability) => {
-    onChange({ ...value, materialAvailability });
-  };
-
-  const handleTimeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const timeCommitment = e.target.value as TimeCommitment;
-    onChange({ ...value, timeCommitment });
-  };
-
   return (
-    <div className="space-y-1">
+    <div className="space-y-5">
       {/* Expertise Level */}
-      <FieldWrapper
+      <FieldSection
         label="Expertise Level"
         icon={<BookOpen className="w-4 h-4" />}
         description="Your experience with electronics and DIY projects"
         required
       >
-        <SegmentedButtonGroup
-          id="expertise"
-          options={EXPERTISE_OPTIONS}
-          value={value.expertiseLevel}
-          onChange={handleExpertiseChange}
-          ariaLabel="Expertise level"
-        />
-      </FieldWrapper>
+        <div
+          role="group"
+          aria-label="Expertise level"
+          className="flex flex-wrap gap-2"
+        >
+          {EXPERTISE_OPTIONS.map((opt) => (
+            <PillChip
+              key={opt.value}
+              id={`expertise-${opt.value.toLowerCase()}`}
+              label={opt.label}
+              hint={opt.hint}
+              icon={opt.icon}
+              isSelected={value.expertiseLevel === opt.value}
+              onClick={() => onChange({ ...value, expertiseLevel: opt.value })}
+            />
+          ))}
+        </div>
+      </FieldSection>
 
       {/* Motivation */}
-      <FieldWrapper
+      <FieldSection
         label="Motivation"
         icon={<Lightbulb className="w-4 h-4" />}
         description="What's driving your interest in this project?"
         required
       >
-        <ChipSelect
-          id="motivation"
-          options={MOTIVATION_OPTIONS}
-          value={value.motivation}
-          onChange={handleMotivationChange}
-          ariaLabel="Motivation"
-        />
-      </FieldWrapper>
+        <div
+          role="group"
+          aria-label="Motivation"
+          className="flex flex-wrap gap-2"
+        >
+          {MOTIVATION_OPTIONS.map((opt) => (
+            <PillChip
+              key={opt.value}
+              id={`motivation-${opt.value.replace(/\s+/g, '-').toLowerCase()}`}
+              label={opt.label}
+              icon={opt.icon}
+              isSelected={value.motivation === opt.value}
+              onClick={() => onChange({ ...value, motivation: opt.value })}
+            />
+          ))}
+        </div>
+      </FieldSection>
 
       {/* Material Availability */}
-      <FieldWrapper
+      <FieldSection
         label="Material Availability"
         icon={<Wrench className="w-4 h-4" />}
         description="What tools and equipment do you have access to?"
         required
       >
-        <SegmentedButtonGroup
-          id="material"
-          options={MATERIAL_OPTIONS}
-          value={value.materialAvailability}
-          onChange={handleMaterialChange}
-          ariaLabel="Material availability"
-        />
-      </FieldWrapper>
+        <div
+          role="group"
+          aria-label="Material availability"
+          className="flex flex-wrap gap-2"
+        >
+          {MATERIAL_OPTIONS.map((opt) => (
+            <PillChip
+              key={opt.value}
+              id={`material-${opt.value.replace(/\s+/g, '-').toLowerCase()}`}
+              label={opt.label}
+              hint={opt.hint}
+              icon={opt.icon}
+              isSelected={value.materialAvailability === opt.value}
+              onClick={() => onChange({ ...value, materialAvailability: opt.value })}
+            />
+          ))}
+        </div>
+      </FieldSection>
 
       {/* Time Commitment */}
-      <FieldWrapper
+      <FieldSection
         label="Time Commitment"
         icon={<Clock className="w-4 h-4" />}
         description="How much time can you dedicate to this project?"
-        htmlFor="time-commitment"
         required
       >
-        <div className="relative">
-          <select
-            id="time-commitment"
-            value={value.timeCommitment ?? ''}
-            onChange={handleTimeChange}
-            className={[
-              'w-full appearance-none rounded-xl px-4 py-2.5 pr-10 text-sm transition-all duration-200',
-              'bg-surface-elevated/50 border border-border-subtle',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500/40',
-              value.timeCommitment ? 'text-text-primary' : 'text-text-muted',
-            ].join(' ')}
-            aria-label="Time commitment"
-          >
-            <option value="" disabled>
-              Select time commitment…
-            </option>
-            {TIME_OPTIONS.map((option) => (
-              <option key={option} value={option} className="bg-surface-card text-text-primary">
-                {option}
-              </option>
-            ))}
-          </select>
-          <ChevronDown
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-            aria-hidden="true"
-          />
+        <div
+          role="group"
+          aria-label="Time commitment"
+          className="flex flex-wrap gap-2"
+        >
+          {TIME_OPTIONS.map((opt) => (
+            <PillChip
+              key={opt.value}
+              id={`time-${opt.value.replace(/\s+/g, '-').toLowerCase()}`}
+              label={opt.label}
+              icon={opt.icon}
+              isSelected={value.timeCommitment === opt.value}
+              onClick={() => onChange({ ...value, timeCommitment: opt.value })}
+            />
+          ))}
         </div>
-      </FieldWrapper>
+      </FieldSection>
     </div>
   );
 }
