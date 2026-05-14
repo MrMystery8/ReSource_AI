@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
+import { EXPERTISE_LEVEL_ORDER, IDEA_SKILL_TO_EXPERTISE } from '@resource-ai/shared';
 import { Lightbulb, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { IdeaCard } from './IdeaCard';
 
@@ -24,13 +25,22 @@ export function SecondLifeIdeasSection({
   isReloading,
   reloadError,
 }: SecondLifeIdeasSectionProps) {
-  // The AI generates ideas with the first 3 tailored to the user's expertise level.
-  // We split at index 3: first 3 are "matched", the rest are "other skill levels".
-  const MATCHED_COUNT = 3;
-  const matchedIdeas = ideas.slice(0, MATCHED_COUNT);
-  const otherIdeas = ideas.slice(MATCHED_COUNT);
+  // Determine if an idea matches the user's expertise level (skill ≤ user level)
+  const userLevel = EXPERTISE_LEVEL_ORDER[userExpertise] ?? 1;
+  const isIdeaMatched = (idea: ProjectIdea): boolean => {
+    const mappedExpertise = IDEA_SKILL_TO_EXPERTISE[idea.skillLevel];
+    if (!mappedExpertise) return false; // missing/invalid skillLevel → not matched
+    const ideaLevel = EXPERTISE_LEVEL_ORDER[mappedExpertise];
+    return ideaLevel <= userLevel;
+  };
 
-  // Carousel order: matched first, then others
+  // Count matched vs other for display
+  const matchedCount = ideas.filter(isIdeaMatched).length;
+  const otherCount = ideas.length - matchedCount;
+
+  // Order: matched ideas first, then others
+  const matchedIdeas = ideas.filter(isIdeaMatched);
+  const otherIdeas = ideas.filter((idea) => !isIdeaMatched(idea));
   const allIdeas = [...matchedIdeas, ...otherIdeas];
 
   // Current offset — the index of the leftmost visible card
@@ -96,8 +106,8 @@ export function SecondLifeIdeasSection({
               className="text-xs"
               style={{ color: 'var(--color-text-muted)' }}
             >
-              {matchedIdeas.length} for your level
-              {otherIdeas.length > 0 && ` · ${otherIdeas.length} at other levels`}
+              {matchedCount} for your level
+              {otherCount > 0 && ` · ${otherCount} at other levels`}
             </span>
           </div>
         </div>
@@ -197,10 +207,9 @@ export function SecondLifeIdeasSection({
                   aria-atomic="true"
                 >
                   {visibleIdeas.map((idea, i) => {
-                    const globalIndex = offset + i;
-                    const isMatched = globalIndex < matchedIdeas.length;
+                    const isMatched = isIdeaMatched(idea);
                     return (
-                      <div key={`${idea.title}-${globalIndex}`} className="relative">
+                      <div key={`${idea.title}-${offset}-${i}`} className="relative">
                         {/* Matched indicator — subtle left border accent */}
                         {isMatched && (
                           <div
@@ -327,7 +336,7 @@ export function SecondLifeIdeasSection({
             )}
 
             {/* Expertise legend — always shown when carousel has more than 3 ideas */}
-            {allIdeas.length > VISIBLE_COUNT && (
+            {allIdeas.length > VISIBLE_COUNT && otherCount > 0 && (
               <div
                 className="mt-4 flex items-center gap-5 text-xs px-1"
                 style={{ color: 'var(--color-text-secondary)' }}
