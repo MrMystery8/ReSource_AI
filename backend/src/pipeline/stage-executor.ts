@@ -60,10 +60,18 @@ export class StageExecutor {
 
     let rawResponse: string;
     if (images.length > 0) {
-      // Use multimodal invocation — AI can see the device photos
+      console.log(`[StageExecutor] Stage "${stage.key}" — invoking MULTIMODAL with ${images.length} image(s)`, {
+        sessionId: session.sessionId,
+        stage: stage.key,
+        imageCount: images.length,
+        imageSizes: images.map((img) => `${(img.bytes.length / 1024).toFixed(1)}KB`),
+      });
       rawResponse = await this.bedrockClient.invokeMultimodalModel(prompt, images);
     } else {
-      // Text-only invocation
+      console.log(`[StageExecutor] Stage "${stage.key}" — invoking TEXT-ONLY (no images)`, {
+        sessionId: session.sessionId,
+        stage: stage.key,
+      });
       rawResponse = await this.bedrockClient.invokeTextModel(prompt);
     }
 

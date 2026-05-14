@@ -447,8 +447,16 @@ export const handler = async (
     let rawText: string;
     try {
       if (photoImages.length > 0) {
+        console.log(`[ProjectSubmit] Grading with MULTIMODAL — ${photoImages.length} photo(s) sent to AI`, {
+          projectId: req.projectId,
+          photoCount: photoImages.length,
+          photoSizes: photoImages.map((img) => `${(img.bytes.length / 1024).toFixed(1)}KB`),
+        });
         rawText = await bedrockClient.invokeMultimodalModel(prompt, photoImages);
       } else {
+        console.log(`[ProjectSubmit] Grading with TEXT-ONLY — no photo bytes available`, {
+          projectId: req.projectId,
+        });
         rawText = await bedrockClient.invokeClaudeModel(prompt);
       }
     } catch (err) {
