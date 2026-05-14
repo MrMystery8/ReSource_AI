@@ -413,6 +413,64 @@ export class ApiClient {
     });
     return this.parseResponse<import('@resource-ai/shared').Project>(response);
   }
+
+  // ─── Community Endpoints ───
+
+  async createCommunityPost(
+    data: import('@resource-ai/shared').CreateCommunityPostRequest
+  ): Promise<import('@resource-ai/shared').CreateCommunityPostResponse> {
+    const response = await this.request('/community/posts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return this.parseResponse<import('@resource-ai/shared').CreateCommunityPostResponse>(response);
+  }
+
+  async getCommunityFeed(
+    options?: { limit?: number; cursor?: string; cursorId?: string; sort?: 'recent' | 'top' }
+  ): Promise<import('@resource-ai/shared').CommunityFeedResponse> {
+    const params = new URLSearchParams();
+    if (options?.limit) params.set('limit', String(options.limit));
+    if (options?.cursor) params.set('cursor', options.cursor);
+    if (options?.cursorId) params.set('cursorId', options.cursorId);
+    if (options?.sort) params.set('sort', options.sort);
+    const query = params.toString();
+    const path = `/community/posts${query ? `?${query}` : ''}`;
+
+    const response = await this.request(path, { method: 'GET' });
+    return this.parseResponse<import('@resource-ai/shared').CommunityFeedResponse>(response);
+  }
+
+  async voteCommunityPost(
+    postId: string,
+    vote: import('@resource-ai/shared').VoteType
+  ): Promise<import('@resource-ai/shared').VoteResponse> {
+    const response = await this.request(`/community/posts/${postId}/vote`, {
+      method: 'POST',
+      body: JSON.stringify({ vote }),
+    });
+    return this.parseResponse<import('@resource-ai/shared').VoteResponse>(response);
+  }
+
+  async getCommunityComments(
+    postId: string
+  ): Promise<import('@resource-ai/shared').CommentsListResponse> {
+    const response = await this.request(`/community/posts/${postId}/comments`, {
+      method: 'GET',
+    });
+    return this.parseResponse<import('@resource-ai/shared').CommentsListResponse>(response);
+  }
+
+  async createCommunityComment(
+    postId: string,
+    text: string
+  ): Promise<import('@resource-ai/shared').CreateCommentResponse> {
+    const response = await this.request(`/community/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ text }),
+    });
+    return this.parseResponse<import('@resource-ai/shared').CreateCommentResponse>(response);
+  }
 }
 
 // ─── Default Instance & Legacy Compatibility ───

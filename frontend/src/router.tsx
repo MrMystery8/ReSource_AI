@@ -9,6 +9,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { ImplementationGuidePage } from './pages/ImplementationGuidePage';
+import { CommunityPage } from './pages/CommunityPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ManagerRoute } from './components/auth/ManagerRoute';
 
@@ -80,6 +81,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ImplementationGuidePage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'community',
+        element: (
+          <ProtectedRoute>
+            <CommunityPage />
           </ProtectedRoute>
         ),
       },

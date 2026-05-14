@@ -19,6 +19,11 @@ import {
   Wrench,
   Zap,
   Sprout,
+  Megaphone,
+  Sparkles,
+  MessageCircle,
+  Landmark,
+  Handshake,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
@@ -42,6 +47,11 @@ const BADGE_ICON_MAP: Record<string, React.ComponentType<{ className?: string; s
   'parts-hunter':      Wrench,
   'streak-master':     Zap,
   'green-champion':    Sprout,
+  'community-starter': Megaphone,
+  'popular-creator':   Sparkles,
+  'conversation-spark': MessageCircle,
+  'community-pillar':  Landmark,
+  'helpful-neighbor':  Handshake,
 };
 
 // Level color mapping — uses semantic token-compatible classes

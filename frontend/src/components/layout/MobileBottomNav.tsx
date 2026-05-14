@@ -13,7 +13,7 @@
  */
 
 import { NavLink } from 'react-router-dom';
-import { Leaf, History, Trophy, User, Shield, type LucideIcon } from 'lucide-react';
+import { Leaf, History, Trophy, User, Shield, Users, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface NavItem {
@@ -25,7 +25,7 @@ interface NavItem {
 /** Items shown to all authenticated users (no admin). */
 const BASE_NAV_ITEMS: NavItem[] = [
   { path: '/', label: 'Triage', icon: Leaf },
-  { path: '/history', label: 'History', icon: History },
+  { path: '/community', label: 'Community', icon: Users },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { path: '/profile', label: 'Profile', icon: User },
 ];

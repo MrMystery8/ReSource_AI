@@ -28,6 +28,7 @@ import {
   Trophy,
   User,
   Shield,
+  Users,
   LogOut,
   ChevronDown,
   type LucideProps,
@@ -58,6 +59,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { path: '/', label: 'Triage', icon: Leaf, requiresAuth: true },
+  { path: '/community', label: 'Community', icon: Users, requiresAuth: true },
   { path: '/history', label: 'History', icon: History, requiresAuth: true },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy, requiresAuth: true },
   { path: '/profile', label: 'Profile', icon: User, requiresAuth: true },

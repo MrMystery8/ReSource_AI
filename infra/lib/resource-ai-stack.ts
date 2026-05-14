@@ -43,6 +43,10 @@ export class ResourceAiStack extends cdk.Stack {
   public readonly projectUpdateHandler: NodejsFunction;
   public readonly projectGetHandler: NodejsFunction;
 
+  // Community feature
+  public readonly communityTable: dynamodb.Table;
+  public readonly communityHandler: NodejsFunction;
+
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -88,6 +92,29 @@ export class ResourceAiStack extends cdk.Stack {
       indexName: 'userId-index',
       partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'startedAt', type: dynamodb.AttributeType.STRING },
+    });
+
+    // DynamoDB table for community posts (single-table design)
+    this.communityTable = new dynamodb.Table(this, 'CommunityTable', {
+      tableName: 'resource-ai-community',
+      partitionKey: { name: 'PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'SK', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // GSI for feed queries (all posts sorted by createdAt)
+    this.communityTable.addGlobalSecondaryIndex({
+      indexName: 'feed-index',
+      partitionKey: { name: 'GSI1PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'GSI1SK', type: dynamodb.AttributeType.STRING },
+    });
+
+    // GSI for user's posts
+    this.communityTable.addGlobalSecondaryIndex({
+      indexName: 'user-posts-index',
+      partitionKey: { name: 'GSI2PK', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'GSI2SK', type: dynamodb.AttributeType.STRING },
     });
 
     // S3 bucket for file storage (uploads and generated images)
@@ -351,6 +378,23 @@ export class ResourceAiStack extends cdk.Stack {
       },
     });
 
+    // CommunityHandler Lambda (community posts, votes, comments)
+    this.communityHandler = new NodejsFunction(this, 'CommunityHandler', {
+      functionName: 'resource-ai-community-handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'handler',
+      entry: path.join(handlersDir, 'community.ts'),
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      bundling: nodejsBundling,
+      environment: {
+        COMMUNITY_TABLE_NAME: this.communityTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
+        PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        BUCKET_NAME: this.fileStorageBucket.bucketName,
+      },
+    });
+
     // --- IAM Permissions (least-privilege, no wildcard resource ARNs) ---
 
     // SubmitHandler: DynamoDB write + Lambda invoke (async invocation of PipelineOrchestrator)
@@ -409,6 +453,12 @@ export class ResourceAiStack extends cdk.Stack {
 
     // ProjectGetHandler: DynamoDB read on projects table
     this.projectsTable.grantReadData(this.projectGetHandler);
+
+    // CommunityHandler: DynamoDB read/write on community table + read projects + read/write users + S3 read
+    this.communityTable.grantReadWriteData(this.communityHandler);
+    this.projectsTable.grantReadData(this.communityHandler);
+    this.usersTable.grantReadWriteData(this.communityHandler);
+    this.fileStorageBucket.grantRead(this.communityHandler);
 
     // Bedrock InvokeModel permission - Amazon Nova Pro via APAC cross-region inference
     const bedrockNovaPolicy = new iam.PolicyStatement({
@@ -616,6 +666,49 @@ export class ResourceAiStack extends cdk.Stack {
 
     // GET /projects/{projectId} — Get a single project by ID (protected)
     projectByIdResource.addMethod('GET', new apigateway.LambdaIntegration(this.projectGetHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // --- Community API routes ---
+
+    // /community resource
+    const communityResource = this.api.root.addResource('community');
+    const communityPostsResource = communityResource.addResource('posts');
+
+    // POST /community/posts — Create a community post (protected)
+    communityPostsResource.addMethod('POST', new apigateway.LambdaIntegration(this.communityHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // GET /community/posts — Get community feed (protected)
+    communityPostsResource.addMethod('GET', new apigateway.LambdaIntegration(this.communityHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // /community/posts/{postId}
+    const communityPostByIdResource = communityPostsResource.addResource('{postId}');
+
+    // POST /community/posts/{postId}/vote — Vote on a post (protected)
+    const communityVoteResource = communityPostByIdResource.addResource('vote');
+    communityVoteResource.addMethod('POST', new apigateway.LambdaIntegration(this.communityHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // /community/posts/{postId}/comments
+    const communityCommentsResource = communityPostByIdResource.addResource('comments');
+
+    // POST /community/posts/{postId}/comments — Add a comment (protected)
+    communityCommentsResource.addMethod('POST', new apigateway.LambdaIntegration(this.communityHandler, {
+      proxy: true,
+      timeout: cdk.Duration.seconds(29),
+    }), protectedMethodOptions);
+
+    // GET /community/posts/{postId}/comments — Get comments (protected)
+    communityCommentsResource.addMethod('GET', new apigateway.LambdaIntegration(this.communityHandler, {
       proxy: true,
       timeout: cdk.Duration.seconds(29),
     }), protectedMethodOptions);

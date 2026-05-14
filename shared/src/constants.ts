@@ -110,7 +110,21 @@ export const BADGE_DEFINITIONS = [
   { id: 'parts-hunter', name: 'Parts Hunter', description: 'Find 10+ salvageable parts', icon: '🔧' },
   { id: 'streak-master', name: 'Streak Master', description: 'Maintain a 4-week streak', icon: '🔥' },
   { id: 'green-champion', name: 'Green Champion', description: '5 Green-risk outcomes', icon: '🌿' },
+  { id: 'community-starter', name: 'Community Starter', description: 'Share your first project to the community', icon: '📢' },
+  { id: 'popular-creator', name: 'Popular Creator', description: 'Get 10 upvotes on a single post', icon: '⭐' },
+  { id: 'conversation-spark', name: 'Conversation Spark', description: 'Receive 5 comments on a post', icon: '💬' },
+  { id: 'community-pillar', name: 'Community Pillar', description: 'Share 10 projects to the community', icon: '🏛️' },
+  { id: 'helpful-neighbor', name: 'Helpful Neighbor', description: 'Leave 20 comments on others\' posts', icon: '🤝' },
 ] as const;
+
+// --- Community Gamification Constants ---
+
+export const COMMUNITY_POINTS = {
+  sharePost: 75,
+  receiveUpvote: 10,
+  receiveDownvote: -5,
+  leaveComment: 5,
+} as const;
 
 // --- Project Grading Constants ---
 

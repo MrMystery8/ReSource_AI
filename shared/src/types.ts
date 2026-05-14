@@ -378,3 +378,75 @@ export interface ProjectsListResponse {
   limit: number;
   offset: number;
 }
+
+// --- Community Types ---
+
+export type VoteType = 'upvote' | 'downvote';
+
+export interface CommunityPost {
+  postId: string;
+  userId: string;
+  displayName: string;
+  projectId: string;
+  ideaTitle: string;
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  text: string;
+  imageKeys: string[];
+  imageUrls?: string[];
+  upvotes: number;
+  downvotes: number;
+  commentCount: number;
+  currentUserVote?: VoteType | null;
+  createdAt: string;
+}
+
+export interface CommunityComment {
+  commentId: string;
+  postId: string;
+  userId: string;
+  displayName: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface CreateCommunityPostRequest {
+  projectId: string;
+  text: string;
+  imageKeys: string[];
+}
+
+export interface CreateCommunityPostResponse {
+  post: CommunityPost;
+  pointsAwarded: number;
+  newBadges: string[];
+}
+
+export interface CommunityFeedResponse {
+  posts: CommunityPost[];
+  total: number;
+  nextCursor?: string;
+}
+
+export interface VoteRequest {
+  vote: VoteType;
+}
+
+export interface VoteResponse {
+  upvotes: number;
+  downvotes: number;
+  currentUserVote: VoteType | null;
+  pointsDelta: number;
+}
+
+export interface CreateCommentRequest {
+  text: string;
+}
+
+export interface CreateCommentResponse {
+  comment: CommunityComment;
+}
+
+export interface CommentsListResponse {
+  comments: CommunityComment[];
+  total: number;
+}

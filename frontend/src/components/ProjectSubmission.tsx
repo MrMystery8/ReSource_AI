@@ -11,8 +11,10 @@ import {
   RefreshCw,
   Trophy,
   Star,
+  Share2,
 } from 'lucide-react';
 import { PointsAnimation } from './gamification/PointsAnimation';
+import { ShareToCommunityModal } from './community/ShareToCommunityModal';
 import { ApiClient } from '../services/api';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -116,6 +118,7 @@ export function ProjectSubmission({
   // Result state — starts with existingResult if provided
   const [result, setResult] = useState<SubmissionResult | undefined>(existingResult);
   const [showPointsAnimation, setShowPointsAnimation] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const tokenRef = useRef<string | null>(authToken ?? null);
@@ -361,6 +364,21 @@ export function ProjectSubmission({
           <p className="mt-3 text-xs text-text-muted border-t border-current/10 pt-3">
             You can resubmit to replace this result with a new grade.
           </p>
+
+          {/* Share to Community button */}
+          <button
+            type="button"
+            onClick={() => setShowShareModal(true)}
+            className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 12%, transparent)',
+              color: 'var(--color-primary)',
+              border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
+            }}
+          >
+            <Share2 className="w-4 h-4" />
+            Share to Community
+          </button>
         </motion.div>
       )}
 
@@ -588,6 +606,19 @@ export function ProjectSubmission({
           </span>
         </motion.button>
       </div>
+
+      {/* Share to Community Modal */}
+      {result && (
+        <ShareToCommunityModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          projectId={projectId}
+          ideaTitle={guideContext.ideaTitle}
+          grade={result.grade}
+          photoKeys={result.photoKeys}
+          photoUrls={photos.filter((p) => p.status === 'uploaded').map((p) => p.previewUrl)}
+        />
+      )}
     </div>
   );
 }
