@@ -18,6 +18,7 @@ import { ApiClient } from '../services/api';
 import { ProjectChatbot } from '../components/ProjectChatbot';
 import { ProjectSubmission } from '../components/ProjectSubmission';
 import { PointsAnimation } from '../components/gamification/PointsAnimation';
+import { Card } from '../components/ui/Card';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -38,34 +39,42 @@ export interface GuidePageState {
 
 function GuideSkeleton() {
   return (
-    <div className="w-full max-w-3xl mx-auto animate-pulse space-y-6" aria-busy="true" aria-label="Loading implementation guide">
+    <div
+      className="w-full max-w-3xl mx-auto animate-pulse space-y-6"
+      aria-busy="true"
+      aria-label="Loading implementation guide"
+    >
       {/* Title skeleton */}
-      <div className="h-8 bg-white/10 rounded-lg w-2/3" />
-      <div className="h-4 bg-white/10 rounded w-1/3" />
+      <div className="h-8 rounded-lg w-2/3" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
+      <div className="h-4 rounded w-1/3" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
 
       {/* Materials skeleton */}
-      <div className="glass-card p-6 space-y-3">
-        <div className="h-5 bg-white/10 rounded w-1/4" />
+      <Card elevation="sm" className="p-6 space-y-3">
+        <div className="h-5 rounded w-1/4" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-4 bg-white/10 rounded w-3/4" />
+          <div key={i} className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
         ))}
-      </div>
+      </Card>
 
       {/* Steps skeleton */}
-      <div className="glass-card p-6 space-y-4">
-        <div className="h-5 bg-white/10 rounded w-1/4" />
+      <Card elevation="sm" className="p-6 space-y-4">
+        <div className="h-5 rounded w-1/4" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
         {[...Array(6)].map((_, i) => (
           <div key={i} className="space-y-2">
-            <div className="h-4 bg-white/10 rounded w-full" />
-            <div className="h-3 bg-white/10 rounded w-5/6" />
+            <div className="h-4 rounded w-full" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
+            <div className="h-3 rounded w-5/6" style={{ backgroundColor: 'var(--color-surface-elevated)' }} />
           </div>
         ))}
-      </div>
+      </Card>
 
       {/* Time + warnings skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="glass-card p-4 h-20 bg-white/5" />
-        <div className="glass-card p-4 h-20 bg-white/5" />
+        <Card elevation="sm" className="p-4 h-20">
+          <div />
+        </Card>
+        <Card elevation="sm" className="p-4 h-20">
+          <div />
+        </Card>
       </div>
     </div>
   );
@@ -87,20 +96,40 @@ function GuideError({ message, isTimeout, onRetry }: GuideErrorProps) {
       transition={{ duration: 0.4 }}
       className="flex items-center justify-center min-h-[50vh]"
     >
-      <div className="glass-card p-8 w-full max-w-md text-center">
-        <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">
+      <Card elevation="md" className="p-8 w-full max-w-md text-center">
+        <AlertTriangle
+          className="w-12 h-12 mx-auto mb-4"
+          style={{ color: 'var(--color-warning)' }}
+        />
+        <h2
+          className="text-xl font-bold mb-2"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {isTimeout ? 'Request Timed Out' : 'Failed to Generate Guide'}
         </h2>
-        <p className="text-gray-400 text-sm mb-6">{message}</p>
+        <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+          {message}
+        </p>
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white bg-teal-600 hover:bg-teal-500 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-colors"
+          style={{
+            color: 'var(--color-surface)',
+            backgroundColor: 'var(--color-primary)',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+              'var(--color-primary-hover)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+              'var(--color-primary)';
+          }}
         >
           <RefreshCw className="w-4 h-4" />
           Try Again
         </button>
-      </div>
+      </Card>
     </motion.div>
   );
 }
@@ -289,8 +318,13 @@ export function ImplementationGuidePage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
-          <p className="text-gray-400 text-sm">Loading project...</p>
+          <Loader2
+            className="w-8 h-8 animate-spin"
+            style={{ color: 'var(--color-primary)' }}
+          />
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            Loading project...
+          </p>
         </div>
       </div>
     );
@@ -305,18 +339,33 @@ export function ImplementationGuidePage() {
         transition={{ duration: 0.4 }}
         className="flex items-center justify-center min-h-[60vh]"
       >
-        <div className="glass-card p-8 w-full max-w-md text-center">
-          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Project Not Found</h2>
-          <p className="text-gray-400 text-sm mb-6">{projectLoadError}</p>
+        <Card elevation="md" className="p-8 w-full max-w-md text-center">
+          <AlertTriangle
+            className="w-12 h-12 mx-auto mb-4"
+            style={{ color: 'var(--color-warning)' }}
+          />
+          <h2
+            className="text-xl font-bold mb-2"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            Project Not Found
+          </h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+            {projectLoadError}
+          </p>
           <button
             onClick={() => navigate('/history')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: 'var(--color-surface-elevated)',
+              color: 'var(--color-primary)',
+              border: '1px solid var(--color-border-default)',
+            }}
           >
             <ArrowLeft className="w-4 h-4" />
             Back to History
           </button>
-        </div>
+        </Card>
       </motion.div>
     );
   }
@@ -330,20 +379,33 @@ export function ImplementationGuidePage() {
         transition={{ duration: 0.4 }}
         className="flex items-center justify-center min-h-[60vh]"
       >
-        <div className="glass-card p-8 w-full max-w-md text-center">
-          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">No Project Selected</h2>
-          <p className="text-gray-400 text-sm mb-6">
+        <Card elevation="md" className="p-8 w-full max-w-md text-center">
+          <AlertTriangle
+            className="w-12 h-12 mx-auto mb-4"
+            style={{ color: 'var(--color-warning)' }}
+          />
+          <h2
+            className="text-xl font-bold mb-2"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            No Project Selected
+          </h2>
+          <p className="text-sm mb-6 prose-container mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
             Navigate here by clicking an idea card from your triage results.
           </p>
           <button
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: 'var(--color-surface-elevated)',
+              color: 'var(--color-primary)',
+              border: '1px solid var(--color-border-default)',
+            }}
           >
             <ArrowLeft className="w-4 h-4" />
             Go Home
           </button>
-        </div>
+        </Card>
       </motion.div>
     );
   }
@@ -360,7 +422,17 @@ export function ImplementationGuidePage() {
       {/* Back navigation */}
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg transition-colors"
+        style={{ color: 'var(--color-text-secondary)' }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-primary)';
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+            'var(--color-surface-elevated)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-secondary)';
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
+        }}
       >
         <ArrowLeft className="w-4 h-4" />
         Back
@@ -368,8 +440,18 @@ export function ImplementationGuidePage() {
 
       {/* Page title */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">{effectiveState.ideaTitle}</h1>
-        <p className="text-gray-400 text-sm mt-1">{effectiveState.ideaDescription}</p>
+        <h1
+          className="text-2xl font-bold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {effectiveState.ideaTitle}
+        </h1>
+        <p
+          className="text-sm mt-1 prose-container"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          {effectiveState.ideaDescription}
+        </p>
       </div>
 
       {/* Loading state */}
@@ -390,46 +472,75 @@ export function ImplementationGuidePage() {
         >
           {/* Estimated time + expertise badge */}
           <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-300 text-sm">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
+              style={{
+                backgroundColor: 'var(--badge-info-bg)',
+                color: 'var(--badge-info-fg)',
+                border: '1px solid var(--badge-info-border)',
+              }}
+            >
               <Clock className="w-3.5 h-3.5" />
               {guide.estimatedTime}
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-sm">
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
+              style={{
+                backgroundColor: 'var(--color-surface-elevated)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border-default)',
+              }}
+            >
               {effectiveState.userContext.expertiseLevel}
             </span>
           </div>
 
           {/* Materials list */}
-          <section aria-labelledby="materials-heading" className="glass-card p-6">
+          <Card elevation="sm" className="p-6" aria-labelledby="materials-heading">
             <h2
               id="materials-heading"
-              className="flex items-center gap-2 text-lg font-semibold text-white mb-4"
+              className="flex items-center gap-2 text-lg font-semibold mb-4"
+              style={{ color: 'var(--color-text-primary)' }}
             >
-              <Package className="w-5 h-5 text-teal-400" />
+              <Package className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
               Materials &amp; Tools
-              <span className="ml-auto text-xs text-gray-500 font-normal">
+              <span
+                className="ml-auto text-xs font-normal"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 {guide.materials.length} item{guide.materials.length !== 1 ? 's' : ''}
               </span>
             </h2>
             <ul className="space-y-2">
               {guide.materials.map((material, index) => (
-                <li key={index} className="flex items-start gap-2 text-gray-300 text-sm">
-                  <CheckCircle2 className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
+                <li
+                  key={index}
+                  className="flex items-start gap-2 text-sm"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  <CheckCircle2
+                    className="w-4 h-4 mt-0.5 shrink-0"
+                    style={{ color: 'var(--color-success)' }}
+                  />
                   {material}
                 </li>
               ))}
             </ul>
-          </section>
+          </Card>
 
           {/* Step-by-step instructions */}
-          <section aria-labelledby="steps-heading" className="glass-card p-6">
+          <Card elevation="sm" className="p-6" aria-labelledby="steps-heading">
             <h2
               id="steps-heading"
-              className="flex items-center gap-2 text-lg font-semibold text-white mb-4"
+              className="flex items-center gap-2 text-lg font-semibold mb-4"
+              style={{ color: 'var(--color-text-primary)' }}
             >
-              <ListOrdered className="w-5 h-5 text-teal-400" />
+              <ListOrdered className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
               Step-by-Step Instructions
-              <span className="ml-auto text-xs text-gray-500 font-normal">
+              <span
+                className="ml-auto text-xs font-normal"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 {guide.steps.length} step{guide.steps.length !== 1 ? 's' : ''}
               </span>
             </h2>
@@ -438,18 +549,32 @@ export function ImplementationGuidePage() {
                 <li key={step.stepNumber} className="flex gap-4">
                   {/* Step number badge */}
                   <span
-                    className="flex-shrink-0 w-7 h-7 rounded-full bg-teal-500/20 border border-teal-500/40 text-teal-300 text-xs font-bold flex items-center justify-center mt-0.5"
+                    className="flex-shrink-0 w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center mt-0.5"
+                    style={{
+                      backgroundColor: 'var(--badge-info-bg)',
+                      color: 'var(--badge-info-fg)',
+                      border: '1px solid var(--badge-info-border)',
+                    }}
                     aria-hidden="true"
                   >
                     {step.stepNumber}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-200 text-sm leading-relaxed">
+                    <p
+                      className="text-sm leading-relaxed prose-container"
+                      style={{ color: 'var(--color-text-primary)' }}
+                    >
                       {step.instruction}
                     </p>
                     {/* Show explanation for Beginner level (or whenever explanation is present) */}
                     {(isBeginnerLevel || step.explanation) && step.explanation && (
-                      <p className="mt-1.5 text-gray-400 text-xs leading-relaxed italic border-l-2 border-teal-500/30 pl-3">
+                      <p
+                        className="mt-1.5 text-xs leading-relaxed italic pl-3 prose-container"
+                        style={{
+                          color: 'var(--color-text-muted)',
+                          borderLeft: '2px solid var(--color-border-default)',
+                        }}
+                      >
                         {step.explanation}
                       </p>
                     )}
@@ -457,38 +582,46 @@ export function ImplementationGuidePage() {
                 </li>
               ))}
             </ol>
-          </section>
+          </Card>
 
           {/* Safety warnings */}
-          <section aria-labelledby="safety-heading" className="glass-card p-6">
+          <Card elevation="sm" className="p-6" aria-labelledby="safety-heading">
             <h2
               id="safety-heading"
-              className="flex items-center gap-2 text-lg font-semibold text-white mb-4"
+              className="flex items-center gap-2 text-lg font-semibold mb-4"
+              style={{ color: 'var(--color-text-primary)' }}
             >
-              <ShieldAlert className="w-5 h-5 text-amber-400" />
+              <ShieldAlert className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
               Safety Warnings
             </h2>
             {guide.safetyWarnings.length === 1 &&
             guide.safetyWarnings[0] === 'No specific safety concerns' ? (
-              <p className="text-gray-400 text-sm">No specific safety concerns for this project.</p>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                No specific safety concerns for this project.
+              </p>
             ) : (
               <ul className="space-y-2">
                 {guide.safetyWarnings.map((warning, index) => (
-                  <li key={index} className="flex items-start gap-2 text-amber-200 text-sm">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-sm"
+                    style={{ color: 'var(--color-warning)' }}
+                  >
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
                     {warning}
                   </li>
                 ))}
               </ul>
             )}
-          </section>
+          </Card>
 
           {/* Project Submission section */}
           {projectId && (
-            <section aria-labelledby="submission-heading" className="glass-card p-6">
+            <Card elevation="sm" className="p-6" aria-labelledby="submission-heading">
               <h2
                 id="submission-heading"
-                className="flex items-center gap-2 text-lg font-semibold text-white mb-4"
+                className="flex items-center gap-2 text-lg font-semibold mb-4"
+                style={{ color: 'var(--color-text-primary)' }}
               >
                 Submit Your Project
               </h2>
@@ -512,15 +645,25 @@ export function ImplementationGuidePage() {
                   authToken={token}
                 />
               </div>
-            </section>
+            </Card>
           )}
         </motion.div>
       )}
 
       {/* Inline loading indicator for retry */}
       {isLoading && (
-        <div className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-full bg-surface-elevated/80 backdrop-blur border border-border-subtle text-gray-300 text-sm shadow-lg">
-          <Loader2 className="w-4 h-4 animate-spin text-teal-400" />
+        <div
+          className="fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-full text-sm shadow-lg"
+          style={{
+            backgroundColor: 'var(--color-surface-elevated)',
+            border: '1px solid var(--color-border-subtle)',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
+          <Loader2
+            className="w-4 h-4 animate-spin"
+            style={{ color: 'var(--color-primary)' }}
+          />
           Generating guide…
         </div>
       )}

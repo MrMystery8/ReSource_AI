@@ -39,8 +39,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gradient-animated flex items-center justify-center p-6">
-          <div className="glass-card max-w-lg w-full p-8 text-center space-y-6">
+        <div className="min-h-screen bg-[var(--color-surface)] flex items-center justify-center p-6">
+          <div className="max-w-lg w-full p-8 text-center space-y-6 rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)]">
             {/* Error Icon */}
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30">
               <AlertTriangle className="w-8 h-8 text-rose-400" />

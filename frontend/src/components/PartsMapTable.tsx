@@ -14,14 +14,20 @@ const VERDICT_CONFIG: Record<PartVerdict, { bg: string; text: string; border: st
 
 export function PartsMapTable({ data }: PartsMapTableProps) {
   return (
-    <div className="glass-card glass-card-hover p-6 space-y-4">
+    /*
+     * w-full + min-w-0 prevent the card from stretching beyond the viewport
+     * on narrow screens (Requirement 6.4, 9.2).
+     */
+    <div className="w-full min-w-0 p-6 space-y-4 rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
       <div className="flex items-center gap-2">
         <Wrench className="w-5 h-5 text-primary-400" />
         <h3 className="text-lg font-semibold text-text-primary">Reusable Parts Map</h3>
       </div>
 
+      {/* overflow-x-auto scrolls the table horizontally within the card
+          without causing the page to scroll (Requirement 9.3) */}
       <div className="overflow-x-auto rounded-lg border border-border-subtle">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" style={{ minWidth: '560px' }}>
           <thead>
             <tr className="bg-surface-elevated/80">
               <th className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wide">Part</th>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Clock,
@@ -16,7 +16,33 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
 import { ProjectHistoryTab } from '../components/ProjectHistoryTab';
+import { Card } from '../components/ui/Card';
+import { Skeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ErrorState } from '../components/ui/ErrorState';
 import type { SessionSummary, ProjectHistoryEntry } from '@resource-ai/shared';
+
+// ---------------------------------------------------------------------------
+// ARIA live region announcer — Validates: Requirements 10.9
+// ---------------------------------------------------------------------------
+function LiveAnnouncer({
+  message,
+  politeness,
+}: {
+  message: string;
+  politeness: 'polite' | 'assertive';
+}) {
+  return (
+    <div
+      role="status"
+      aria-live={politeness}
+      aria-atomic="true"
+      className="sr-only"
+    >
+      {message}
+    </div>
+  );
+}
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -76,26 +102,61 @@ function StatusIndicator({ status }: { status: SessionSummary['status'] }) {
   switch (status) {
     case 'processing':
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-amber-300">
+        <span
+          className="inline-flex items-center gap-1 text-xs font-medium"
+          style={{ color: 'var(--color-warning)' }}
+        >
           <Loader2 className="w-3 h-3 animate-spin" />
           Processing
         </span>
       );
     case 'complete':
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-emerald-300">
+        <span
+          className="inline-flex items-center gap-1 text-xs font-medium"
+          style={{ color: 'var(--color-success)' }}
+        >
           <CheckCircle2 className="w-3 h-3" />
           Complete
         </span>
       );
     case 'failed':
       return (
-        <span className="inline-flex items-center gap-1 text-xs text-rose-300">
+        <span
+          className="inline-flex items-center gap-1 text-xs font-medium"
+          style={{ color: 'var(--color-error)' }}
+        >
           <XCircle className="w-3 h-3" />
           Failed
         </span>
       );
   }
+}
+
+// ─── Skeleton for session list ─────────────────────────────────────────────
+
+function TriageSessionsSkeleton() {
+  return (
+    <div className="space-y-3" aria-busy="true" aria-label="Loading sessions…">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <Card key={i} elevation="sm" className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton variant="text" width="45%" height={16} />
+                <Skeleton variant="text" width={56} height={20} />
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton variant="text" width={80} height={14} />
+                <Skeleton variant="text" width={96} height={14} />
+              </div>
+            </div>
+            <Skeleton variant="text" width={64} height={16} />
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 // ─── Triage Sessions Tab ───────────────────────────────────────────────────
@@ -105,11 +166,18 @@ interface TriageSessionsTabProps {
 }
 
 function TriageSessionsTab({ token }: TriageSessionsTabProps) {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ARIA live region state — Validates: Requirements 10.9
+  const [announcement, setAnnouncement] = useState<{
+    message: string;
+    politeness: 'polite' | 'assertive';
+  } | null>(null);
 
   const hasMore = sessions.length < total;
 
@@ -144,71 +212,46 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
     setIsLoadingMore(true);
     await fetchSessions(sessions.length, true);
     setIsLoadingMore(false);
+    // Announce result to screen readers — Validates: Requirements 10.9
+    if (error) {
+      setAnnouncement({ message: `Failed to load more sessions: ${error}`, politeness: 'assertive' });
+    } else {
+      setAnnouncement({ message: 'More sessions loaded.', politeness: 'polite' });
+    }
+  };
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setError(null);
+    fetchSessions(0, false).finally(() => setIsLoading(false));
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
-          <p className="text-text-secondary text-sm">Loading sessions...</p>
-        </div>
-      </div>
-    );
+    return <TriageSessionsSkeleton />;
   }
 
   if (error && sessions.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="glass-card p-8 w-full max-w-md text-center">
-          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">Unable to load history</h2>
-          <p className="text-text-secondary text-sm mb-6">{error}</p>
-          <button
-            onClick={() => {
-              setIsLoading(true);
-              setError(null);
-              fetchSessions(0, false).finally(() => setIsLoading(false));
-            }}
-            className="px-4 py-2 rounded-lg font-medium text-white bg-primary-600 hover:bg-primary-500 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
+        <ErrorState
+          message={error}
+          onRetry={handleRetry}
+        />
       </div>
     );
   }
 
   if (sessions.length === 0 && !error) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-center justify-center min-h-[40vh]"
-      >
-        <div className="glass-card p-10 w-full max-w-md text-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-500/10 border border-primary-500/20 mb-6"
-          >
-            <Inbox className="w-10 h-10 text-primary-400" />
-          </motion.div>
-          <h2 className="text-xl font-bold text-white mb-2">No sessions yet</h2>
-          <p className="text-text-secondary text-sm mb-6">
-            Start your first e-waste triage to see your history here.
-          </p>
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-white bg-primary-600 hover:bg-primary-500 transition-colors"
-          >
-            <Recycle className="w-4 h-4" />
-            Start your first triage
-          </Link>
-        </div>
-      </motion.div>
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <EmptyState
+          icon={Inbox}
+          title="No sessions yet"
+          description="Start your first e-waste triage to see your history here."
+          ctaLabel="Start your first triage"
+          onCta={() => navigate('/')}
+        />
+      </div>
     );
   }
 
@@ -218,11 +261,30 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {/* ARIA live region for load-more announcements — Validates: Requirements 10.9 */}
+      {announcement && (
+        <LiveAnnouncer
+          message={announcement.message}
+          politeness={announcement.politeness}
+        />
+      )}
+
       {/* Error banner (for load-more errors) */}
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-          <p className="text-rose-300 text-sm">{error}</p>
+        <div
+          className="mb-4 p-3 rounded-lg flex items-center gap-2"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+          }}
+        >
+          <AlertTriangle
+            className="w-4 h-4 shrink-0"
+            style={{ color: 'var(--color-error)' }}
+          />
+          <p className="text-sm" style={{ color: 'var(--color-error)' }}>
+            {error}
+          </p>
         </div>
       )}
 
@@ -237,44 +299,64 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
           >
             <Link
               to={`/history/${session.sessionId}`}
-              className="block glass-card p-4 hover:bg-surface-elevated/60 transition-colors group"
+              className="block group"
+              style={{ textDecoration: 'none' }}
             >
-              <div className="flex items-center justify-between gap-4">
-                {/* Left: device info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <h3 className="text-white font-medium truncate">
-                      {session.deviceName || 'Unknown Device'}
-                    </h3>
-                    {session.riskLevel && (
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getRiskBadgeClasses(session.riskLevel)}`}
+              <Card
+                elevation="sm"
+                className="p-4 transition-colors hover:border-[var(--color-border-default)]"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  {/* Left: device info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <h3
+                        className="font-medium truncate"
+                        style={{ color: 'var(--color-text-primary)' }}
                       >
-                        {session.riskLevel}
+                        {session.deviceName || 'Unknown Device'}
+                      </h3>
+                      {session.riskLevel && (
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getRiskBadgeClasses(session.riskLevel)}`}
+                        >
+                          {session.riskLevel}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 text-sm">
+                      {session.salvageScore !== null && (
+                        <span style={{ color: 'var(--color-text-secondary)' }}>
+                          Salvage:{' '}
+                          <span
+                            className="font-medium"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {session.salvageScore}%
+                          </span>
+                        </span>
+                      )}
+                      <span
+                        className="inline-flex items-center gap-1"
+                        style={{ color: 'var(--color-text-muted)' }}
+                      >
+                        <Clock className="w-3 h-3" />
+                        {formatDate(session.createdAt)}
                       </span>
-                    )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 text-sm">
-                    {session.salvageScore !== null && (
-                      <span className="text-text-secondary">
-                        Salvage:{' '}
-                        <span className="text-white font-medium">{session.salvageScore}%</span>
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1 text-text-muted">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(session.createdAt)}
-                    </span>
+                  {/* Right: status + chevron */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusIndicator status={session.status} />
+                    <ChevronRight
+                      className="w-4 h-4 transition-colors"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    />
                   </div>
                 </div>
-
-                {/* Right: status + chevron */}
-                <div className="flex items-center gap-3 shrink-0">
-                  <StatusIndicator status={session.status} />
-                  <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary-400 transition-colors" />
-                </div>
-              </div>
+              </Card>
             </Link>
           </motion.div>
         ))}
@@ -286,7 +368,12 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
           <button
             onClick={handleLoadMore}
             disabled={isLoadingMore}
-            className="px-6 py-2.5 rounded-lg font-medium text-white bg-surface-elevated/50 border border-border-subtle hover:bg-surface-elevated/70 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-2"
+            className="px-6 py-2.5 rounded-lg font-medium transition-colors inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              color: 'var(--color-text-primary)',
+              backgroundColor: 'var(--color-surface-elevated)',
+              border: '1px solid var(--color-border-subtle)',
+            }}
           >
             {isLoadingMore ? (
               <>
@@ -303,6 +390,35 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
   );
 }
 
+// ─── Skeleton for projects list ────────────────────────────────────────────
+
+function ProjectsSkeleton() {
+  return (
+    <div className="space-y-3" aria-busy="true" aria-label="Loading projects…">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <Card key={i} elevation="sm" className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-center gap-2">
+                <Skeleton variant="text" width="55%" height={16} />
+                <Skeleton variant="text" width={48} height={20} />
+              </div>
+              <div className="flex items-center gap-3">
+                <Skeleton variant="text" width={72} height={14} />
+                <Skeleton variant="text" width={88} height={14} />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" width={28} height={28} />
+              <Skeleton variant="circular" width={28} height={28} />
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 // ─── Projects Tab ─────────────────────────────────────────────────────────
 
 interface ProjectsTabContainerProps {
@@ -315,6 +431,12 @@ function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ARIA live region state — Validates: Requirements 10.9
+  const [announcement, setAnnouncement] = useState<{
+    message: string;
+    politeness: 'polite' | 'assertive';
+  } | null>(null);
 
   const fetchProjects = useCallback(
     async (offset: number, append: boolean) => {
@@ -347,6 +469,12 @@ function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
     setIsLoadingMore(true);
     await fetchProjects(projects.length, true);
     setIsLoadingMore(false);
+    // Announce result to screen readers — Validates: Requirements 10.9
+    if (error) {
+      setAnnouncement({ message: `Failed to load more projects: ${error}`, politeness: 'assertive' });
+    } else {
+      setAnnouncement({ message: 'More projects loaded.', politeness: 'polite' });
+    }
   };
 
   const handleAbandon = async (projectId: string) => {
@@ -385,14 +513,7 @@ function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
-          <p className="text-text-secondary text-sm">Loading projects...</p>
-        </div>
-      </div>
-    );
+    return <ProjectsSkeleton />;
   }
 
   return (
@@ -401,6 +522,13 @@ function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
+      {/* ARIA live region for load-more announcements — Validates: Requirements 10.9 */}
+      {announcement && (
+        <LiveAnnouncer
+          message={announcement.message}
+          politeness={announcement.politeness}
+        />
+      )}
       <ProjectHistoryTab
         projects={projects}
         totalCount={total}
@@ -446,25 +574,50 @@ export function HistoryPage() {
     >
       {/* Page header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">History</h1>
-        <p className="text-text-secondary text-sm mt-1">
+        <h1
+          className="text-2xl font-bold"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          History
+        </h1>
+        <p
+          className="text-sm mt-1"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           Track your recycling projects and triage sessions
         </p>
       </div>
 
       {/* Tab switcher */}
-      <div className="flex gap-1 p-1 rounded-xl bg-surface-elevated/40 border border-border-subtle mb-6">
+      <div
+        role="tablist"
+        aria-label="History sections"
+        className="flex gap-1 p-1 rounded-xl mb-6"
+        style={{
+          backgroundColor: 'var(--color-surface-elevated)',
+          border: '1px solid var(--color-border-subtle)',
+        }}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab.id
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'text-text-secondary hover:text-white hover:bg-surface-elevated/60'
-            }`}
-            aria-selected={activeTab === tab.id}
+            id={`tab-${tab.id}`}
             role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
+            onClick={() => setActiveTab(tab.id)}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+            style={
+              activeTab === tab.id
+                ? {
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    boxShadow: 'var(--shadow-sm)',
+                  }
+                : {
+                    color: 'var(--color-text-secondary)',
+                  }
+            }
           >
             {tab.icon}
             {tab.label}
@@ -473,11 +626,22 @@ export function HistoryPage() {
       </div>
 
       {/* Tab content */}
-      {activeTab === 'projects' ? (
+      <div
+        id="tabpanel-projects"
+        role="tabpanel"
+        aria-labelledby="tab-projects"
+        hidden={activeTab !== 'projects'}
+      >
         <ProjectsTabContainer token={token} />
-      ) : (
+      </div>
+      <div
+        id="tabpanel-triage"
+        role="tabpanel"
+        aria-labelledby="tab-triage"
+        hidden={activeTab !== 'triage'}
+      >
         <TriageSessionsTab token={token} />
-      )}
+      </div>
     </motion.div>
   );
 }

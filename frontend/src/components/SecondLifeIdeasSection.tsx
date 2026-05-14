@@ -26,7 +26,7 @@ export function SecondLifeIdeasSection({
   const filteredIdeas = filterIdeasByExpertise(ideas, userExpertise);
 
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
+    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
       {/* Header */}
       <div className="p-6 pb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">

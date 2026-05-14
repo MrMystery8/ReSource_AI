@@ -1,0 +1,131 @@
+/*
+ * Motion System — animations.css
+ *
+ * Constrained animation durations, easing curves, and utility classes.
+ * All animations use transform/opacity only (never width/height/top/left).
+ *
+ * Rules:
+ *   - Micro-interactions: 150–300ms
+ *   - Enter: ease-out  |  Exit: ease-in (shorter, ~60–70% of enter)
+ *   - Skeleton pulse: opacity-based (not background-position) for GPU compositing
+ *   - prefers-reduced-motion: suppress all non-essential animations
+ *
+ * Requirements: 5.5, 5.6, 10.7
+ */
+
+/* ─────────────────────────────────────────────
+   Duration tokens
+   ───────────────────────────────────────────── */
+:root {
+  --duration-fast:   150ms;  /* micro-interactions: button press, hover feedback */
+  --duration-normal: 200ms;  /* standard transitions: panel open, tooltip */
+  --duration-slow:   300ms;  /* complex transitions: page enter, modal open */
+
+  /* Easing curves */
+  --ease-out:    cubic-bezier(0.0, 0.0, 0.2, 1); /* entering elements — decelerates into place */
+  --ease-in:     cubic-bezier(0.4, 0.0, 1.0, 1); /* exiting elements  — accelerates out */
+  --ease-in-out: cubic-bezier(0.4, 0.0, 0.2, 1); /* symmetric transitions */
+}
+
+/* ─────────────────────────────────────────────
+   Transition utility classes
+   Only transition transform and opacity — never layout properties.
+   ───────────────────────────────────────────── */
+
+/* 150ms — button press, icon swap, badge update */
+.transition-fast {
+  transition-property: transform, opacity;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-out);
+}
+
+/* 200ms — hover states, tooltip appear, dropdown open */
+.transition-normal {
+  transition-property: transform, opacity;
+  transition-duration: var(--duration-normal);
+  transition-timing-function: var(--ease-out);
+}
+
+/* 300ms — modal open, page section enter, skeleton → content swap */
+.transition-slow {
+  transition-property: transform, opacity;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out);
+}
+
+/* ─────────────────────────────────────────────
+   Enter / Exit utility classes
+   Enter uses ease-out; exit uses ease-in at ~65% of enter duration.
+   ───────────────────────────────────────────── */
+
+/* Entering element — fades and slides up into position */
+.animate-enter {
+  animation: enter var(--duration-normal) var(--ease-out) both;
+}
+
+/* Exiting element — fades and slides down out of view */
+.animate-exit {
+  animation: exit var(--duration-fast) var(--ease-in) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Skeleton pulse animation
+   Uses opacity only — avoids background-position shift for GPU compositing.
+   ───────────────────────────────────────────── */
+
+@keyframes skeleton-pulse {
+  0%   { opacity: 0.4; }
+  50%  { opacity: 1;   }
+  100% { opacity: 0.4; }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s var(--ease-in-out) infinite;
+}
+
+/* ─────────────────────────────────────────────
+   prefers-reduced-motion
+   Suppress all non-essential animations and transitions.
+   Loading indicators (.skeleton-pulse) are preserved because they
+   communicate active state — a direct response to user-initiated navigation.
+   ───────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Preserve loading indicators — they convey active state, not decoration */
+  .skeleton-pulse {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    opacity: 0.7; /* static mid-point so skeleton is still visible */
+  }
+}

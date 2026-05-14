@@ -31,8 +31,7 @@ export function QuickVerdictCard({ data }: Props) {
   const conf = getConfidenceLabel(data.confidence);
 
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
-      {/* Header with device name and risk */}
+    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
       <div className="p-6 pb-4 flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-text-primary mb-1">Quick ReSource Verdict</h3>

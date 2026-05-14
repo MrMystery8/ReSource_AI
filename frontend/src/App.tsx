@@ -1,25 +1,19 @@
 import { Outlet } from 'react-router-dom';
-import { Header } from './components/Header';
-import { ParticlesBackground } from './components/ParticlesBackground';
+import { AppShell } from './components/layout/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function App() {
   return (
     <AuthProvider>
-      <ErrorBoundary>
-        <div className="min-h-screen bg-gradient-animated relative overflow-hidden">
-          <ParticlesBackground />
-
-          <div className="relative z-10">
-            <Header />
-
-            <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-              <Outlet />
-            </main>
-          </div>
-        </div>
-      </ErrorBoundary>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        </ErrorBoundary>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

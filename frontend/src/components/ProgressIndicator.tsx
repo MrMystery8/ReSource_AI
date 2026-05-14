@@ -7,7 +7,7 @@ export interface ProgressIndicatorProps {
 
 export function ProgressIndicator({ stageName }: ProgressIndicatorProps) {
   return (
-    <div className="glass-card p-5" role="status" aria-live="polite">
+    <div className="p-5 rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-sm)]" role="status" aria-live="polite">
       <div className="flex items-center gap-4">
         <motion.div
           animate={{ rotate: 360 }}

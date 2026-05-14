@@ -98,7 +98,7 @@ function IdeaCard({ idea, index }: { idea: ProjectIdea; index: number }) {
 
 export function SecondLifeIdeasCard({ data }: Props) {
   return (
-    <div className="glass-card glass-card-hover overflow-hidden">
+    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
       {/* Header */}
       <div className="p-6 pb-4 flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { ImpactCardOutput } from '@resource-ai/shared';
 import { Award, Zap, Shield, Lightbulb, Wrench, Leaf, AlertTriangle, Target } from 'lucide-react';
+import { Card } from './ui/Card';
 
 export interface ImpactCardProps {
   data: ImpactCardOutput;
@@ -29,22 +30,32 @@ const FIELD_DISPLAYS: FieldDisplay[] = [
 export function ImpactCard({ data }: ImpactCardProps) {
   return (
     <motion.div
-      className="relative overflow-hidden rounded-2xl"
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4 }}
     >
-      {/* Gradient border effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-500/20 via-emerald-500/10 to-primary-500/20 rounded-2xl" />
-      <div className="relative m-[1px] rounded-2xl bg-surface-card backdrop-blur-xl p-6">
+      <Card elevation="md" className="p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-emerald-500 flex items-center justify-center">
-            <Award className="w-5 h-5 text-white" />
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-surface)' }}
+          >
+            <Award className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-text-primary">ReSource Impact Card</h3>
-            <p className="text-xs text-text-muted">Complete device assessment summary</p>
+            <h3
+              className="text-lg font-bold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              ReSource Impact Card
+            </h3>
+            <p
+              className="text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              Complete device assessment summary
+            </p>
           </div>
         </div>
 
@@ -56,17 +67,36 @@ export function ImpactCard({ data }: ImpactCardProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.04 }}
-              className="flex items-start gap-3 p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 transition-colors"
+              className="flex items-start gap-3 p-3 rounded-xl transition-colors"
+              style={{
+                backgroundColor: 'var(--color-surface-elevated)',
+                border: '1px solid var(--color-border-subtle)',
+              }}
             >
-              <span className="text-primary-400 mt-0.5 shrink-0">{icon}</span>
+              <span
+                className="mt-0.5 shrink-0"
+                style={{ color: 'var(--color-primary)' }}
+              >
+                {icon}
+              </span>
               <div className="min-w-0">
-                <dt className="text-xs font-medium text-text-muted mb-0.5">{label}</dt>
-                <dd className="text-sm text-text-primary leading-snug">{data[key]}</dd>
+                <dt
+                  className="text-xs font-medium mb-0.5"
+                  style={{ color: 'var(--color-text-muted)' }}
+                >
+                  {label}
+                </dt>
+                <dd
+                  className="text-sm leading-snug"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  {data[key]}
+                </dd>
               </div>
             </motion.div>
           ))}
         </dl>
-      </div>
+      </Card>
     </motion.div>
   );
 }

@@ -8,30 +8,37 @@ export interface IdeaCardProps {
   index?: number;
 }
 
+// Category config uses semantic badge tokens for WCAG AA compliance in both themes.
 const CATEGORY_CONFIG: Record<
   IdeaCategory,
-  { label: string; icon: React.ReactNode; color: string; bg: string; border: string }
+  {
+    label: string;
+    icon: React.ReactNode;
+    fgVar: string;
+    bgVar: string;
+    borderVar: string;
+  }
 > = {
   beginner: {
     label: 'Beginner',
     icon: <BookOpen className="w-4 h-4" />,
-    color: 'text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/20',
+    fgVar: 'var(--badge-success-fg)',
+    bgVar: 'var(--badge-success-bg)',
+    borderVar: 'var(--badge-success-border)',
   },
   'stem-learning': {
     label: 'STEM Learning',
     icon: <Puzzle className="w-4 h-4" />,
-    color: 'text-primary-400',
-    bg: 'bg-primary-500/10',
-    border: 'border-primary-500/20',
+    fgVar: 'var(--badge-info-fg)',
+    bgVar: 'var(--badge-info-bg)',
+    borderVar: 'var(--badge-info-border)',
   },
   'practical-creative': {
     label: 'Practical & Creative',
     icon: <Palette className="w-4 h-4" />,
-    color: 'text-amber-400',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/20',
+    fgVar: 'var(--badge-warning-fg)',
+    bgVar: 'var(--badge-warning-bg)',
+    borderVar: 'var(--badge-warning-border)',
   },
 };
 
@@ -51,23 +58,60 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.1 }}
       onClick={() => onClick(idea)}
-      className="w-full text-left rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 hover:bg-surface-elevated/60 transition-all overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+      className="w-full text-left rounded-xl overflow-hidden cursor-pointer focus:outline-none transition-all"
+      style={{
+        backgroundColor: 'var(--color-surface-elevated)',
+        border: '1px solid var(--color-border-subtle)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.borderColor =
+          'var(--color-border-default)';
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+          'var(--color-surface-card)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.borderColor =
+          'var(--color-border-subtle)';
+        (e.currentTarget as HTMLButtonElement).style.backgroundColor =
+          'var(--color-surface-elevated)';
+      }}
       aria-label={`View implementation guide for: ${idea.title}`}
     >
       {/* Card Header */}
       <div className="p-4 pb-3">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h4 className="text-sm font-semibold text-text-primary leading-tight">{idea.title}</h4>
+          <h4
+            className="text-sm font-semibold leading-tight"
+            style={{ color: 'var(--color-text-primary)' }}
+          >
+            {idea.title}
+          </h4>
           <span
-            className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${config.bg} ${config.color} ${config.border} border`}
+            className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+            style={{
+              color: config.fgVar,
+              backgroundColor: config.bgVar,
+              border: `1px solid ${config.borderVar}`,
+            }}
           >
             {config.icon}
             {config.label}
           </span>
         </div>
-        <p className="text-xs text-text-secondary leading-relaxed">{idea.description}</p>
-        <p className="mt-1.5 text-[10px] text-text-muted">
-          Skill level: <span className="font-medium text-text-secondary">{SKILL_LEVEL_LABELS[idea.skillLevel]}</span>
+        <p
+          className="text-xs leading-relaxed"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
+          {idea.description}
+        </p>
+        <p className="mt-1.5 text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+          Skill level:{' '}
+          <span
+            className="font-medium"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            {SKILL_LEVEL_LABELS[idea.skillLevel]}
+          </span>
         </p>
       </div>
 
@@ -76,8 +120,11 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
         {/* Required Components */}
         <div>
           <div className="flex items-center gap-1.5 mb-1.5">
-            <Wrench className="w-3 h-3 text-primary-400" />
-            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wide">
+            <Wrench className="w-3 h-3" style={{ color: 'var(--color-primary)' }} />
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wide"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               From Device
             </span>
           </div>
@@ -85,7 +132,12 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
             {idea.requiredComponents.map((comp, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 rounded-md bg-primary-500/10 border border-primary-500/20 text-[11px] text-primary-300 font-medium"
+                className="px-2 py-0.5 rounded-md text-[11px] font-medium"
+                style={{
+                  backgroundColor: 'var(--badge-info-bg)',
+                  color: 'var(--badge-info-fg)',
+                  border: '1px solid var(--badge-info-border)',
+                }}
               >
                 {comp}
               </span>
@@ -97,8 +149,11 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
         {idea.additionalMaterials.length > 0 && (
           <div>
             <div className="flex items-center gap-1.5 mb-1.5">
-              <Package className="w-3 h-3 text-text-muted" />
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wide">
+              <Package className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+              <span
+                className="text-[10px] font-semibold uppercase tracking-wide"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
                 Additional Materials
               </span>
             </div>
@@ -106,7 +161,12 @@ export function IdeaCard({ idea, onClick, index = 0 }: IdeaCardProps) {
               {idea.additionalMaterials.map((mat, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 rounded-md bg-surface-elevated border border-border-subtle text-[11px] text-text-muted"
+                  className="px-2 py-0.5 rounded-md text-[11px]"
+                  style={{
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    color: 'var(--color-text-muted)',
+                    border: '1px solid var(--color-border-subtle)',
+                  }}
                 >
                   {mat}
                 </span>

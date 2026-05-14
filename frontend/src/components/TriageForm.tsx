@@ -2,8 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { MAX_FIELD_LENGTH } from '@resource-ai/shared';
 import type { StructuredUserContext } from '@resource-ai/shared';
-import { Cpu, AlertTriangle, Send, Sparkles } from 'lucide-react';
+import { Cpu, AlertTriangle, Send, Sparkles, CheckCircle2 } from 'lucide-react';
 import { StructuredContextInput } from './StructuredContextInput';
+import { Card } from './ui/Card';
+import { Button } from './ui/Button';
 
 export interface TriageFormData {
   deviceIdentity: string;
@@ -98,149 +100,153 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
   };
 
   return (
-    <motion.form
-      className="glass-card p-6 sm:p-8 max-w-2xl mx-auto"
-      onSubmit={handleSubmit}
-      noValidate
+    <motion.div
+      className="max-w-2xl mx-auto"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
       exit="exit"
     >
-      {/* Form Header */}
-      <motion.div variants={itemVariants} className="mb-8 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 mb-4">
-          <Sparkles className="w-3.5 h-3.5 text-primary-400" />
-          <span className="text-xs font-medium text-primary-300">AI-Powered Analysis</span>
-        </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">
-          E-Waste Device Triage
-        </h2>
-        <p className="text-sm text-text-secondary max-w-md mx-auto">
-          Describe your device and we'll analyze its salvage potential, safety risks, and second-life opportunities.
-        </p>
-      </motion.div>
-
-      {/* Form Fields */}
-      {TEXT_FIELDS.map((field) => {
-        const value = field.name === 'deviceIdentity' ? deviceIdentity : failureSymptoms;
-        const setter = field.name === 'deviceIdentity' ? setDeviceIdentity : setFailureSymptoms;
-        const charCount = value.length;
-        const isFocused = focusedField === field.name;
-        const hasValue = value.trim().length > 0;
-
-        return (
-          <motion.div
-            key={field.name}
-            variants={itemVariants}
-            className="mb-5"
-          >
-            <label
-              htmlFor={`triage-${field.name}`}
-              className="flex items-center gap-2 mb-2"
+      <Card elevation="md" className="p-6 sm:p-8">
+        <form onSubmit={handleSubmit} noValidate>
+          {/* Form Header */}
+          <motion.div variants={itemVariants} className="mb-8 text-center">
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border mb-4"
+              style={{
+                backgroundColor: 'var(--color-surface-elevated)',
+                borderColor: 'var(--color-border-default)',
+              }}
             >
-              <span className={`transition-colors duration-200 ${isFocused ? 'text-primary-400' : 'text-text-muted'}`}>
-                {field.icon}
-              </span>
-              <span className="text-sm font-medium text-text-primary">
-                {field.label}
-              </span>
-              <span className="text-rose-400 text-xs" aria-label="required">*</span>
-            </label>
-            <p className="text-xs text-text-muted mb-2 ml-6">{field.description}</p>
-            <div className={`relative rounded-xl transition-all duration-300 ${
-              isFocused
-                ? 'ring-2 ring-primary-500/50 shadow-lg shadow-primary-500/10'
-                : 'ring-1 ring-border-subtle'
-            }`}>
-              <textarea
-                id={`triage-${field.name}`}
-                className="w-full bg-surface-elevated/50 text-text-primary placeholder-text-muted rounded-xl px-4 py-3 text-sm leading-relaxed resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-                name={field.name}
-                value={value}
-                onChange={handleTextChange(setter)}
-                onFocus={() => setFocusedField(field.name)}
-                onBlur={() => setFocusedField(null)}
-                placeholder={field.placeholder}
-                required
-                maxLength={MAX_FIELD_LENGTH}
-                rows={3}
-                aria-describedby={`${field.name}-counter`}
-                disabled={disabled}
-              />
-            </div>
-            <div className="flex justify-between items-center mt-1.5 px-1">
-              {hasValue && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-xs text-emerald-400"
-                >
-                  ✓
-                </motion.span>
-              )}
-              <span
-                id={`${field.name}-counter`}
-                className={`text-xs ml-auto ${
-                  charCount >= MAX_FIELD_LENGTH ? 'text-rose-400' : 'text-text-muted'
-                }`}
-                aria-live="polite"
-              >
-                {charCount}/{MAX_FIELD_LENGTH}
+              <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-primary)' }} />
+              <span className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>
+                AI-Powered Analysis
               </span>
             </div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
+              E-Waste Device Triage
+            </h2>
+            <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--color-text-secondary)' }}>
+              Describe your device and we'll analyze its salvage potential, safety risks, and second-life opportunities.
+            </p>
           </motion.div>
-        );
-      })}
 
-      {/* Structured User Context */}
-      <motion.div variants={itemVariants} className="mb-5">
-        <StructuredContextInput
-          value={userContext}
-          onChange={setUserContext}
-        />
-      </motion.div>
+          {/* Form Fields */}
+          {TEXT_FIELDS.map((field) => {
+            const value = field.name === 'deviceIdentity' ? deviceIdentity : failureSymptoms;
+            const setter = field.name === 'deviceIdentity' ? setDeviceIdentity : setFailureSymptoms;
+            const charCount = value.length;
+            const isFocused = focusedField === field.name;
+            const hasValue = value.trim().length > 0;
 
-      {/* File Uploader */}
-      {fileUploader && (
-        <motion.div variants={itemVariants} className="mb-6">
-          {fileUploader}
-        </motion.div>
-      )}
-
-      {/* Submit Button */}
-      <motion.div variants={itemVariants}>
-        <motion.button
-          type="submit"
-          disabled={!isFormValid || disabled}
-          className="w-full relative overflow-hidden rounded-xl px-6 py-3.5 font-medium text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group"
-          whileHover={isFormValid && !disabled ? { scale: 1.01 } : {}}
-          whileTap={isFormValid && !disabled ? { scale: 0.99 } : {}}
-        >
-          {/* Button gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 opacity-90 group-hover:opacity-100 transition-opacity" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary-600 via-primary-500 to-emerald-500 opacity-0 group-hover:opacity-100 blur-xl transition-opacity" />
-
-          <span className="relative flex items-center justify-center gap-2">
-            {disabled ? (
-              <>
-                <motion.div
-                  className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            return (
+              <motion.div key={field.name} variants={itemVariants} className="mb-5">
+                {/* Visible label above field — requirement 7.2, 10.6 */}
+                <label
+                  htmlFor={`triage-${field.name}`}
+                  className="flex items-center gap-2 mb-1.5"
+                >
+                  <span
+                    className="transition-colors duration-200"
+                    style={{ color: isFocused ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                  >
+                    {field.icon}
+                  </span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                    {field.label}
+                  </span>
+                  <span
+                    className="text-xs"
+                    style={{ color: 'var(--color-error)' }}
+                    aria-hidden="true"
+                  >
+                    *
+                  </span>
+                </label>
+                <p className="text-xs mb-2 ml-6" style={{ color: 'var(--color-text-muted)' }}>
+                  {field.description}
+                </p>
+                <textarea
+                  id={`triage-${field.name}`}
+                  className="w-full rounded-lg px-3 py-2 text-sm leading-relaxed resize-none border transition-colors duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-[var(--color-text-muted)]"
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    color: 'var(--color-text-primary)',
+                    borderColor: 'var(--color-border-default)',
+                    outline: isFocused ? `2px solid var(--color-primary)` : undefined,
+                    outlineOffset: '0px',
+                  }}
+                  name={field.name}
+                  value={value}
+                  onChange={handleTextChange(setter)}
+                  onFocus={() => setFocusedField(field.name)}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder={field.placeholder}
+                  required
+                  maxLength={MAX_FIELD_LENGTH}
+                  rows={3}
+                  aria-describedby={`${field.name}-counter`}
+                  disabled={disabled}
                 />
-                <span>Submitting...</span>
-              </>
-            ) : (
-              <>
-                <Send className="w-4 h-4" />
-                <span>Analyze Device</span>
-              </>
-            )}
-          </span>
-        </motion.button>
-      </motion.div>
-    </motion.form>
+                <div className="flex justify-between items-center mt-1.5 px-1">
+                  {hasValue && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="inline-flex items-center"
+                      aria-hidden="true"
+                    >
+                      <CheckCircle2
+                        className="w-3.5 h-3.5"
+                        style={{ color: 'var(--color-success)' }}
+                      />
+                    </motion.span>
+                  )}
+                  <span
+                    id={`${field.name}-counter`}
+                    className="text-xs ml-auto"
+                    style={{ color: charCount >= MAX_FIELD_LENGTH ? 'var(--color-error)' : 'var(--color-text-muted)' }}
+                    aria-live="polite"
+                  >
+                    {charCount}/{MAX_FIELD_LENGTH}
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+
+          {/* Structured User Context */}
+          <motion.div variants={itemVariants} className="mb-5">
+            <StructuredContextInput
+              value={userContext}
+              onChange={setUserContext}
+            />
+          </motion.div>
+
+          {/* File Uploader */}
+          {fileUploader && (
+            <motion.div variants={itemVariants} className="mb-6">
+              {fileUploader}
+            </motion.div>
+          )}
+
+          {/* Submit Button */}
+          <motion.div variants={itemVariants}>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full"
+              disabled={!isFormValid || disabled}
+              isLoading={disabled}
+              leftIcon={!disabled ? <Send className="w-4 h-4" /> : undefined}
+            >
+              {disabled ? 'Submitting...' : 'Analyze Device'}
+            </Button>
+          </motion.div>
+        </form>
+      </Card>
+    </motion.div>
   );
 }
 

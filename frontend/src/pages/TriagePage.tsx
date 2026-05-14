@@ -11,6 +11,27 @@ import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
 import type { UserStatsResponse, BadgeInfo, ProjectIdea, ExpertiseLevel, StructuredUserContext } from '@resource-ai/shared';
 
+// ---------------------------------------------------------------------------
+// ARIA live region announcer — Validates: Requirements 10.9
+// ---------------------------------------------------------------------------
+interface LiveAnnouncerProps {
+  message: string;
+  politeness: 'polite' | 'assertive';
+}
+
+function LiveAnnouncer({ message, politeness }: LiveAnnouncerProps) {
+  return (
+    <div
+      role="status"
+      aria-live={politeness}
+      aria-atomic="true"
+      className="sr-only"
+    >
+      {message}
+    </div>
+  );
+}
+
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
@@ -31,6 +52,12 @@ export function TriagePage() {
     failureSymptoms: string;
     userContext: StructuredUserContext;
     fileIds?: string[];
+  } | null>(null);
+
+  // ARIA live region state — Validates: Requirements 10.9
+  const [announcement, setAnnouncement] = useState<{
+    message: string;
+    politeness: 'polite' | 'assertive';
   } | null>(null);
 
   // Gamification state
@@ -131,6 +158,9 @@ export function TriagePage() {
 
         // Dispatch event so NavBar can refresh user data (points/level)
         window.dispatchEvent(new Event('gamification:updated'));
+
+        // Announce success to screen readers — Validates: Requirements 10.9
+        setAnnouncement({ message: 'Triage session submitted successfully.', politeness: 'polite' });
       } catch (err) {
         console.error('[TriagePage] Failed to fetch gamification stats:', err);
       }
@@ -160,6 +190,13 @@ export function TriagePage() {
     setCurrentBadgeIndex((prev) => prev + 1);
   }, []);
 
+  // Announce submission errors to screen readers — Validates: Requirements 10.9
+  useEffect(() => {
+    if (error) {
+      setAnnouncement({ message: `Submission failed: ${error}`, politeness: 'assertive' });
+    }
+  }, [error]);
+
   const handleIdeaClick = useCallback(
     (idea: ProjectIdea) => {
       navigate('/guide/new', {
@@ -180,9 +217,24 @@ export function TriagePage() {
 
   return (
     <>
+      {/* ARIA live region for async operation announcements — Validates: Requirements 10.9 */}
+      {announcement && (
+        <LiveAnnouncer
+          message={announcement.message}
+          politeness={announcement.politeness}
+        />
+      )}
+
       {error && (
-        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 backdrop-blur-sm" role="alert">
-          <p className="text-rose-300 text-sm font-medium">{error}</p>
+        <div
+          className="mb-6 p-4 rounded-xl backdrop-blur-sm"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+          }}
+          role="alert"
+        >
+          <p className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>{error}</p>
         </div>
       )}
 

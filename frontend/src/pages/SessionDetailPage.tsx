@@ -1,14 +1,67 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, FileQuestion } from 'lucide-react';
 import type { PollSessionResponse } from '@resource-ai/shared';
 import { ResultsView } from '../components/ResultsView';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
+import { Card } from '../components/ui/Card';
+import { Skeleton } from '../components/ui/Skeleton';
+import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
+
+// ─── Skeleton for session detail ──────────────────────────────────────────
+
+function SessionDetailSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Loading session…">
+      {/* Back link placeholder */}
+      <Skeleton variant="text" width={120} height={36} className="mb-6" />
+
+      {/* Main content card skeleton */}
+      <Card elevation="md" className="p-6 space-y-6">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2 flex-1">
+            <Skeleton variant="text" width="60%" height={28} />
+            <Skeleton variant="text" width="35%" height={16} />
+          </div>
+          <Skeleton variant="text" width={80} height={28} />
+        </div>
+
+        {/* Divider */}
+        <div
+          className="h-px w-full"
+          style={{ backgroundColor: 'var(--color-border-subtle)' }}
+        />
+
+        {/* Stats row */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <Skeleton variant="text" width="70%" height={12} />
+              <Skeleton variant="text" width="50%" height={20} />
+            </div>
+          ))}
+        </div>
+
+        {/* Content blocks */}
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton variant="text" width="30%" height={18} />
+            <Skeleton variant="rectangular" height={80} />
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+}
+
+// ─── SessionDetailPage ────────────────────────────────────────────────────
 
 export function SessionDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -16,6 +69,7 @@ export function SessionDetailPage() {
   const [session, setSession] = useState<PollSessionResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const apiClientRef = useRef<ApiClient>(
     new ApiClient(API_URL, API_KEY, () => token)
   );
@@ -25,61 +79,78 @@ export function SessionDetailPage() {
     apiClientRef.current = new ApiClient(API_URL, API_KEY, () => token);
   }, [token]);
 
-  useEffect(() => {
+  const fetchSession = useCallback(async () => {
     if (!sessionId) {
       setNotFound(true);
       setIsLoading(false);
       return;
     }
 
+    setIsLoading(true);
+    setFetchError(null);
+    setNotFound(false);
+
+    try {
+      const data = await apiClientRef.current.getSession(sessionId);
+      setSession(data);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes('404')) {
+        setNotFound(true);
+      } else {
+        setFetchError(
+          err instanceof Error ? err.message : 'Failed to load session'
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
     let cancelled = false;
 
-    async function fetchSession() {
+    async function run() {
+      if (!sessionId) {
+        setNotFound(true);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setFetchError(null);
+      setNotFound(false);
+
       try {
-        const data = await apiClientRef.current.getSession(sessionId!);
-        if (!cancelled) {
-          setSession(data);
-        }
+        const data = await apiClientRef.current.getSession(sessionId);
+        if (!cancelled) setSession(data);
       } catch (err: unknown) {
         if (!cancelled) {
-          // Check if it's a 404 error
           if (err instanceof Error && err.message.includes('404')) {
             setNotFound(true);
           } else {
-            setNotFound(true);
+            setFetchError(
+              err instanceof Error ? err.message : 'Failed to load session'
+            );
           }
         }
       } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+        if (!cancelled) setIsLoading(false);
       }
     }
 
-    fetchSession();
+    run();
 
     return () => {
       cancelled = true;
     };
   }, [sessionId]);
 
-  // Loading state
+  // Loading state — skeleton screen (>300ms per Requirement 8.1)
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-4"
-        >
-          <div className="w-10 h-10 border-2 border-teal-400/30 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-gray-400 text-sm">Loading session...</p>
-        </motion.div>
-      </div>
-    );
+    return <SessionDetailSkeleton />;
   }
 
-  // 404 state
+  // 404 state — session not found
   if (notFound) {
     return (
       <motion.div
@@ -88,20 +159,48 @@ export function SessionDetailPage() {
         transition={{ duration: 0.4 }}
         className="flex items-center justify-center min-h-[60vh]"
       >
-        <div className="glass-card p-8 w-full max-w-md text-center">
-          <AlertCircle className="w-12 h-12 text-rose-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-white mb-2">Session Not Found</h1>
-          <p className="text-gray-400 mb-6">
-            The session you're looking for doesn't exist or you don't have access to it.
-          </p>
-          <Link
-            to="/history"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500/30 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to History
-          </Link>
+        <div className="w-full max-w-md">
+          <EmptyState
+            icon={FileQuestion}
+            title="Session not found"
+            description="The session you're looking for doesn't exist or you don't have access to it."
+            ctaElement={
+              <Link
+                to="/history"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-surface-elevated)',
+                  color: 'var(--color-text-primary)',
+                  border: '1px solid var(--color-border-default)',
+                }}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to History
+              </Link>
+            }
+          />
         </div>
+      </motion.div>
+    );
+  }
+
+  // Error state — network/server failure with retry
+  if (fetchError) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-center min-h-[60vh]"
+      >
+        <ErrorState
+          message={fetchError}
+          onRetry={() => {
+            setIsLoading(true);
+            setFetchError(null);
+            fetchSession();
+          }}
+        />
       </motion.div>
     );
   }
@@ -115,7 +214,10 @@ export function SessionDetailPage() {
     >
       <Link
         to="/history"
-        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+        style={{
+          color: 'var(--color-text-secondary)',
+        }}
       >
         <ArrowLeft className="w-4 h-4" />
         Back to History

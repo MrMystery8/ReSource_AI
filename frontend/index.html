@@ -2,11 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Viewport: width=device-width + initial-scale=1 per Req 9.5.
+         No user-scalable=no and no maximum-scale < 2.0 — zoom is never disabled. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ReSource AI - E-Waste Triage</title>
+
+    <!-- Preconnect to Google Fonts origins to reduce DNS + TLS handshake latency.
+         fonts.gstatic.com serves the actual font files (crossorigin required). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Preload the Inter font stylesheet so the browser discovers and fetches
+         it as early as possible, reducing FOIT risk (Req 3.1). -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    />
+
+    <!-- Inter font stylesheet — loads all weights used across the design system.
+         font-display:swap is set by Google Fonts, preventing invisible text.
+         typography.css also imports Inter (wght@400;600;700); the browser
+         deduplicates identical requests so there is no double download. -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    />
   </head>
   <body>
     <div id="root"></div>

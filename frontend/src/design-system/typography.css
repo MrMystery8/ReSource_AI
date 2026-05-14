@@ -1,0 +1,119 @@
+/*
+ * Typography System
+ * Loads Inter font, defines type scale utility classes, and prose container.
+ *
+ * Type scale:
+ *   .text-caption    → 12px / caption & metadata
+ *   .text-body-sm    → 14px / secondary body text
+ *   .text-body       → 16px / primary body text (minimum on all viewports)
+ *   .text-subheading → 18px / subheadings
+ *   .text-heading    → 24px / section headings
+ *   .text-title      → 32px / page titles
+ *
+ * Prose container:
+ *   .prose-container → limits line length to 65ch on ≥1024px viewports
+ *
+ * Requirements: 1.2, 1.4, 1.8, 3.1, 3.2, 3.4
+ */
+
+/* ─────────────────────────────────────────────
+   Font loading — Inter via Google Fonts
+   Moved to index.css as the first @import to satisfy
+   the CSS spec requirement that @import rules precede
+   all other rules. font-display: swap is applied via
+   the Google Fonts URL parameter above.
+   Fallback: system-ui → -apple-system → sans-serif
+   ───────────────────────────────────────────── */
+
+/* ─────────────────────────────────────────────
+   Base font stack applied to the document root.
+   Ensures Inter is used everywhere with a
+   reliable system sans-serif fallback chain.
+   ───────────────────────────────────────────── */
+:root {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  font-size: 16px; /* base — enforces minimum 16px body text (Req 3.2) */
+  font-weight: var(--font-weight-regular, 400);
+  line-height: var(--leading-normal, 1.5);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─────────────────────────────────────────────
+   Type scale utility classes
+   Each class sets font-size, line-height, and
+   font-weight appropriate to its semantic role.
+   ───────────────────────────────────────────── */
+
+/* 12px — captions, metadata, labels (Req 1.8) */
+.text-caption {
+  font-size: var(--text-xs, 12px);
+  line-height: var(--leading-normal, 1.5);
+  font-weight: var(--font-weight-regular, 400);
+}
+
+/* 14px — secondary body text (Req 1.8) */
+.text-body-sm {
+  font-size: var(--text-sm, 14px);
+  line-height: var(--leading-normal, 1.5);
+  font-weight: var(--font-weight-regular, 400);
+}
+
+/* 16px — primary body text; minimum on all viewports (Req 1.8, 3.2) */
+.text-body {
+  font-size: var(--text-base, 16px);
+  line-height: var(--leading-relaxed, 1.75);
+  font-weight: var(--font-weight-regular, 400);
+}
+
+/* 18px — subheadings (Req 1.8) */
+.text-subheading {
+  font-size: var(--text-lg, 18px);
+  line-height: var(--leading-snug, 1.375);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+/* 24px — section headings (Req 1.8, 1.4) */
+.text-heading {
+  font-size: var(--text-2xl, 24px);
+  line-height: var(--leading-tight, 1.25);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+/* 32px — page titles (Req 1.8, 1.4) */
+.text-title {
+  font-size: var(--text-4xl, 32px);
+  line-height: var(--leading-tight, 1.25);
+  font-weight: var(--font-weight-bold, 700);
+}
+
+/* ─────────────────────────────────────────────
+   Prose container
+   Limits line length to 65ch on desktop (≥1024px)
+   to keep body text within the 65-75 character
+   optimal reading range. (Req 3.3)
+   ───────────────────────────────────────────── */
+.prose-container {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .prose-container {
+    max-width: 65ch;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Tabular figures for data columns
+   Applied to point values, leaderboard rankings,
+   and numerical displays. (Req 3.5)
+   ───────────────────────────────────────────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

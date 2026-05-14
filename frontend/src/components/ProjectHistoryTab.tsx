@@ -149,7 +149,7 @@ function ConfirmDialog({
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.15 }}
-        className="relative z-10 glass-card p-6 w-full max-w-sm"
+        className="relative z-10 p-6 w-full max-w-sm rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-lg)]"
       >
         <h3 id="confirm-dialog-title" className="text-lg font-bold text-white mb-2">
           {title}
@@ -216,7 +216,7 @@ export function ProjectHistoryTab({
   if (error && projects.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="glass-card p-8 w-full max-w-md text-center">
+        <div className="p-8 w-full max-w-md text-center rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)]">
           <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">Unable to load projects</h2>
           <p className="text-text-secondary text-sm mb-6">{error}</p>
@@ -242,7 +242,7 @@ export function ProjectHistoryTab({
         transition={{ duration: 0.3 }}
         className="flex items-center justify-center min-h-[40vh]"
       >
-        <div className="glass-card p-10 w-full max-w-md text-center">
+        <div className="p-10 w-full max-w-md text-center rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)]">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-500/10 border border-primary-500/20 mb-5">
             <Zap className="w-8 h-8 text-primary-400" />
           </div>
@@ -282,7 +282,7 @@ export function ProjectHistoryTab({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index < PAGE_SIZE ? index * 0.04 : 0 }}
           >
-            <div className="glass-card p-4 group">
+            <div className="p-4 group rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-sm)] hover:border-[var(--color-primary)]/30 transition-colors">
               <div className="flex items-center justify-between gap-4">
                 {/* Left: project info — clickable for in-progress and completed */}
                 <button

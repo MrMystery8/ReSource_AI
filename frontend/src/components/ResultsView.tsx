@@ -26,6 +26,8 @@ import { SecondLifeIdeasSection } from './SecondLifeIdeasSection';
 import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { ApiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { Card } from './ui/Card';
+import { Button } from './ui/Button';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -149,19 +151,22 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="max-w-4xl mx-auto space-y-6"
+        className="w-full min-w-0 max-w-4xl mx-auto space-y-6"
       >
         {/* Status Header Skeleton */}
-        <div className="glass-card p-5 flex items-center gap-3">
-          <motion.div
-            className="w-3 h-3 rounded-full bg-primary-400"
-            animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-          <span className="text-sm font-medium text-text-primary">
-            Connecting to analysis pipeline...
-          </span>
-        </div>
+        <Card elevation="sm" className="p-5">
+          <div className="flex items-center gap-3">
+            <motion.div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: 'var(--color-primary)' }}
+              animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Connecting to analysis pipeline...
+            </span>
+          </div>
+        </Card>
 
         {/* Progress */}
         <ProgressIndicator stageName="Initializing" />
@@ -186,56 +191,78 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
     : [];
 
   return (
+    /*
+     * w-full + min-w-0 prevent the container from stretching beyond the
+     * viewport on narrow screens (Requirement 6.4, 9.2).
+     */
     <motion.div
-      className="max-w-4xl mx-auto space-y-6"
+      className="w-full min-w-0 max-w-4xl mx-auto space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
       {/* Status Header */}
-      <motion.div {...fadeInUp} className="glass-card p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {status === 'processing' && (
-              <motion.div
-                className="w-3 h-3 rounded-full bg-primary-400"
-                animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              />
-            )}
-            {status === 'complete' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-            {status === 'failed' && <AlertCircle className="w-5 h-5 text-rose-400" />}
-            <span className="text-sm font-medium text-text-primary">
-              {status === 'processing'
-                ? 'Analyzing your device...'
-                : status === 'complete'
-                  ? 'Analysis Complete'
-                  : 'Analysis Failed'}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            {status === 'processing' && currentStage && (
-              <span className="text-xs text-text-muted bg-surface-elevated px-3 py-1 rounded-full">
-                {STAGE_NAMES[currentStage] ?? currentStage}
+      <motion.div {...fadeInUp}>
+        <Card elevation="sm" className="p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {status === 'processing' && (
+                <motion.div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: 'var(--color-primary)' }}
+                  animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              )}
+              {status === 'complete' && (
+                <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+              )}
+              {status === 'failed' && (
+                <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
+              )}
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                {status === 'processing'
+                  ? 'Analyzing your device...'
+                  : status === 'complete'
+                    ? 'Analysis Complete'
+                    : 'Analysis Failed'}
               </span>
-            )}
-            <span className="text-xs text-text-muted">
-              {completedStages.length}/{totalExpectedStages} stages
-            </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {status === 'processing' && currentStage && (
+                <span
+                  className="text-xs px-3 py-1 rounded-full"
+                  style={{
+                    color: 'var(--color-text-muted)',
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    border: '1px solid var(--color-border-default)',
+                  }}
+                >
+                  {STAGE_NAMES[currentStage] ?? currentStage}
+                </span>
+              )}
+              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                {completedStages.length}/{totalExpectedStages} stages
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Progress bar */}
-        {status === 'processing' && (
-          <div className="mt-3 h-1.5 rounded-full bg-surface-elevated overflow-hidden">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-primary-500 to-emerald-400"
-              animate={{ width: `${(completedStages.length / totalExpectedStages) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-        )}
+          {/* Progress bar */}
+          {status === 'processing' && (
+            <div
+              className="mt-3 h-1.5 rounded-full overflow-hidden"
+              style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+            >
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: 'var(--color-primary)' }}
+                animate={{ width: `${(completedStages.length / totalExpectedStages) * 100}%` }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+          )}
+        </Card>
       </motion.div>
 
       {/* Processing Indicator */}
@@ -247,27 +274,40 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
 
       {/* Error Display */}
       {status === 'failed' && error && (
-        <motion.div
-          {...fadeInUp}
-          className="p-5 rounded-xl bg-rose-500/10 border border-rose-500/30"
-          role="alert"
-        >
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-rose-300">
-                Error in stage: {error.stage}
-              </p>
-              <p className="text-sm text-rose-300/80 mt-1">{error.message}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-medium hover:bg-rose-500/30 transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Try Again
-              </button>
+        <motion.div {...fadeInUp} role="alert">
+          <Card elevation="sm" className="p-5">
+            <div
+              className="rounded-lg p-4"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-error)' }} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>
+                    Error in stage: {error.stage}
+                  </p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                    {error.message}
+                  </p>
+                  <button
+                    className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    style={{
+                      backgroundColor: 'var(--color-surface-elevated)',
+                      color: 'var(--color-text-secondary)',
+                      border: '1px solid var(--color-border-default)',
+                    }}
+                    onClick={() => window.location.reload()}
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Try Again
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          </Card>
         </motion.div>
       )}
 
@@ -310,7 +350,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
           ))}
           {pendingStages.length > 2 && (
             <motion.div {...fadeInUp} className="text-center py-2">
-              <span className="text-xs text-text-muted">
+              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                 +{pendingStages.length - 2} more stages pending...
               </span>
             </motion.div>
@@ -343,30 +383,39 @@ function renderStage(key: string, data: unknown): React.ReactNode {
         return <ConceptImage data={data as { imageUrl: string }} />;
       default:
         return (
-          <div className="glass-card glass-card-hover p-6">
-            <h3 className="text-lg font-semibold text-text-primary mb-3">{STAGE_NAMES[key] ?? key}</h3>
-            <pre className="text-xs text-text-secondary whitespace-pre-wrap overflow-auto">
+          <Card elevation="md" className="p-6">
+            <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+              {STAGE_NAMES[key] ?? key}
+            </h3>
+            <pre className="text-xs whitespace-pre-wrap overflow-auto" style={{ color: 'var(--color-text-secondary)' }}>
               {JSON.stringify(data, null, 2)}
             </pre>
-          </div>
+          </Card>
         );
     }
   } catch (err) {
     console.error(`[ResultsView] Error rendering stage "${key}":`, err, 'Data:', data);
     return (
-      <div className="glass-card p-6 border border-rose-500/30">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
-          <div>
-            <h3 className="text-sm font-medium text-rose-300">
-              Failed to render: {STAGE_NAMES[key] ?? key}
-            </h3>
-            <p className="text-xs text-rose-300/70 mt-1">
-              An error occurred while displaying this stage. Check the console for details.
-            </p>
+      <Card elevation="sm" className="p-6">
+        <div
+          className="rounded-lg p-4"
+          style={{
+            border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0" style={{ color: 'var(--color-error)' }} />
+            <div>
+              <h3 className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>
+                Failed to render: {STAGE_NAMES[key] ?? key}
+              </h3>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                An error occurred while displaying this stage. Check the console for details.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 }

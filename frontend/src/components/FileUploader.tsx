@@ -7,6 +7,7 @@ import {
 } from '@resource-ai/shared';
 import { Upload, FileCheck, AlertCircle, Image, FileText } from 'lucide-react';
 import { ApiClient } from '../services/api';
+import { Button } from './ui/Button';
 
 const EXTENSION_TO_MIME: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -185,18 +186,22 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1">
-        <Upload className="w-4 h-4 text-text-muted" />
-        <span className="text-sm font-medium text-text-primary">Device Evidence</span>
-        <span className="text-xs text-text-muted">(optional)</span>
+        <Upload className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+          Device Evidence
+        </span>
+        <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>(optional)</span>
       </div>
 
       {/* Drop Zone */}
       <motion.div
-        className={`relative rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer ${
-          isDragging
-            ? 'border-primary-400 bg-primary-500/10'
-            : 'border-border-subtle hover:border-primary-500/40 hover:bg-surface-elevated/30'
-        } ${!canUploadMore ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`relative rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer ${
+          !canUploadMore ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+        style={{
+          borderColor: isDragging ? 'var(--color-primary)' : 'var(--color-border-default)',
+          backgroundColor: isDragging ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)' : 'var(--color-surface-elevated)',
+        }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -206,18 +211,23 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
       >
         <div className="flex flex-col items-center justify-center py-6 px-4">
           <motion.div
-            className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${
-              isDragging ? 'bg-primary-500/20' : 'bg-surface-elevated'
-            }`}
+            className="w-10 h-10 rounded-full flex items-center justify-center mb-3"
+            style={{ backgroundColor: 'var(--color-surface-card)', border: '1px solid var(--color-border-default)' }}
             animate={isDragging ? { scale: [1, 1.1, 1] } : {}}
             transition={{ duration: 0.5, repeat: isDragging ? Infinity : 0 }}
           >
-            <Upload className={`w-5 h-5 ${isDragging ? 'text-primary-400' : 'text-text-muted'}`} />
+            <Upload
+              className="w-5 h-5"
+              style={{ color: isDragging ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+            />
           </motion.div>
-          <p className="text-sm text-text-secondary text-center">
-            <span className="text-primary-400 font-medium">Click to upload</span> or drag and drop
+          <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
+            <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+              Click to upload
+            </span>{' '}
+            or drag and drop
           </p>
-          <p className="text-xs text-text-muted mt-1">
+          <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
             Images, PDF, DOCX, CSV, JSON • Max 10 MB each
           </p>
         </div>
@@ -239,7 +249,8 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
         <motion.p
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xs text-rose-400 flex items-center gap-1.5"
+          className="text-xs flex items-center gap-1.5"
+          style={{ color: 'var(--color-error)' }}
           role="alert"
         >
           <AlertCircle className="w-3.5 h-3.5" />
@@ -256,7 +267,7 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
             exit={{ opacity: 0, height: 0 }}
             className="space-y-2"
           >
-            <p className="text-xs text-text-muted">
+            <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
               {successfulFileIds.length} of {MAX_FILES_PER_SESSION} files uploaded
             </p>
             <ul className="space-y-1.5" aria-label="Uploaded files">
@@ -265,26 +276,33 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
                   key={file.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-surface-elevated/50 border border-border-subtle"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg border"
+                  style={{
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    borderColor: 'var(--color-border-default)',
+                  }}
                 >
                   {isImageFile(file.name) ? (
-                    <Image className="w-4 h-4 text-primary-400 shrink-0" />
+                    <Image className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
                   ) : (
-                    <FileText className="w-4 h-4 text-primary-400 shrink-0" />
+                    <FileText className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
                   )}
-                  <span className="text-sm text-text-primary truncate flex-1">{file.name}</span>
+                  <span className="text-sm truncate flex-1" style={{ color: 'var(--color-text-primary)' }}>
+                    {file.name}
+                  </span>
                   {file.status === 'uploading' && (
                     <motion.div
-                      className="w-3.5 h-3.5 border-2 border-primary-400/30 border-t-primary-400 rounded-full"
+                      className="w-3.5 h-3.5 border-2 rounded-full"
+                      style={{ borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)', borderTopColor: 'var(--color-primary)' }}
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     />
                   )}
                   {file.status === 'success' && (
-                    <FileCheck className="w-4 h-4 text-emerald-400" />
+                    <FileCheck className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                   )}
                   {file.status === 'error' && (
-                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                    <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-error)' }} />
                   )}
                 </motion.li>
               ))}

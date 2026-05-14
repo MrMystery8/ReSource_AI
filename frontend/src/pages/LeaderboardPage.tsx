@@ -1,21 +1,53 @@
+/**
+ * LeaderboardPage.tsx
+ *
+ * Visual refresh for the UI/UX revamp:
+ *   - glass-card → Card component (elevation="md")
+ *   - Emoji rank medals (🥇🥈🥉) → Lucide SVG icons (Trophy / Award / Medal)
+ *   - Points column uses tabular-nums for monospaced digit alignment
+ *   - Table scrolls horizontally within the Card on narrow viewports (Req 9.3)
+ *   - Local LoadingSkeleton → Skeleton component from design system
+ *   - Local ErrorState → ErrorState component from design system
+ *   - Local EmptyState → EmptyState component from design system
+ *   - All data fetching, state management, and display logic unchanged
+ *
+ * Validates: Requirements 7.4, 3.5, 9.3, 11.4
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, AlertCircle, RefreshCw } from 'lucide-react';
+import { Trophy, Award, Medal, type LucideIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
+import { Card } from '../components/ui/Card';
+import { Skeleton } from '../components/ui/Skeleton';
+import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
 import type { LeaderboardResponse, LeaderboardEntry, UserLevel } from '@resource-ai/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
-// Medal icons for top 3 ranks
-const RANK_MEDALS: Record<number, string> = {
-  1: '🥇',
-  2: '🥈',
-  3: '🥉',
+// ---------------------------------------------------------------------------
+// Rank icon config — replaces emoji medals (Requirement 7.4)
+// ---------------------------------------------------------------------------
+
+interface RankIconConfig {
+  Icon: LucideIcon;
+  color: string;
+  label: string;
+}
+
+const RANK_ICONS: Record<number, RankIconConfig> = {
+  1: { Icon: Trophy, color: 'var(--color-warning, #f59e0b)', label: 'Rank 1 — Gold' },
+  2: { Icon: Award,  color: '#94a3b8',                       label: 'Rank 2 — Silver' },
+  3: { Icon: Medal,  color: '#b45309',                       label: 'Rank 3 — Bronze' },
 };
 
+// ---------------------------------------------------------------------------
 // Level color mapping (matches ProfilePage)
+// ---------------------------------------------------------------------------
+
 const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string }> = {
   Recycler: {
     text: 'text-emerald-400',
@@ -39,7 +71,10 @@ const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string
   },
 };
 
+// ---------------------------------------------------------------------------
 // Row animation variants
+// ---------------------------------------------------------------------------
+
 const rowVariants = {
   hidden: { opacity: 0, x: -20 },
   visible: (i: number) => ({
@@ -52,6 +87,10 @@ const rowVariants = {
     },
   }),
 };
+
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
 
 export function LeaderboardPage() {
   const { token } = useAuth();
@@ -94,75 +133,124 @@ export function LeaderboardPage() {
     >
       {/* Page Header */}
       <div className="mb-2">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Trophy className="w-6 h-6 text-amber-400" />
+        <h1
+          className="text-2xl font-bold flex items-center gap-2"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          <Trophy
+            className="w-6 h-6"
+            style={{ color: 'var(--color-warning, #f59e0b)' }}
+            aria-hidden
+          />
           Leaderboard
         </h1>
-        <p className="text-text-secondary text-sm mt-1">
+        <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
           Top recyclers ranked by points
         </p>
       </div>
 
-      {/* Main Content Card */}
+      {/* Main Content Card — replaces glass-card (Requirement 5.4) */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-card p-6"
       >
-        {isLoading ? (
-          <LoadingSkeleton />
-        ) : error ? (
-          <ErrorState message={error} onRetry={fetchLeaderboard} />
-        ) : data && data.entries.length > 0 ? (
-          <>
-            <LeaderboardTable entries={data.entries} />
+        <Card elevation="md" className="p-6">
+          {isLoading ? (
+            <LoadingSkeleton />
+          ) : error ? (
+            <ErrorState
+              message={error}
+              onRetry={fetchLeaderboard}
+            />
+          ) : data && data.entries.length > 0 ? (
+            <>
+              <LeaderboardTable entries={data.entries} />
 
-            {/* Show current user's rank if not in top 20 */}
-            {!currentUserInList && currentUserRank !== null && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="mt-6 pt-4 border-t border-white/10"
-              >
-                <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-primary-500/10 border border-primary-500/30">
-                  <span className="text-sm text-primary-300">
-                    Your rank: <span className="font-bold text-white">#{currentUserRank}</span>
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </>
-        ) : (
-          <EmptyState />
-        )}
+              {/* Show current user's rank if not in top 20 */}
+              {!currentUserInList && currentUserRank !== null && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-6 pt-4"
+                  style={{ borderTop: '1px solid var(--color-border-default)' }}
+                >
+                  <div
+                    className="flex items-center justify-center gap-2 py-3 px-4 rounded-lg"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                      border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
+                    }}
+                  >
+                    <span className="text-sm" style={{ color: 'var(--color-primary)' }}>
+                      Your rank:{' '}
+                      <span
+                        className="font-bold"
+                        style={{ color: 'var(--color-text-primary)' }}
+                      >
+                        #{currentUserRank}
+                      </span>
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </>
+          ) : (
+            <EmptyState
+              icon={Trophy}
+              title="No leaderboard data yet"
+              description="Complete triage sessions to earn points and appear on the leaderboard."
+            />
+          )}
+        </Card>
       </motion.div>
     </motion.div>
   );
 }
 
-// ─── Sub-components ───
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
 function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full" role="table">
+    // overflow-x-auto ensures horizontal scroll within the Card on narrow viewports
+    // without causing the page itself to scroll (Requirement 9.3)
+    <div className="overflow-x-auto -mx-6 px-6">
+      <table className="w-full min-w-[480px]" role="table">
+        <caption className="sr-only">Leaderboard — top recyclers ranked by points</caption>
         <thead>
-          <tr className="border-b border-white/10">
-            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3 w-16">
+          <tr style={{ borderBottom: '1px solid var(--color-border-default)' }}>
+            <th
+              className="text-left text-xs font-medium uppercase tracking-wide py-3 px-3 w-16"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Rank
             </th>
-            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3">
+            <th
+              className="text-left text-xs font-medium uppercase tracking-wide py-3 px-3"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Player
             </th>
-            <th className="text-left text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3 hidden sm:table-cell">
+            <th
+              className="text-left text-xs font-medium uppercase tracking-wide py-3 px-3 hidden sm:table-cell"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Level
             </th>
-            <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3">
+            {/* tabular-nums on the heading keeps column width stable (Requirement 3.5) */}
+            <th
+              className="text-right text-xs font-medium uppercase tracking-wide py-3 px-3 tabular-nums"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Points
             </th>
-            <th className="text-right text-xs font-medium text-text-muted uppercase tracking-wide py-3 px-3 hidden sm:table-cell">
+            <th
+              className="text-right text-xs font-medium uppercase tracking-wide py-3 px-3 hidden sm:table-cell"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
               Badges
             </th>
           </tr>
@@ -179,7 +267,7 @@ function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
 
 function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: number }) {
   const levelColors = LEVEL_COLORS[entry.level];
-  const medal = RANK_MEDALS[entry.rank];
+  const rankIcon = RANK_ICONS[entry.rank];
 
   return (
     <motion.tr
@@ -187,20 +275,39 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       variants={rowVariants}
       initial="hidden"
       animate="visible"
-      className={`border-b border-white/5 transition-colors ${
+      className="transition-colors"
+      style={
         entry.isCurrentUser
-          ? 'bg-primary-500/10 border-l-2 border-l-primary-500'
-          : 'hover:bg-white/[0.02]'
-      }`}
+          ? {
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+              borderLeft: '2px solid var(--color-primary)',
+              borderBottom: '1px solid var(--color-border-subtle)',
+            }
+          : {
+              borderBottom: '1px solid var(--color-border-subtle)',
+            }
+      }
     >
-      {/* Rank */}
+      {/* Rank — SVG icon for top 3, plain text for the rest (Requirement 7.4) */}
       <td className="py-3 px-3">
-        {medal ? (
-          <span className="text-xl" role="img" aria-label={`Rank ${entry.rank}`}>
-            {medal}
+        {rankIcon ? (
+          <span
+            role="img"
+            aria-label={rankIcon.label}
+            className="inline-flex items-center"
+          >
+            <rankIcon.Icon
+              size={22}
+              strokeWidth={1.75}
+              style={{ color: rankIcon.color }}
+              aria-hidden
+            />
           </span>
         ) : (
-          <span className="text-sm font-semibold text-text-secondary">
+          <span
+            className="text-sm font-semibold"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
             #{entry.rank}
           </span>
         )}
@@ -210,14 +317,24 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
       <td className="py-3 px-3">
         <div className="flex items-center gap-2">
           <span
-            className={`text-sm font-medium ${
-              entry.isCurrentUser ? 'text-primary-300' : 'text-white'
-            }`}
+            className="text-sm font-medium"
+            style={{
+              color: entry.isCurrentUser
+                ? 'var(--color-primary)'
+                : 'var(--color-text-primary)',
+            }}
           >
             {entry.displayName}
           </span>
           {entry.isCurrentUser && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-500/20 border border-primary-500/30 text-primary-300">
+            <span
+              className="text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-primary) 20%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
+                color: 'var(--color-primary)',
+              }}
+            >
               You
             </span>
           )}
@@ -233,16 +350,22 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
         </span>
       </td>
 
-      {/* Points */}
+      {/* Points — tabular-nums for aligned digit columns (Requirement 3.5) */}
       <td className="py-3 px-3 text-right">
-        <span className="text-sm font-semibold text-white">
+        <span
+          className="text-sm font-semibold tabular-nums"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
           {entry.points.toLocaleString()}
         </span>
       </td>
 
       {/* Badge Count */}
       <td className="py-3 px-3 text-right hidden sm:table-cell">
-        <span className="text-sm text-text-secondary">
+        <span
+          className="text-sm tabular-nums"
+          style={{ color: 'var(--color-text-secondary)' }}
+        >
           {entry.badgeCount}
         </span>
       </td>
@@ -250,55 +373,33 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
   );
 }
 
+// ---------------------------------------------------------------------------
+// Loading skeleton — uses design system Skeleton component (Requirement 8.1)
+// ---------------------------------------------------------------------------
+
 function LoadingSkeleton() {
   return (
-    <div className="space-y-3 animate-pulse">
+    <div className="space-y-3" aria-busy="true" aria-label="Loading leaderboard…">
       {/* Header row skeleton */}
-      <div className="flex items-center gap-4 py-3 border-b border-white/10">
-        <div className="h-3 w-12 rounded bg-white/5" />
-        <div className="h-3 w-32 rounded bg-white/5" />
-        <div className="h-3 w-20 rounded bg-white/5 hidden sm:block" />
-        <div className="h-3 w-16 rounded bg-white/5 ml-auto" />
+      <div
+        className="flex items-center gap-4 py-3"
+        style={{ borderBottom: '1px solid var(--color-border-default)' }}
+      >
+        <Skeleton variant="text" width={48} height={12} />
+        <Skeleton variant="text" width={128} height={12} />
+        <Skeleton variant="text" width={80} height={12} className="hidden sm:block" />
+        <Skeleton variant="text" width={64} height={12} className="ml-auto" />
       </div>
       {/* Row skeletons */}
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex items-center gap-4 py-3">
-          <div className="h-5 w-8 rounded bg-white/5" />
-          <div className="h-4 w-28 rounded bg-white/5" />
-          <div className="h-5 w-24 rounded-full bg-white/5 hidden sm:block" />
-          <div className="h-4 w-14 rounded bg-white/5 ml-auto" />
-          <div className="h-4 w-6 rounded bg-white/5 hidden sm:block" />
+          <Skeleton variant="text" width={32} height={20} />
+          <Skeleton variant="text" width={112} height={16} />
+          <Skeleton variant="text" width={96} height={20} className="hidden sm:block" />
+          <Skeleton variant="text" width={56} height={16} className="ml-auto" />
+          <Skeleton variant="text" width={24} height={16} className="hidden sm:block" />
         </div>
       ))}
-    </div>
-  );
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="text-center py-12">
-      <AlertCircle className="w-10 h-10 text-text-muted mx-auto mb-3" />
-      <p className="text-text-secondary text-sm mb-1">Unable to load leaderboard</p>
-      <p className="text-text-muted text-xs mb-4">{message}</p>
-      <button
-        onClick={onRetry}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-500/10 border border-primary-500/30 text-primary-300 text-sm font-medium hover:bg-primary-500/20 transition-colors"
-      >
-        <RefreshCw className="w-4 h-4" />
-        Try again
-      </button>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="text-center py-12">
-      <Trophy className="w-10 h-10 text-text-muted mx-auto mb-3" />
-      <p className="text-text-secondary text-sm">No leaderboard data yet</p>
-      <p className="text-text-muted text-xs mt-1">
-        Complete triage sessions to earn points and appear on the leaderboard.
-      </p>
     </div>
   );
 }
