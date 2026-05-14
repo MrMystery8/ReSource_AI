@@ -334,11 +334,10 @@ export function SecondLifeIdeasSection({
               >
                 <span className="flex items-center gap-2">
                   <span
-                    className="inline-block w-2.5 h-2.5 rounded-full ring-2"
+                    className="inline-block w-2.5 h-2.5 rounded-full"
                     style={{
                       backgroundColor: 'var(--color-primary)',
-                      boxShadow: '0 0 6px var(--color-primary)',
-                      ringColor: 'color-mix(in srgb, var(--color-primary) 40%, transparent)',
+                      boxShadow: '0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent), 0 0 6px var(--color-primary)',
                     }}
                   />
                   Matched to your level
