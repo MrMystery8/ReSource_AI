@@ -50,12 +50,13 @@ function getSessionRiskLevel(session: TriageSession): string | null {
   return session.stages.safetyGate?.riskLevel ?? null;
 }
 
-// --- Helper: Count salvageable parts from this session ---
+// --- Helper: Count salvageable components from Detailed Analysis stage ---
 
 function countSalvageableParts(session: TriageSession): number {
-  const partsMap = session.stages.reusablePartsMap;
-  if (!partsMap || !partsMap.parts) return 0;
-  return partsMap.parts.filter((p) => p.verdict === 'Salvage').length;
+  const analysis = session.stages.detailedAnalysis;
+  if (!analysis || !analysis.componentProfile) return 0;
+  // Count components with a condition score of 3 or higher as salvageable
+  return analysis.componentProfile.filter((c) => c.conditionScore >= 3).length;
 }
 
 // --- Helper: Check if all 3 text input fields exceed 200 chars ---
@@ -173,7 +174,7 @@ export function calculateLevel(points: number): UserLevel {
  * 3. Update streak based on lastTriageDate
  * 4. Increment totalSessions
  * 5. Update greenOutcomes if this session was Green
- * 6. Update totalSalvageableParts from componentSalvage stage
+ * 6. Update totalSalvageableParts from detailedAnalysis componentProfile
  * 7. Check all badge criteria against updated stats
  * 8. Calculate new level from new total points
  * 9. Write all updates back to DynamoDB
@@ -218,7 +219,7 @@ export async function processSessionCompletion(
     ? currentStats.greenOutcomes + 1
     : currentStats.greenOutcomes;
 
-  // 6. Update totalSalvageableParts from reusablePartsMap stage
+  // 6. Update totalSalvageableParts from detailedAnalysis componentProfile
   const sessionSalvageableParts = countSalvageableParts(session);
   const newTotalSalvageableParts = currentStats.totalSalvageableParts + sessionSalvageableParts;
 

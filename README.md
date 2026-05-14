@@ -1,6 +1,6 @@
 # ♻️ ReSource AI — E-Waste Triage System
 
-An AI-powered platform that analyzes electronic waste devices and provides intelligent salvage assessments, safety guidance, reusable parts mapping, and second-life project ideas.
+An AI-powered platform that analyzes electronic waste devices and provides intelligent salvage assessments, safety guidance, and second-life project ideas.
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue)
 ![React](https://img.shields.io/badge/React-18-61dafb)
@@ -170,10 +170,8 @@ The AI analysis runs through these stages in order:
 1. **Quick Verdict** — Initial risk assessment and salvage score
 2. **Safety Gate** — Hazard identification and safe/unsafe actions
 3. **Detailed Analysis** — Component profiling and failure diagnosis
-4. **Reusable Parts Map** — Part-by-part salvage assessment table
-5. **Second Life Ideas** — Creative reuse project suggestions
-6. **Next Steps** — Safe recovery route and action plan
-7. **Impact Card** — Summary card with key metrics
+4. **Second Life Ideas** — Creative reuse project suggestions
+5. **Next Steps** — Safe recovery route and action plan
 
 ## Environment Variables
 

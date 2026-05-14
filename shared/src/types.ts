@@ -14,10 +14,8 @@ export type StageKey =
   | 'quickVerdict'
   | 'safetyGate'
   | 'detailedAnalysis'
-  | 'reusablePartsMap'
   | 'secondLifeIdeas'
   | 'nextSteps'
-  | 'impactCard'
   | 'conceptVisual';
 
 // --- Structured User Context ---
@@ -59,10 +57,8 @@ export interface TriageStages {
   quickVerdict: QuickVerdictOutput | null;
   safetyGate: SafetyGateOutput | null;
   detailedAnalysis: DetailedAnalysisOutput | null;
-  reusablePartsMap: ReusablePartsMapOutput | null;
   secondLifeIdeas: SecondLifeIdeasOutput | null;
   nextSteps: NextStepsOutput | null;
-  impactCard: ImpactCardOutput | null;
   conceptVisual: ConceptVisualOutput | null;
 }
 
@@ -112,24 +108,7 @@ export interface ComponentEntry {
   requiresSupervision?: boolean;
 }
 
-export interface ReusablePartsMapOutput {
-  parts: PartsMapRow[];
-}
-
-export type LikelyPresence = 'Confirmed' | 'Probable' | 'Uncertain';
-export type ReuseValue = 'High' | 'Medium' | 'Low' | 'None';
 export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Professional';
-export type PartVerdict = 'Salvage' | 'Conditional' | 'Do Not Access';
-
-export interface PartsMapRow {
-  partResource: string;
-  likelyPresence: LikelyPresence;
-  reuseValue: ReuseValue;
-  possibleUse: string;
-  skillNeeded: SkillLevel;
-  safetyConcern: string;
-  verdict: PartVerdict;
-}
 
 export interface SecondLifeIdeasOutput {
   ideas: ProjectIdea[];
@@ -161,19 +140,7 @@ export interface HazardWarning {
   risk: string;
 }
 
-export interface ImpactCardOutput {
-  deviceName: string;
-  riskLevel: string;
-  salvageScore: string;
-  topReusablePart: string;
-  bestSecondLifeIdea: string;
-  skillLevelRequired: string;
-  safetyWarning: string;
-  recommendedAction: string;
-  environmentalImpactNote: string;
-  recoveryDifficulty: string;
-  overallVerdict: string;
-}
+
 
 export interface ConceptVisualOutput {
   imageUrl: string;

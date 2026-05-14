@@ -34,14 +34,10 @@ If device condition or internal state information is incomplete, default to the 
 Provide: probable device identity, component profile (listing internal and external components with function and condition score 1-5), failure pattern analysis, diagnostic verdict, and a verdict summary (max 30 words).
 Limit your response to 350 words maximum.`,
 
-  reusablePartsMap: `You are a component recovery specialist. Produce a Reusable Parts Map as a structured table.
-Include 6-10 rows with columns: Part/Resource, Likely Presence (Confirmed/Probable/Uncertain), Reuse Value (High/Medium/Low/None), Possible Use, Skill Needed (Beginner/Intermediate/Advanced/Professional), Safety Concern, and Verdict (Salvage/Conditional/Do Not Access).
-Skill Needed must not exceed the user's stated skill level for any row with Verdict "Salvage".`,
-
   secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 3 Safe Second Life Ideas tailored to the user's stated context.
 Categories: beginner, STEM/learning, and practical/creative.
 Each idea must include: project title, brief description (max 90 words), skillLevel, required components from the device, and additional materials needed.
-Only reference components identified in the Reusable Parts Map. Default to beginner-level if no skill level is stated.
+Default to beginner-level if no skill level is stated.
 IMPORTANT: Tailor all ideas to the user's expertise level, motivation, material availability, and time commitment provided in the User Inputs section.
 - Expertise Level: ALL ideas MUST have a skillLevel that does NOT exceed the user's stated expertise level. For example, if the user is "Beginner", all ideas must have skillLevel "Beginner". If "Intermediate", ideas can be "Beginner" or "Intermediate". If "Expert", ideas can be any level.
 - skillLevel field: MUST be one of "Beginner", "Intermediate", "Advanced", or "Professional" and must reflect the actual difficulty of the project
@@ -53,10 +49,6 @@ IMPORTANT: Tailor all ideas to the user's expertise level, motivation, material 
 Provide: safe first actions (3-5 ordered steps), parts to keep, parts to avoid, overall recommendation, trash warnings, local recovery note, and hazard warnings referencing the Safety Gate hazard list.
 Limit your response to 300 words maximum.
 Handling tiers: Green allows external + simple internal; Yellow allows cautious internal; Orange allows supervised only; Red allows external inspection only with professional referral.`,
-
-  impactCard: `You are a triage summarization expert. Produce a ReSource Impact Card with exactly 11 fields.
-Fields: Device Name, Risk Level, Salvage Score, Top Reusable Part, Best Second Life Idea, Skill Level Required, Safety Warning, Recommended Action, Environmental Impact Note, Recovery Difficulty, Overall Verdict.
-Total word count must be ≤ 120 words (field values only). Each field value must be ≤ 15 words.`,
 
   conceptVisual: `You are an image prompt specialist. Generate a concept image for the device's best outcome.`,
 };
@@ -100,18 +92,6 @@ const OUTPUT_SCHEMAS: Record<StageKey, string> = {
     verdictSummary: 'string (max 30 words)',
   }, null, 2),
 
-  reusablePartsMap: JSON.stringify({
-    parts: [{
-      partResource: 'string',
-      likelyPresence: 'Confirmed | Probable | Uncertain',
-      reuseValue: 'High | Medium | Low | None',
-      possibleUse: 'string',
-      skillNeeded: 'Beginner | Intermediate | Advanced | Professional',
-      safetyConcern: 'string',
-      verdict: 'Salvage | Conditional | Do Not Access',
-    }],
-  }, null, 2),
-
   secondLifeIdeas: JSON.stringify({
     ideas: [{
       category: 'beginner | stem-learning | practical-creative',
@@ -136,20 +116,6 @@ const OUTPUT_SCHEMAS: Record<StageKey, string> = {
     }],
   }, null, 2),
 
-  impactCard: JSON.stringify({
-    deviceName: 'string (max 15 words)',
-    riskLevel: 'string (max 15 words)',
-    salvageScore: 'string (max 15 words)',
-    topReusablePart: 'string (max 15 words)',
-    bestSecondLifeIdea: 'string (max 15 words)',
-    skillLevelRequired: 'string (max 15 words)',
-    safetyWarning: 'string (max 15 words)',
-    recommendedAction: 'string (max 15 words)',
-    environmentalImpactNote: 'string (max 15 words)',
-    recoveryDifficulty: 'string (max 15 words)',
-    overallVerdict: 'string (max 15 words)',
-  }, null, 2),
-
   conceptVisual: 'Generate a single 1024x1024 PNG image based on the prompt description.',
 };
 
@@ -158,10 +124,8 @@ const OUTPUT_SCHEMAS: Record<StageKey, string> = {
  */
 const POST_SAFETY_GATE_STAGES: Set<StageKey> = new Set([
   'detailedAnalysis',
-  'reusablePartsMap',
   'secondLifeIdeas',
   'nextSteps',
-  'impactCard',
   'conceptVisual',
 ]);
 

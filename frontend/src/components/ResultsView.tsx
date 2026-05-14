@@ -7,15 +7,11 @@ import type {
   DetailedAnalysisOutput,
   SecondLifeIdeasOutput,
   NextStepsOutput,
-  ReusablePartsMapOutput,
-  ImpactCardOutput,
   ExpertiseLevel,
   ProjectIdea,
   StructuredUserContext,
 } from '@resource-ai/shared';
 import { ProgressIndicator } from './ProgressIndicator';
-import { PartsMapTable } from './PartsMapTable';
-import { ImpactCard } from './ImpactCard';
 import { ConceptImage } from './ConceptImage';
 import { SkeletonStage } from './SkeletonStage';
 import { QuickVerdictCard } from './stages/QuickVerdictCard';
@@ -50,10 +46,8 @@ const STAGE_NAMES: Record<string, string> = {
   quickVerdict: 'Quick ReSource Verdict',
   safetyGate: 'Safety Gate',
   detailedAnalysis: 'Detailed Resource Analysis',
-  reusablePartsMap: 'Reusable Parts Map',
   secondLifeIdeas: 'Safe Second Life Ideas',
   nextSteps: 'Safe Next Steps & Recovery Route',
-  impactCard: 'ReSource Impact Card',
   conceptVisual: 'Concept Visual',
 };
 
@@ -61,10 +55,8 @@ const STAGE_ORDER = [
   'quickVerdict',
   'safetyGate',
   'detailedAnalysis',
-  'reusablePartsMap',
   'secondLifeIdeas',
   'nextSteps',
-  'impactCard',
   'conceptVisual',
 ] as const;
 
@@ -370,15 +362,11 @@ function renderStage(key: string, data: unknown): React.ReactNode {
         return <SafetyGateCard data={data as SafetyGateOutput} />;
       case 'detailedAnalysis':
         return <DetailedAnalysisCard data={data as DetailedAnalysisOutput} />;
-      case 'reusablePartsMap':
-        return <PartsMapTable data={data as ReusablePartsMapOutput} />;
       case 'secondLifeIdeas':
         // Handled inline in the render loop above (uses SecondLifeIdeasSection)
         return null;
       case 'nextSteps':
         return <NextStepsCard data={data as NextStepsOutput} />;
-      case 'impactCard':
-        return <ImpactCard data={data as ImpactCardOutput} />;
       case 'conceptVisual':
         return <ConceptImage data={data as { imageUrl: string }} />;
       default:

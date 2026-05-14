@@ -10,10 +10,8 @@ export const PIPELINE_STAGES: readonly PipelineStageConfig[] = [
   { key: 'quickVerdict', name: 'Quick ReSource Verdict', type: 'text' },
   { key: 'safetyGate', name: 'Safety Gate', type: 'text' },
   { key: 'detailedAnalysis', name: 'Detailed Resource Analysis', type: 'text' },
-  { key: 'reusablePartsMap', name: 'Reusable Parts Map', type: 'text' },
   { key: 'secondLifeIdeas', name: 'Safe Second Life Ideas', type: 'text' },
   { key: 'nextSteps', name: 'Safe Next Steps and Recovery Route', type: 'text' },
-  { key: 'impactCard', name: 'ReSource Impact Card', type: 'text' },
 ] as const;
 
 // --- Timeout Values ---
@@ -83,10 +81,6 @@ export const MAX_DETAILED_ANALYSIS_WORDS = 350;
 export const MAX_VERDICT_SUMMARY_WORDS = 30;
 export const MAX_SECOND_LIFE_IDEA_WORDS = 90;
 export const MAX_NEXT_STEPS_WORDS = 300;
-export const MAX_IMPACT_CARD_TOTAL_WORDS = 120;
-export const MAX_IMPACT_CARD_FIELD_WORDS = 15;
-export const REUSABLE_PARTS_MIN_ROWS = 6;
-export const REUSABLE_PARTS_MAX_ROWS = 10;
 export const SECOND_LIFE_IDEAS_COUNT = 3;
 
 // --- Risk Level Ordering (for escalation logic) ---
