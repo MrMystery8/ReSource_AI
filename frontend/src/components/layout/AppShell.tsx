@@ -71,7 +71,7 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
        */}
       <main
         id="main-content"
-        className="w-full max-w-6xl mx-auto px-4 md:px-6 pb-[calc(64px+16px)] md:pb-0"
+        className="w-full max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-[calc(64px+32px)] md:pb-8"
       >
         {children}
       </main>

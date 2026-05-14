@@ -363,9 +363,9 @@ export function DesktopHeader(): JSX.Element {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <header
-      className="hidden md:flex sticky top-0 z-40 h-16 items-center"
+      className="hidden md:flex sticky top-0 z-40 h-16 items-center backdrop-blur-md"
       style={{
-        backgroundColor: 'var(--color-surface-elevated)',
+        backgroundColor: 'color-mix(in srgb, var(--color-surface-elevated) 85%, transparent)',
         borderBottom: '1px solid var(--color-border-default)',
       }}
     >

@@ -473,7 +473,7 @@ export function CommunityPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto px-4 py-8 space-y-5"
+      className="max-w-2xl mx-auto px-4 pb-8 space-y-5"
     >
       {/* Page Header */}
       <div className="flex items-center justify-between">

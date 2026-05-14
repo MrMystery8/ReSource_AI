@@ -107,7 +107,7 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
 
   return (
     <motion.div
-      className="max-w-3xl mx-auto py-6 sm:py-8"
+      className="max-w-3xl mx-auto pb-8"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
