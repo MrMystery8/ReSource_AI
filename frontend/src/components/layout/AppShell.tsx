@@ -49,11 +49,10 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
 
       {/*
        * 2. Desktop header — hidden below 768px via Tailwind responsive utilities.
-       *    Uses `hidden md:flex` so it is removed from layout on mobile and
-       *    does not consume space or receive focus.
+       *    Sticky positioning on the outer wrapper so it stays at top on scroll.
        *    (Requirement 4.1)
        */}
-      <div className="hidden md:block">
+      <div className="hidden md:block sticky top-0 z-40">
         <DesktopHeader />
       </div>
 
