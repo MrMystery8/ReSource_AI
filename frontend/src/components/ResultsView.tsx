@@ -173,9 +173,12 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
 
   const { status, currentStage, error, stages } = session;
 
-  // Count completed stages
-  const completedStages = STAGE_ORDER.filter((key) => stages[key] != null);
-  const totalExpectedStages = STAGE_ORDER.length;
+  // Count completed stages.
+  // conceptVisual is optional/bonus — the backend pipeline only runs 5 core stages,
+  // so we exclude it from the denominator to avoid a permanent "5/6" display.
+  const CORE_STAGES = STAGE_ORDER.filter((k) => k !== 'conceptVisual');
+  const completedStages = CORE_STAGES.filter((key) => stages[key] != null);
+  const totalExpectedStages = CORE_STAGES.length;
 
   // Determine which stages are still pending (for skeleton display)
   const pendingStages = status === 'processing'

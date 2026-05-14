@@ -1,6 +1,7 @@
-import { motion } from 'framer-motion';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
-import { Lightbulb, RefreshCw, AlertCircle } from 'lucide-react';
+import { Lightbulb, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { IdeaCard } from './IdeaCard';
 import { filterIdeasByExpertise } from '../utils/filterIdeasByExpertise';
 
@@ -13,6 +14,9 @@ export interface SecondLifeIdeasSectionProps {
   reloadError: string | null;
 }
 
+// Number of cards visible at once in the carousel
+const VISIBLE_COUNT = 3;
+
 export function SecondLifeIdeasSection({
   ideas,
   userExpertise,
@@ -21,12 +25,59 @@ export function SecondLifeIdeasSection({
   isReloading,
   reloadError,
 }: SecondLifeIdeasSectionProps) {
-  // Filter ideas to only show those whose skill level ≤ user's expertise level.
-  // Defaults to 'Beginner' if userExpertise is somehow undefined (per Requirement 3.8).
-  const filteredIdeas = filterIdeasByExpertise(ideas, userExpertise);
+  // Split ideas: user-matched ones come first (shown at index 0), others follow
+  const matchedIdeas = filterIdeasByExpertise(ideas, userExpertise);
+  const otherIdeas = ideas.filter((idea) => !matchedIdeas.includes(idea));
+
+  // Carousel order: matched first, then others
+  const allIdeas = [...matchedIdeas, ...otherIdeas];
+
+  // Current offset — the index of the leftmost visible card
+  const [offset, setOffset] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Reset offset when ideas change (e.g. after reload)
+  useEffect(() => {
+    setOffset(0);
+  }, [ideas]);
+
+  const maxOffset = Math.max(0, allIdeas.length - VISIBLE_COUNT);
+  const canGoLeft = offset > 0;
+  const canGoRight = offset < maxOffset;
+
+  const goLeft = useCallback(() => {
+    if (!canGoLeft || isAnimating) return;
+    setDirection(-1);
+    setOffset((prev) => Math.max(0, prev - 1));
+  }, [canGoLeft, isAnimating]);
+
+  const goRight = useCallback(() => {
+    if (!canGoRight || isAnimating) return;
+    setDirection(1);
+    setOffset((prev) => Math.min(maxOffset, prev + 1));
+  }, [canGoRight, isAnimating, maxOffset]);
+
+  // Keyboard navigation
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goLeft(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); goRight(); }
+    },
+    [goLeft, goRight]
+  );
+
+  const visibleIdeas = allIdeas.slice(offset, offset + VISIBLE_COUNT);
+
+  // Dot indicators
+  const totalPages = maxOffset + 1;
+  const currentPage = offset;
 
   return (
-    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
+    <div
+      className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors"
+    >
       {/* Header */}
       <div className="p-6 pb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -34,9 +85,18 @@ export function SecondLifeIdeasSection({
             <Lightbulb className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-text-primary">Safe Second Life Ideas</h3>
-            <span className="text-xs text-text-muted">
-              {filteredIdeas.length} project idea{filteredIdeas.length !== 1 ? 's' : ''} matched to your expertise
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Safe Second Life Ideas
+            </h3>
+            <span
+              className="text-xs"
+              style={{ color: 'var(--color-text-muted)' }}
+            >
+              {matchedIdeas.length} matched to your expertise
+              {otherIdeas.length > 0 && ` · ${otherIdeas.length} more available`}
             </span>
           </div>
         </div>
@@ -46,7 +106,22 @@ export function SecondLifeIdeasSection({
           onClick={onReload}
           disabled={isReloading}
           aria-label="Reload Second Life Ideas"
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle text-text-secondary text-xs font-medium hover:border-primary-500/30 hover:text-text-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: 'var(--color-surface-elevated)',
+            border: '1px solid var(--color-border-subtle)',
+            color: 'var(--color-text-secondary)',
+          }}
+          onMouseEnter={(e) => {
+            if (!isReloading) {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-primary)';
+              (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-border-subtle)';
+            (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-secondary)';
+          }}
         >
           <RefreshCw
             className={`w-3.5 h-3.5 ${isReloading ? 'animate-spin' : ''}`}
@@ -56,31 +131,223 @@ export function SecondLifeIdeasSection({
         </button>
       </div>
 
-      {/* Reload Error Toast */}
+      {/* Reload Error */}
       {reloadError && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mx-6 mb-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-start gap-2"
+          className="mx-6 mb-4 p-3 rounded-lg flex items-start gap-2"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+          }}
           role="alert"
         >
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-rose-300">{reloadError}</p>
+          <AlertCircle
+            className="w-4 h-4 shrink-0 mt-0.5"
+            style={{ color: 'var(--color-error)' }}
+          />
+          <p className="text-xs" style={{ color: 'var(--color-error)' }}>
+            {reloadError}
+          </p>
         </motion.div>
       )}
 
-      {/* Ideas Grid — 1 column on narrow viewports, 3 columns at ≥1024px */}
-      {filteredIdeas.length > 0 ? (
-        <div className="px-6 pb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
-          {filteredIdeas.map((idea, i) => (
-            <IdeaCard key={`${idea.title}-${i}`} idea={idea} onClick={onIdeaClick} index={i} />
-          ))}
+      {allIdeas.length === 0 ? (
+        <div className="px-6 pb-6">
+          <p
+            className="text-sm text-center py-4"
+            style={{ color: 'var(--color-text-muted)' }}
+          >
+            No ideas available. Try reloading or adjusting your expertise level.
+          </p>
         </div>
       ) : (
         <div className="px-6 pb-6">
-          <p className="text-sm text-text-muted text-center py-4">
-            No ideas match your current expertise level. Try reloading or adjusting your expertise level.
-          </p>
+          {/* Carousel wrapper */}
+          <div
+            ref={containerRef}
+            className="relative focus:outline-none"
+            tabIndex={0}
+            onKeyDown={handleKeyDown}
+            aria-label="Safe Second Life Ideas carousel"
+            aria-roledescription="carousel"
+          >
+            {/* Cards row */}
+            <div className="relative overflow-hidden">
+              <AnimatePresence
+                mode="popLayout"
+                initial={false}
+                onExitComplete={() => setIsAnimating(false)}
+              >
+                <motion.div
+                  key={offset}
+                  className="grid gap-3"
+                  style={{
+                    gridTemplateColumns: `repeat(${Math.min(VISIBLE_COUNT, visibleIdeas.length)}, 1fr)`,
+                  }}
+                  initial={{ opacity: 0, x: direction * 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: direction * -40 }}
+                  transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  onAnimationStart={() => setIsAnimating(true)}
+                  onAnimationComplete={() => setIsAnimating(false)}
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
+                  {visibleIdeas.map((idea, i) => {
+                    const globalIndex = offset + i;
+                    const isMatched = globalIndex < matchedIdeas.length;
+                    return (
+                      <div key={`${idea.title}-${globalIndex}`} className="relative">
+                        {/* "Other levels" label for non-matched ideas */}
+                        {!isMatched && (
+                          <div
+                            className="absolute -top-px left-0 right-0 h-0.5 rounded-t-xl z-10"
+                            style={{ backgroundColor: 'var(--color-border-default)' }}
+                          />
+                        )}
+                        <div
+                          style={{
+                            opacity: isMatched ? 1 : 0.72,
+                            transition: 'opacity 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '1';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '0.72';
+                          }}
+                        >
+                          <IdeaCard
+                            idea={idea}
+                            onClick={onIdeaClick}
+                            index={i}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Navigation row: left arrow · dots · right arrow */}
+            {allIdeas.length > VISIBLE_COUNT && (
+              <div className="flex items-center justify-between mt-4">
+                {/* Left arrow */}
+                <button
+                  onClick={goLeft}
+                  disabled={!canGoLeft || isAnimating}
+                  aria-label="Previous ideas"
+                  className="flex items-center justify-center w-8 h-8 rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: canGoLeft
+                      ? 'var(--color-surface-elevated)'
+                      : 'transparent',
+                    border: '1px solid var(--color-border-subtle)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (canGoLeft) {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor =
+                        'var(--color-primary)';
+                      (e.currentTarget as HTMLButtonElement).style.color =
+                        'var(--color-text-primary)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor =
+                      'var(--color-border-subtle)';
+                    (e.currentTarget as HTMLButtonElement).style.color =
+                      'var(--color-text-secondary)';
+                  }}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {/* Dot indicators */}
+                <div className="flex items-center gap-1.5" role="tablist" aria-label="Carousel position">
+                  {Array.from({ length: totalPages }).map((_, i) => (
+                    <button
+                      key={i}
+                      role="tab"
+                      aria-selected={i === currentPage}
+                      aria-label={`Go to position ${i + 1}`}
+                      onClick={() => {
+                        if (isAnimating) return;
+                        setDirection(i > offset ? 1 : -1);
+                        setOffset(i);
+                      }}
+                      className="rounded-full transition-all"
+                      style={{
+                        width: i === currentPage ? '20px' : '6px',
+                        height: '6px',
+                        backgroundColor:
+                          i === currentPage
+                            ? 'var(--color-primary)'
+                            : 'var(--color-border-default)',
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Right arrow */}
+                <button
+                  onClick={goRight}
+                  disabled={!canGoRight || isAnimating}
+                  aria-label="Next ideas"
+                  className="flex items-center justify-center w-8 h-8 rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: canGoRight
+                      ? 'var(--color-surface-elevated)'
+                      : 'transparent',
+                    border: '1px solid var(--color-border-subtle)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (canGoRight) {
+                      (e.currentTarget as HTMLButtonElement).style.borderColor =
+                        'var(--color-primary)';
+                      (e.currentTarget as HTMLButtonElement).style.color =
+                        'var(--color-text-primary)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.borderColor =
+                      'var(--color-border-subtle)';
+                    (e.currentTarget as HTMLButtonElement).style.color =
+                      'var(--color-text-secondary)';
+                  }}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Expertise legend — only shown when there are mixed-level ideas */}
+            {otherIdeas.length > 0 && (
+              <div
+                className="mt-3 flex items-center gap-4 text-[11px]"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-2 h-2 rounded-full"
+                    style={{ backgroundColor: 'var(--color-primary)' }}
+                  />
+                  Matched to your level
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span
+                    className="inline-block w-2 h-2 rounded-full"
+                    style={{ backgroundColor: 'var(--color-border-default)' }}
+                  />
+                  Other skill levels
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

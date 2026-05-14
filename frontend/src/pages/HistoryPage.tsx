@@ -333,7 +333,7 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
                             className="font-medium"
                             style={{ color: 'var(--color-text-primary)' }}
                           >
-                            {session.salvageScore}%
+                            {session.salvageScore}/5
                           </span>
                         </span>
                       )}

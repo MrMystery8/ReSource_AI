@@ -80,6 +80,7 @@ export const handler = async (
       currentStage: session.currentStage,
       error: session.error,
       stages: session.stages,
+      inputs: session.inputs,
     };
 
     return {

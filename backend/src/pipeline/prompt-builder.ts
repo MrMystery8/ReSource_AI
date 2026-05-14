@@ -34,16 +34,15 @@ If device condition or internal state information is incomplete, default to the 
 Provide: probable device identity, component profile (listing internal and external components with function and condition score 1-5), failure pattern analysis, diagnostic verdict, and a verdict summary (max 30 words).
 Limit your response to 350 words maximum.`,
 
-  secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 3 Safe Second Life Ideas tailored to the user's stated context.
+  secondLifeIdeas: `You are a creative reuse specialist. Produce exactly 7 Safe Second Life Ideas spanning all skill levels.
 Categories: beginner, STEM/learning, and practical/creative.
 Each idea must include: project title, brief description (max 90 words), skillLevel, required components from the device, and additional materials needed.
-Default to beginner-level if no skill level is stated.
-IMPORTANT: Tailor all ideas to the user's expertise level, motivation, material availability, and time commitment provided in the User Inputs section.
-- Expertise Level: ALL ideas MUST have a skillLevel that does NOT exceed the user's stated expertise level. For example, if the user is "Beginner", all ideas must have skillLevel "Beginner". If "Intermediate", ideas can be "Beginner" or "Intermediate". If "Expert", ideas can be any level.
+Generate ideas across ALL skill levels (Beginner, Intermediate, Advanced, Professional) so users of any expertise can find something suitable.
+IMPORTANT: Tailor the first 3 ideas to the user's stated expertise level, motivation, material availability, and time commitment. The remaining 4 ideas should cover other skill levels.
 - skillLevel field: MUST be one of "Beginner", "Intermediate", "Advanced", or "Professional" and must reflect the actual difficulty of the project
-- Motivation: prioritise ideas that align with the user's stated motivation
+- Motivation: prioritise ideas that align with the user's stated motivation for the first 3 ideas
 - Material Availability: only suggest ideas achievable with the user's available tools and workspace
-- Time Commitment: only suggest ideas completable within the user's stated time commitment`,
+- Time Commitment: only suggest ideas completable within the user's stated time commitment for the first 3 ideas`,
 
   nextSteps: `You are a safe recovery advisor. Produce Safe Next Steps and Recovery Route.
 Provide: safe first actions (3-5 ordered steps), parts to keep, parts to avoid, overall recommendation, trash warnings, local recovery note, and hazard warnings referencing the Safety Gate hazard list.

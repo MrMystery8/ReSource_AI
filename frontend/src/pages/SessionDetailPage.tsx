@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, FileQuestion } from 'lucide-react';
-import type { PollSessionResponse } from '@resource-ai/shared';
+import type { PollSessionResponse, ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
 import { ResultsView } from '../components/ResultsView';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
@@ -66,6 +66,7 @@ function SessionDetailSkeleton() {
 export function SessionDetailPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [session, setSession] = useState<PollSessionResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -78,6 +79,35 @@ export function SessionDetailPage() {
   useEffect(() => {
     apiClientRef.current = new ApiClient(API_URL, API_KEY, () => token);
   }, [token]);
+
+  // Derive user expertise from the session's stored user context
+  const userExpertise: ExpertiseLevel =
+    session?.inputs?.userContext?.expertiseLevel ?? 'Beginner';
+
+  // Navigate to the implementation guide when an idea card is clicked from history
+  const handleIdeaClick = useCallback(
+    (idea: ProjectIdea) => {
+      if (!session) return;
+      const userContext = session.inputs?.userContext ?? {
+        expertiseLevel: 'Beginner' as ExpertiseLevel,
+        motivation: 'Environmental Impact' as const,
+        materialAvailability: 'Basic Household Tools' as const,
+        timeCommitment: 'Under 1 Hour' as const,
+      };
+
+      navigate('/guide/new', {
+        state: {
+          ideaTitle: idea.title,
+          ideaDescription: idea.description,
+          requiredComponents: idea.requiredComponents,
+          additionalMaterials: idea.additionalMaterials,
+          userContext,
+          sessionId: session.sessionId,
+        },
+      });
+    },
+    [navigate, session]
+  );
 
   const fetchSession = useCallback(async () => {
     if (!sessionId) {
@@ -223,7 +253,7 @@ export function SessionDetailPage() {
         Back to History
       </Link>
 
-      <ResultsView session={session} />
+      <ResultsView session={session} userExpertise={userExpertise} onIdeaClick={handleIdeaClick} />
     </motion.div>
   );
 }

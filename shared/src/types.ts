@@ -321,6 +321,7 @@ export interface PollSessionResponse {
   currentStage: string | null;
   error: SessionError | null;
   stages: TriageStages;
+  inputs?: TriageInputs;
 }
 
 // --- Project Types ---

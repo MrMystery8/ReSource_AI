@@ -81,7 +81,7 @@ export const MAX_DETAILED_ANALYSIS_WORDS = 350;
 export const MAX_VERDICT_SUMMARY_WORDS = 30;
 export const MAX_SECOND_LIFE_IDEA_WORDS = 90;
 export const MAX_NEXT_STEPS_WORDS = 300;
-export const SECOND_LIFE_IDEAS_COUNT = 3;
+export const SECOND_LIFE_IDEAS_COUNT = 7;
 
 // --- Risk Level Ordering (for escalation logic) ---
 
