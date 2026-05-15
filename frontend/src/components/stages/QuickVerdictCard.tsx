@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import type { QuickVerdictOutput, RiskLevel } from '@resource-ai/shared';
-import { RiskBadge } from '../RiskBadge';
+import type { QuickVerdictOutput } from '@resource-ai/shared';
 import { Gauge, Cpu, Lightbulb, AlertTriangle, Info } from 'lucide-react';
 
 interface Props {
@@ -19,17 +18,7 @@ function getSalvageBg(score: number): string {
   return 'from-rose-500/20 to-rose-500/5';
 }
 
-function getConfidenceLabel(confidence: string): { label: string; color: string } {
-  switch (confidence) {
-    case 'high': return { label: 'High Confidence', color: 'text-emerald-400' };
-    case 'moderate': return { label: 'Moderate Confidence', color: 'text-amber-400' };
-    default: return { label: 'Low Confidence', color: 'text-rose-400' };
-  }
-}
-
 export function QuickVerdictCard({ data }: Props) {
-  const conf = getConfidenceLabel(data.confidence);
-
   return (
     <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
       <div className="p-6 pb-4 flex items-start justify-between gap-4">
@@ -38,16 +27,8 @@ export function QuickVerdictCard({ data }: Props) {
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-primary-400" />
             <span className="text-sm text-text-secondary">{data.deviceIdentification}</span>
-            <span
-              className={`inline-flex items-center justify-center w-2 h-2 rounded-full ${conf.color.replace('text-', 'bg-')}`}
-              aria-label={conf.label}
-              title={conf.label}
-            >
-              <span className="sr-only">{conf.label}</span>
-            </span>
           </div>
         </div>
-        <RiskBadge level={data.riskLevel as RiskLevel} compact />
       </div>
 
       {/* Key Metrics Row */}

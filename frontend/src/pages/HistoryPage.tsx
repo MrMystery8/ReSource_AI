@@ -81,22 +81,6 @@ function formatDate(dateStr: string): string {
   });
 }
 
-/** Get risk level badge color classes */
-function getRiskBadgeClasses(riskLevel: string | null): string {
-  switch (riskLevel) {
-    case 'Green':
-      return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-    case 'Yellow':
-      return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-    case 'Orange':
-      return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-    case 'Red':
-      return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
-    default:
-      return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-  }
-}
-
 /** Get status icon and label */
 function StatusIndicator({ status }: { status: SessionSummary['status'] }) {
   switch (status) {
@@ -316,13 +300,6 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
                       >
                         {session.deviceName || 'Unknown Device'}
                       </h3>
-                      {session.riskLevel && (
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${getRiskBadgeClasses(session.riskLevel)}`}
-                        >
-                          {session.riskLevel}
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-3 text-sm">
