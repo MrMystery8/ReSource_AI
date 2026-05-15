@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, MessageCircle, RefreshCw, Send, X } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { AlertCircle, MessageCircle, RefreshCw, Send, X, Sparkles } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,6 +29,7 @@ export interface ProjectChatbotProps {
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_HISTORY_MESSAGES = 50;
 const REQUEST_TIMEOUT_MS = 30_000;
+const CHAT_COACHMARK_KEY = 'resource_ai_chat_coachmark_seen';
 
 const API_URL = (import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_API_URL ?? '';
 const API_KEY = (import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_API_KEY ?? '';
@@ -59,10 +60,15 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessageId, setErrorMessageId] = useState<string | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
+  const [showCoachmark, setShowCoachmark] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(CHAT_COACHMARK_KEY) !== 'seen';
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -72,9 +78,20 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
   // Focus input when panel opens
   useEffect(() => {
     if (isOpen) {
+      setShowCoachmark(false);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(CHAT_COACHMARK_KEY, 'seen');
+      }
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  const dismissCoachmark = useCallback(() => {
+    setShowCoachmark(false);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(CHAT_COACHMARK_KEY, 'seen');
+    }
+  }, []);
 
   // Clear conversation history on navigation away (Requirement 5.7)
   useEffect(() => {
@@ -226,70 +243,111 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
 
   return (
     <>
-      {/* Hint bubble — light motion cue to explain the chat affordance */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed bottom-[122px] right-6 z-30 pointer-events-none"
-            aria-hidden="true"
-          >
-            <div
-              className="flex items-center gap-2 px-3 py-2 rounded-full border shadow-lg text-xs font-medium text-text-primary"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 90%, transparent)',
-                borderColor: 'color-mix(in srgb, var(--color-border-default) 80%, transparent)',
-                backdropFilter: 'blur(18px) saturate(140%)',
-                WebkitBackdropFilter: 'blur(18px) saturate(140%)',
-              }}
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+        <AnimatePresence>
+          {!isOpen && showCoachmark && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="relative max-w-[220px]"
             >
-              <motion.span
-                className="w-2 h-2 rounded-full bg-primary-400"
-                animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-              />
-              Need a second opinion? Ask the guide.
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Toggle Button — 44×44px minimum touch target (Requirement 5.1) */}
-      <button
-        onClick={onToggle}
-        aria-label={isOpen ? 'Close project chatbot' : 'Open project chatbot'}
-        aria-expanded={isOpen}
-        aria-haspopup="dialog"
-        className="fixed bottom-6 right-6 z-40 flex items-center justify-center rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30 hover:bg-primary-400 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card"
-        style={{ width: 52, height: 52, minWidth: 44, minHeight: 44 }}
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {isOpen ? (
-            <motion.span
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <X className="w-5 h-5" aria-hidden="true" />
-            </motion.span>
-          ) : (
-            <motion.span
-              key="open"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <MessageCircle className="w-5 h-5" aria-hidden="true" />
-            </motion.span>
+              <button
+                type="button"
+                onClick={dismissCoachmark}
+                className="absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border bg-surface-card text-text-muted shadow-sm hover:text-text-primary"
+                aria-label="Dismiss chat hint"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+              <div
+                className="relative rounded-2xl border px-3 py-2 shadow-lg"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 90%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--color-primary) 18%, var(--color-border-default))',
+                  backdropFilter: 'blur(18px) saturate(140%)',
+                  WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+                }}
+              >
+                <div className="flex items-start gap-2">
+                  <motion.span
+                    className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-500/10 text-primary-400"
+                    animate={prefersReducedMotion ? undefined : { y: [0, -2, 0] }}
+                    transition={prefersReducedMotion ? undefined : { duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+                    aria-hidden="true"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                  </motion.span>
+                  <div className="pr-3">
+                    <p className="text-sm font-medium text-text-primary leading-tight">
+                      Need a second opinion?
+                    </p>
+                    <p className="text-xs text-text-muted leading-tight mt-0.5">
+                      Tap the guide for project-specific help.
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="absolute bottom-[-7px] right-5 h-3.5 w-3.5 rotate-45 border-b border-r"
+                  style={{
+                    backgroundColor: 'var(--color-surface-card)',
+                    borderColor: 'color-mix(in srgb, var(--color-primary) 18%, var(--color-border-default))',
+                  }}
+                  aria-hidden="true"
+                />
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
-      </button>
+
+        {/* Toggle Button — 44×44px minimum touch target (Requirement 5.1) */}
+        <button
+          onClick={() => {
+            dismissCoachmark();
+            onToggle();
+          }}
+          aria-label={isOpen ? 'Close project chatbot' : 'Open project chatbot'}
+          aria-expanded={isOpen}
+          aria-haspopup="dialog"
+          className="relative flex items-center justify-center rounded-full bg-primary-500 text-white shadow-lg shadow-primary-500/30 hover:bg-primary-400 active:scale-95 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card"
+          style={{ width: 52, height: 52, minWidth: 44, minHeight: 44 }}
+        >
+          <AnimatePresence mode="wait" initial={false}>
+            {isOpen ? (
+              <motion.span
+                key="close"
+                initial={{ rotate: -90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: 90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <X className="w-5 h-5" aria-hidden="true" />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="open"
+                initial={{ rotate: 90, opacity: 0 }}
+                animate={{ rotate: 0, opacity: 1 }}
+                exit={{ rotate: -90, opacity: 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <MessageCircle className="w-5 h-5" aria-hidden="true" />
+              </motion.span>
+            )}
+          </AnimatePresence>
+
+          {!isOpen && showCoachmark && !prefersReducedMotion && (
+            <motion.span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full border border-primary-300/40"
+              initial={{ scale: 1, opacity: 0.55 }}
+              animate={{ scale: [1, 1.18, 1], opacity: [0.45, 0.1, 0.45] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          )}
+        </button>
+      </div>
 
       {/* Chat Panel — overlays the guide page (Requirement 5.2) */}
       <AnimatePresence>
