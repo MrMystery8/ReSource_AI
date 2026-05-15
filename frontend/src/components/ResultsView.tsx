@@ -55,8 +55,8 @@ const STAGE_ORDER = [
   'quickVerdict',
   'safetyGate',
   'detailedAnalysis',
-  'secondLifeIdeas',
   'nextSteps',
+  'secondLifeIdeas',
   'conceptVisual',
 ] as const;
 

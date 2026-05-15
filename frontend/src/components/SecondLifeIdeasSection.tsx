@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import type { ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
 import { EXPERTISE_LEVEL_ORDER, IDEA_SKILL_TO_EXPERTISE } from '@resource-ai/shared';
-import { Lightbulb, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { IdeaCard } from './IdeaCard';
+import { AlertCircle, Lightbulb, RefreshCw } from 'lucide-react';
+import { ProjectIdeaCarousel } from './ui/ProjectIdeaCarousel';
 
 export interface SecondLifeIdeasSectionProps {
   ideas: ProjectIdea[];
@@ -14,8 +14,11 @@ export interface SecondLifeIdeasSectionProps {
   reloadError: string | null;
 }
 
-// Number of cards visible at once in the carousel
-const VISIBLE_COUNT = 3;
+const cardEntrance = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.32, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+};
 
 export function SecondLifeIdeasSection({
   ideas,
@@ -25,348 +28,146 @@ export function SecondLifeIdeasSection({
   isReloading,
   reloadError,
 }: SecondLifeIdeasSectionProps) {
-  // Determine if an idea matches the user's expertise level (skill ≤ user level)
-  const userLevel = EXPERTISE_LEVEL_ORDER[userExpertise] ?? 1;
-  const isIdeaMatched = (idea: ProjectIdea): boolean => {
-    const mappedExpertise = IDEA_SKILL_TO_EXPERTISE[idea.skillLevel];
-    if (!mappedExpertise) return false; // missing/invalid skillLevel → not matched
-    const ideaLevel = EXPERTISE_LEVEL_ORDER[mappedExpertise];
-    return ideaLevel <= userLevel;
-  };
+  const userLevel = EXPERTISE_LEVEL_ORDER[userExpertise] ?? 0;
 
-  // Count matched vs other for display
-  const matchedCount = ideas.filter(isIdeaMatched).length;
-  const otherCount = ideas.length - matchedCount;
+  const orderedItems = useMemo(() => {
+    const matched: Array<{ idea: ProjectIdea; matched: boolean }> = [];
+    const other: Array<{ idea: ProjectIdea; matched: boolean }> = [];
 
-  // Order: matched ideas first, then others
-  const matchedIdeas = ideas.filter(isIdeaMatched);
-  const otherIdeas = ideas.filter((idea) => !isIdeaMatched(idea));
-  const allIdeas = [...matchedIdeas, ...otherIdeas];
+    for (const idea of ideas) {
+      const mappedExpertise = IDEA_SKILL_TO_EXPERTISE[idea.skillLevel];
+      const ideaLevel = mappedExpertise ? EXPERTISE_LEVEL_ORDER[mappedExpertise] : Number.POSITIVE_INFINITY;
+      const isMatched = Number.isFinite(ideaLevel) && ideaLevel <= userLevel;
 
-  // Current offset — the index of the leftmost visible card
-  const [offset, setOffset] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
-  const [isAnimating, setIsAnimating] = useState(false);
+      if (isMatched) {
+        matched.push({ idea, matched: true });
+      } else {
+        other.push({ idea, matched: false });
+      }
+    }
 
-  // Reset offset when ideas change (e.g. after reload)
-  useEffect(() => {
-    setOffset(0);
-  }, [ideas]);
+    return [...matched, ...other];
+  }, [ideas, userLevel]);
 
-  const maxOffset = Math.max(0, allIdeas.length - VISIBLE_COUNT);
-  const canGoLeft = offset > 0;
-  const canGoRight = offset < maxOffset;
-
-  const goLeft = useCallback(() => {
-    if (!canGoLeft || isAnimating) return;
-    setDirection(-1);
-    setOffset((prev) => Math.max(0, prev - 1));
-  }, [canGoLeft, isAnimating]);
-
-  const goRight = useCallback(() => {
-    if (!canGoRight || isAnimating) return;
-    setDirection(1);
-    setOffset((prev) => Math.min(maxOffset, prev + 1));
-  }, [canGoRight, isAnimating, maxOffset]);
-
-  // Keyboard navigation
-  const containerRef = useRef<HTMLDivElement>(null);
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); goLeft(); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); goRight(); }
-    },
-    [goLeft, goRight]
-  );
-
-  const visibleIdeas = allIdeas.slice(offset, offset + VISIBLE_COUNT);
-
-  // Dot indicators
-  const totalPages = maxOffset + 1;
-  const currentPage = offset;
+  const matchedCount = orderedItems.filter((item) => item.matched).length;
+  const otherCount = orderedItems.length - matchedCount;
 
   return (
-    <div
-      className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors"
+    <motion.section
+      {...cardEntrance}
+      aria-label="Safe Second Life Ideas"
+      className="mt-10 border-t border-[var(--color-border-default)] pt-8"
     >
-      {/* Header */}
-      <div className="p-6 pb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-            <Lightbulb className="w-5 h-5 text-emerald-400" />
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10">
+            <Lightbulb className="h-5 w-5 text-emerald-400" />
           </div>
-          <div>
-            <h3
-              className="text-lg font-semibold"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+                Next step
+              </span>
+              <span className="rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+                Project picker
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Safe Second Life Ideas
             </h3>
-            <span
-              className="text-xs"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              {matchedCount} for your level
-              {otherCount > 0 && ` · ${otherCount} at other levels`}
-            </span>
+            <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              Click a project card to open its implementation guide. Matched ideas are shown first, with other safe options following behind.
+            </p>
           </div>
         </div>
 
-        {/* Reload Button */}
         <button
+          type="button"
           onClick={onReload}
           disabled={isReloading}
           aria-label="Reload Second Life Ideas"
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             backgroundColor: 'var(--color-surface-elevated)',
-            border: '1px solid var(--color-border-subtle)',
             color: 'var(--color-text-secondary)',
-          }}
-          onMouseEnter={(e) => {
-            if (!isReloading) {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-primary)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--color-border-subtle)';
-            (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-secondary)';
+            borderColor: 'var(--color-border-default)',
           }}
         >
-          <RefreshCw
-            className={`w-3.5 h-3.5 ${isReloading ? 'animate-spin' : ''}`}
-            aria-hidden="true"
-          />
+          <RefreshCw className={`h-3.5 w-3.5 ${isReloading ? 'animate-spin' : ''}`} />
           {isReloading ? 'Loading...' : 'Reload'}
         </button>
       </div>
 
-      {/* Reload Error */}
+      <div className="mb-6 rounded-2xl border border-[var(--color-border-subtle)] bg-[color-mix(in_srgb,var(--color-surface-card)_74%,var(--color-surface-elevated))] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
+              Select a project
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              Choose the idea you want to build next. The selected card opens the step-by-step guide.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+            <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-500">
+              {matchedCount} matched
+            </span>
+            {otherCount > 0 && (
+              <span className="rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 font-semibold text-[var(--color-text-muted)]">
+                {otherCount} other options
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {reloadError && (
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mx-6 mb-4 p-3 rounded-lg flex items-start gap-2"
+          className="mb-5 flex items-start gap-2 rounded-xl border p-3"
           style={{
             backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+            borderColor: 'color-mix(in srgb, var(--color-error) 30%, transparent)',
           }}
           role="alert"
         >
-          <AlertCircle
-            className="w-4 h-4 shrink-0 mt-0.5"
-            style={{ color: 'var(--color-error)' }}
-          />
-          <p className="text-xs" style={{ color: 'var(--color-error)' }}>
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: 'var(--color-error)' }} />
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--color-error)' }}>
             {reloadError}
           </p>
         </motion.div>
       )}
 
-      {allIdeas.length === 0 ? (
-        <div className="px-6 pb-6">
-          <p
-            className="text-sm text-center py-4"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            No ideas available. Try reloading or adjusting your expertise level.
+      {ideas.length === 0 ? (
+        <div className="rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] p-6 text-center">
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            No ideas are available right now. Try reloading or adjust the analysis inputs.
           </p>
         </div>
       ) : (
-        <div className="px-6 pb-6">
-          {/* Carousel wrapper */}
-          <div
-            ref={containerRef}
-            className="relative focus:outline-none"
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
-            aria-label="Safe Second Life Ideas carousel"
-            aria-roledescription="carousel"
-          >
-            {/* Cards row */}
-            <div className="relative overflow-hidden">
-              <AnimatePresence
-                mode="popLayout"
-                initial={false}
-                onExitComplete={() => setIsAnimating(false)}
-              >
-                <motion.div
-                  key={offset}
-                  className="grid gap-3"
-                  style={{
-                    gridTemplateColumns: `repeat(${Math.min(VISIBLE_COUNT, visibleIdeas.length)}, 1fr)`,
-                  }}
-                  initial={{ opacity: 0, x: direction * 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: direction * -40 }}
-                  transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  onAnimationStart={() => setIsAnimating(true)}
-                  onAnimationComplete={() => setIsAnimating(false)}
-                  aria-live="polite"
-                  aria-atomic="true"
-                >
-                  {visibleIdeas.map((idea, i) => {
-                    const isMatched = isIdeaMatched(idea);
-                    return (
-                      <div key={`${idea.title}-${offset}-${i}`} className="relative">
-                        {/* Matched indicator — subtle left border accent */}
-                        {isMatched && (
-                          <div
-                            className="absolute top-2 bottom-2 left-0 w-0.5 rounded-full z-10"
-                            style={{ backgroundColor: 'var(--color-primary)' }}
-                          />
-                        )}
-                        <div
-                          style={{
-                            opacity: isMatched ? 1 : 0.65,
-                            transition: 'opacity 0.2s',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '1';
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isMatched) (e.currentTarget as HTMLDivElement).style.opacity = '0.65';
-                          }}
-                        >
-                          <IdeaCard
-                            idea={idea}
-                            onClick={onIdeaClick}
-                            index={i}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </motion.div>
-              </AnimatePresence>
+        <>
+          <ProjectIdeaCarousel
+            items={orderedItems}
+            onIdeaClick={onIdeaClick}
+            className="group"
+          />
+
+          {otherCount > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-4 px-1 text-xs text-[var(--color-text-secondary)]">
+              <span className="flex items-center gap-2">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--color-primary)] shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]" />
+                Matched to your level
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--color-text-muted)] opacity-60" />
+                Other safe options
+              </span>
             </div>
-
-            {/* Navigation row: left arrow · dots · right arrow */}
-            {allIdeas.length > VISIBLE_COUNT && (
-              <div className="flex items-center justify-between mt-4">
-                {/* Left arrow */}
-                <button
-                  onClick={goLeft}
-                  disabled={!canGoLeft || isAnimating}
-                  aria-label="Previous ideas"
-                  className="flex items-center justify-center w-8 h-8 rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: canGoLeft
-                      ? 'var(--color-surface-elevated)'
-                      : 'transparent',
-                    border: '1px solid var(--color-border-subtle)',
-                    color: 'var(--color-text-secondary)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (canGoLeft) {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor =
-                        'var(--color-primary)';
-                      (e.currentTarget as HTMLButtonElement).style.color =
-                        'var(--color-text-primary)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      'var(--color-border-subtle)';
-                    (e.currentTarget as HTMLButtonElement).style.color =
-                      'var(--color-text-secondary)';
-                  }}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                {/* Dot indicators */}
-                <div className="flex items-center gap-1.5" role="tablist" aria-label="Carousel position">
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button
-                      key={i}
-                      role="tab"
-                      aria-selected={i === currentPage}
-                      aria-label={`Go to position ${i + 1}`}
-                      onClick={() => {
-                        if (isAnimating) return;
-                        setDirection(i > offset ? 1 : -1);
-                        setOffset(i);
-                      }}
-                      className="rounded-full transition-all"
-                      style={{
-                        width: i === currentPage ? '20px' : '6px',
-                        height: '6px',
-                        backgroundColor:
-                          i === currentPage
-                            ? 'var(--color-primary)'
-                            : 'var(--color-border-default)',
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* Right arrow */}
-                <button
-                  onClick={goRight}
-                  disabled={!canGoRight || isAnimating}
-                  aria-label="Next ideas"
-                  className="flex items-center justify-center w-8 h-8 rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: canGoRight
-                      ? 'var(--color-surface-elevated)'
-                      : 'transparent',
-                    border: '1px solid var(--color-border-subtle)',
-                    color: 'var(--color-text-secondary)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (canGoRight) {
-                      (e.currentTarget as HTMLButtonElement).style.borderColor =
-                        'var(--color-primary)';
-                      (e.currentTarget as HTMLButtonElement).style.color =
-                        'var(--color-text-primary)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      'var(--color-border-subtle)';
-                    (e.currentTarget as HTMLButtonElement).style.color =
-                      'var(--color-text-secondary)';
-                  }}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {/* Expertise legend — always shown when carousel has more than 3 ideas */}
-            {allIdeas.length > VISIBLE_COUNT && otherCount > 0 && (
-              <div
-                className="mt-4 flex items-center gap-5 text-xs px-1"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                <span className="flex items-center gap-2">
-                  <span
-                    className="inline-block w-2.5 h-2.5 rounded-full"
-                    style={{
-                      backgroundColor: 'var(--color-primary)',
-                      boxShadow: '0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent), 0 0 6px var(--color-primary)',
-                    }}
-                  />
-                  Matched to your level
-                </span>
-                <span className="flex items-center gap-2">
-                  <span
-                    className="inline-block w-2.5 h-2.5 rounded-full"
-                    style={{
-                      backgroundColor: 'var(--color-text-muted)',
-                      opacity: 0.6,
-                    }}
-                  />
-                  Other skill levels
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
+          )}
+        </>
       )}
-    </div>
+    </motion.section>
   );
 }
 
