@@ -64,7 +64,7 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
 
   return (
     <BackgroundGradientAnimation
-      interactive={false}
+      interactive={true}
       className="relative z-10"
       containerClassName="min-h-dvh w-full"
       {...backgroundProps}

@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, MouseEvent, ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -94,28 +94,37 @@ export const BackgroundGradientAnimation = ({
   ]);
 
   useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!interactiveRef.current) {
+        return;
+      }
+
+      const rect = interactiveRef.current.getBoundingClientRect();
+      setTgX(event.clientX - rect.left);
+      setTgY(event.clientY - rect.top);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  useEffect(() => {
     function move() {
       if (!interactiveRef.current) {
         return;
       }
 
-      setCurX(curX + (tgX - curX) / 20);
-      setCurY(curY + (tgY - curY) / 20);
+      const nextX = curX + (tgX - curX) / 20;
+      const nextY = curY + (tgY - curY) / 20;
+      setCurX(nextX);
+      setCurY(nextY);
       interactiveRef.current.style.transform = `translate(${Math.round(
-        curX
-      )}px, ${Math.round(curY)}px)`;
+        nextX,
+      )}px, ${Math.round(nextY)}px)`;
     }
 
     move();
   }, [curX, curY, tgX, tgY]);
-
-  const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
-    if (interactiveRef.current) {
-      const rect = interactiveRef.current.getBoundingClientRect();
-      setTgX(event.clientX - rect.left);
-      setTgY(event.clientY - rect.top);
-    }
-  };
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
@@ -151,7 +160,7 @@ export const BackgroundGradientAnimation = ({
       <div className={cn('relative z-10', className)}>{children}</div>
       <div
         className={cn(
-          'gradients-container fixed inset-0 h-screen w-screen blur-lg',
+          'gradients-container fixed inset-0 h-screen w-screen blur-lg pointer-events-none',
           isSafari ? 'blur-2xl' : '[filter:url(#blurMe)_blur(40px)]',
         )}
       >
@@ -204,11 +213,10 @@ export const BackgroundGradientAnimation = ({
         {interactive && (
           <div
             ref={interactiveRef}
-            onMouseMove={handleMouseMove}
             className={cn(
               'absolute [background:radial-gradient(circle_at_center,_rgba(var(--pointer-color),_0.45)_0,_rgba(var(--pointer-color),_0)_50%)_no-repeat]',
               '[mix-blend-mode:var(--blending-value)] w-full h-full -top-1/2 -left-1/2',
-              'opacity-30',
+              'opacity-30 pointer-events-none',
             )}
           />
         )}
