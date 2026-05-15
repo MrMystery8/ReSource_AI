@@ -14,6 +14,16 @@ import { EmptyState } from '../components/ui/EmptyState';
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 
+const BACK_LINK_CLASS =
+  'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2';
+
+const BACK_LINK_STYLE: React.CSSProperties = {
+  backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-card))',
+  color: 'var(--color-text-primary)',
+  border: '1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border-default))',
+  boxShadow: 'var(--shadow-sm)',
+};
+
 // ─── Skeleton for session detail ──────────────────────────────────────────
 
 function SessionDetailSkeleton() {
@@ -197,12 +207,8 @@ export function SessionDetailPage() {
             ctaElement={
               <Link
                 to="/history"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-surface-elevated)',
-                  color: 'var(--color-text-primary)',
-                  border: '1px solid var(--color-border-default)',
-                }}
+                className={BACK_LINK_CLASS}
+                style={BACK_LINK_STYLE}
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back to History
@@ -244,10 +250,8 @@ export function SessionDetailPage() {
     >
       <Link
         to="/history"
-        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-        style={{
-          color: 'var(--color-text-secondary)',
-        }}
+        className={`${BACK_LINK_CLASS} mb-6`}
+        style={BACK_LINK_STYLE}
       >
         <ArrowLeft className="w-4 h-4" />
         Back to History

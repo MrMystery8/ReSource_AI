@@ -8,7 +8,6 @@ import {
   Loader2,
   AlertTriangle,
   Trash2,
-  Ban,
   ChevronRight,
   Star,
   Zap,
@@ -20,7 +19,6 @@ export interface ProjectHistoryTabProps {
   totalCount: number;
   onLoadMore: () => void;
   onNavigate: (projectId: string) => void;
-  onAbandon: (projectId: string) => void;
   onDelete: (projectId: string) => void;
   isLoadingMore?: boolean;
   error?: string | null;
@@ -179,14 +177,12 @@ export function ProjectHistoryTab({
   totalCount,
   onLoadMore,
   onNavigate,
-  onAbandon,
   onDelete,
   isLoadingMore = false,
   error = null,
   onRetry,
 }: ProjectHistoryTabProps) {
   const navigate = useNavigate();
-  const [abandonTarget, setAbandonTarget] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const hasMore = projects.length < totalCount;
@@ -196,13 +192,6 @@ export function ProjectHistoryTab({
     onNavigate(project.projectId);
     // Navigate to guide page; completed projects will show read-only view
     navigate(`/guide/${project.projectId}`);
-  }
-
-  function handleAbandonConfirm() {
-    if (abandonTarget) {
-      onAbandon(abandonTarget);
-      setAbandonTarget(null);
-    }
   }
 
   function handleDeleteConfirm() {
@@ -327,21 +316,6 @@ export function ProjectHistoryTab({
 
                 {/* Right: actions + chevron */}
                 <div className="flex items-center gap-2 shrink-0">
-                  {/* Abandon button — only for in-progress */}
-                  {project.status === 'in-progress' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAbandonTarget(project.projectId);
-                      }}
-                      aria-label={`Abandon project: ${project.ideaTitle}`}
-                      title="Abandon project"
-                      className="p-1.5 rounded-lg text-text-muted hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
-                    >
-                      <Ban className="w-4 h-4" />
-                    </button>
-                  )}
-
                   {/* Delete button — always available */}
                   <button
                     onClick={(e) => {
@@ -350,9 +324,10 @@ export function ProjectHistoryTab({
                     }}
                     aria-label={`Delete project: ${project.ideaTitle}`}
                     title="Delete project"
-                    className="p-1.5 rounded-lg text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-text-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
+                    Delete
                   </button>
 
                   {/* Chevron — only for navigable projects */}
@@ -385,21 +360,6 @@ export function ProjectHistoryTab({
           </button>
         </div>
       )}
-
-      {/* Abandon confirmation dialog */}
-      <AnimatePresence>
-        {abandonTarget && (
-          <ConfirmDialog
-            isOpen={true}
-            title="Abandon Project?"
-            message="This will mark the project as abandoned. You can still view it in your history, but it will no longer appear as in-progress."
-            confirmLabel="Abandon"
-            confirmClassName="bg-amber-600 hover:bg-amber-500"
-            onConfirm={handleAbandonConfirm}
-            onCancel={() => setAbandonTarget(null)}
-          />
-        )}
-      </AnimatePresence>
 
       {/* Delete confirmation dialog */}
       <AnimatePresence>

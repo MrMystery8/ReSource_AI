@@ -477,22 +477,6 @@ function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
     }
   };
 
-  const handleAbandon = async (projectId: string) => {
-    if (!token) return;
-    const client = new ApiClient(API_URL, API_KEY, () => token);
-    try {
-      await client.updateProject(projectId, 'abandon');
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.projectId === projectId ? { ...p, status: 'abandoned' as const } : p
-        )
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to abandon project';
-      setError(message);
-    }
-  };
-
   const handleDelete = async (projectId: string) => {
     if (!token) return;
     const client = new ApiClient(API_URL, API_KEY, () => token);
@@ -536,7 +520,6 @@ function ProjectsTabContainer({ token }: ProjectsTabContainerProps) {
         onNavigate={() => {
           // Navigation is handled inside ProjectHistoryTab via useNavigate
         }}
-        onAbandon={handleAbandon}
         onDelete={handleDelete}
         isLoadingMore={isLoadingMore}
         error={error}

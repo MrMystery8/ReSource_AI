@@ -18,7 +18,7 @@ export function SafetyGateCard({ data }: Props) {
           </div>
           <h3 className="text-lg font-semibold text-text-primary">Safety Gate</h3>
         </div>
-        <RiskBadge level={data.riskLevel as RiskLevel} />
+        <RiskBadge level={data.riskLevel as RiskLevel} compact />
       </div>
 
       <div className="px-6 pb-6 space-y-4">

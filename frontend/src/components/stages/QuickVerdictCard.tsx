@@ -38,10 +38,16 @@ export function QuickVerdictCard({ data }: Props) {
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-primary-400" />
             <span className="text-sm text-text-secondary">{data.deviceIdentification}</span>
-            <span className={`text-xs ${conf.color}`}>• {conf.label}</span>
+            <span
+              className={`inline-flex items-center justify-center w-2 h-2 rounded-full ${conf.color.replace('text-', 'bg-')}`}
+              aria-label={conf.label}
+              title={conf.label}
+            >
+              <span className="sr-only">{conf.label}</span>
+            </span>
           </div>
         </div>
-        <RiskBadge level={data.riskLevel as RiskLevel} />
+        <RiskBadge level={data.riskLevel as RiskLevel} compact />
       </div>
 
       {/* Key Metrics Row */}

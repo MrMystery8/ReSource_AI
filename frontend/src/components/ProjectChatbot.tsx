@@ -226,6 +226,37 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
 
   return (
     <>
+      {/* Hint bubble — light motion cue to explain the chat affordance */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed bottom-[122px] right-6 z-30 pointer-events-none"
+            aria-hidden="true"
+          >
+            <div
+              className="flex items-center gap-2 px-3 py-2 rounded-full border shadow-lg text-xs font-medium text-text-primary"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 90%, transparent)',
+                borderColor: 'color-mix(in srgb, var(--color-border-default) 80%, transparent)',
+                backdropFilter: 'blur(18px) saturate(140%)',
+                WebkitBackdropFilter: 'blur(18px) saturate(140%)',
+              }}
+            >
+              <motion.span
+                className="w-2 h-2 rounded-full bg-primary-400"
+                animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              Ask here if confused
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Toggle Button — 44×44px minimum touch target (Requirement 5.1) */}
       <button
         onClick={onToggle}
@@ -271,10 +302,25 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed bottom-[76px] right-6 z-40 flex flex-col w-[min(380px,calc(100vw-3rem))] h-[min(520px,calc(100vh-120px))] rounded-2xl bg-surface-card border border-border-subtle shadow-2xl overflow-hidden"
+            className="relative fixed bottom-[76px] right-6 z-40 flex flex-col w-[min(380px,calc(100vw-3rem))] h-[min(520px,calc(100vh-120px))] rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 88%, transparent)',
+              backdropFilter: 'blur(24px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
+            }}
           >
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 26%), radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 14%, transparent) 0%, transparent 42%)',
+              }}
+            />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
             {/* Header */}
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-border-subtle bg-surface-elevated/60 shrink-0">
+            <div className="relative flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10 bg-white/5 shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
                   <MessageCircle className="w-4 h-4 text-primary-400" aria-hidden="true" />
@@ -297,7 +343,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
 
             {/* Messages */}
             <div
-              className="flex-1 overflow-y-auto px-4 py-3 space-y-3"
+              className="relative flex-1 overflow-y-auto px-4 py-3 space-y-3"
               aria-live="polite"
               aria-label="Conversation history"
             >
@@ -375,7 +421,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
             </div>
 
             {/* Input Area */}
-            <div className="shrink-0 border-t border-border-subtle bg-surface-elevated/40 px-3 py-3">
+            <div className="relative shrink-0 border-t border-white/10 bg-white/5 px-3 py-3">
               <div className="flex items-end gap-2">
                 <div className="flex-1 relative">
                   <textarea

@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   User,
   Mail,
-  Shield,
   Calendar,
   Pencil,
   Check,
@@ -403,29 +402,6 @@ export function ProfilePage() {
                 </div>
               </div>
 
-              {/* Role */}
-              <div>
-                <p
-                  className="text-xs font-medium uppercase tracking-wide"
-                  style={{ color: 'var(--color-text-muted)' }}
-                >
-                  Role
-                </p>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <Shield className="w-4 h-4" aria-hidden="true" style={{ color: 'var(--color-text-muted)' }} />
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
-                      borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
-                      color: 'var(--color-primary)',
-                    }}
-                  >
-                    {user?.role ?? 'user'}
-                  </span>
-                </div>
-              </div>
-
               {/* Member Since */}
               <div>
                 <p
@@ -451,7 +427,7 @@ export function ProfilePage() {
           </Card>
         </motion.div>
 
-        {/* Gamification Stats Card */}
+        {/* Statistics Card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -463,7 +439,7 @@ export function ProfilePage() {
               style={{ color: 'var(--color-text-primary)' }}
             >
               <Trophy className="w-5 h-5 text-amber-500" />
-              Gamification Stats
+              Statistics
             </h2>
 
             {statsLoading ? (

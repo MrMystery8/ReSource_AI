@@ -24,6 +24,16 @@ const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 const TIMEOUT_MS = 30_000;
 
+const BACK_BUTTON_CLASS =
+  'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-150 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2';
+
+const BACK_BUTTON_STYLE: React.CSSProperties = {
+  backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, var(--color-surface-card))',
+  color: 'var(--color-text-primary)',
+  borderColor: 'color-mix(in srgb, var(--color-primary) 20%, var(--color-border-default))',
+  boxShadow: 'var(--shadow-sm)',
+};
+
 // ─── State shape passed via React Router location.state ───
 
 export interface GuidePageState {
@@ -355,12 +365,8 @@ export function ImplementationGuidePage() {
           </p>
           <button
             onClick={() => navigate('/history')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
-            style={{
-              backgroundColor: 'var(--color-surface-elevated)',
-              color: 'var(--color-primary)',
-              border: '1px solid var(--color-border-default)',
-            }}
+            className={BACK_BUTTON_CLASS}
+            style={BACK_BUTTON_STYLE}
           >
             <ArrowLeft className="w-4 h-4" />
             Back to History
@@ -395,12 +401,8 @@ export function ImplementationGuidePage() {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
-            style={{
-              backgroundColor: 'var(--color-surface-elevated)',
-              color: 'var(--color-primary)',
-              border: '1px solid var(--color-border-default)',
-            }}
+            className={BACK_BUTTON_CLASS}
+            style={BACK_BUTTON_STYLE}
           >
             <ArrowLeft className="w-4 h-4" />
             Go Home
@@ -422,17 +424,8 @@ export function ImplementationGuidePage() {
       {/* Back navigation */}
       <button
         onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-lg transition-colors"
-        style={{ color: 'var(--color-text-secondary)' }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-primary)';
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-            'var(--color-surface-elevated)';
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-text-secondary)';
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
-        }}
+        className={`${BACK_BUTTON_CLASS} mb-6`}
+        style={BACK_BUTTON_STYLE}
       >
         <ArrowLeft className="w-4 h-4" />
         Back
@@ -475,13 +468,12 @@ export function ImplementationGuidePage() {
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
               style={{
-                backgroundColor: 'var(--badge-info-bg)',
-                color: 'var(--badge-info-fg)',
-                border: '1px solid var(--badge-info-border)',
+                backgroundColor: 'var(--color-surface-elevated)',
+                color: 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border-default)',
               }}
             >
-              <Clock className="w-3.5 h-3.5" />
-              {guide.estimatedTime}
+              {effectiveState.userContext.expertiseLevel}
             </span>
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
@@ -491,7 +483,8 @@ export function ImplementationGuidePage() {
                 border: '1px solid var(--color-border-default)',
               }}
             >
-              {effectiveState.userContext.expertiseLevel}
+              <Clock className="w-3.5 h-3.5" />
+              {guide.estimatedTime}
             </span>
           </div>
 
