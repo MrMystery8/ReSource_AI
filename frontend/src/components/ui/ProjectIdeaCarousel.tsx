@@ -47,7 +47,7 @@ function ProjectIdeaCard({
         'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border text-left shadow-[var(--shadow-md)]',
         'bg-[var(--color-surface-card)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ y: -4, scale: 1.008 }}
+      whileHover={{ y: -4, scale: 1.006 }}
       whileTap={{ scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 280, damping: 24 }}
       aria-label={`Open implementation guide for ${idea.title}`}
@@ -57,7 +57,7 @@ function ProjectIdeaCard({
     >
       <div
         className={cn(
-          'relative min-h-[430px] overflow-hidden',
+          'relative min-h-[400px] overflow-hidden',
           'bg-gradient-to-b',
           categoryStyle.background
         )}
@@ -71,7 +71,7 @@ function ProjectIdeaCard({
         />
 
         <div className="relative flex h-full flex-col">
-          <div className="flex h-[44%] flex-col justify-between px-5 pb-4 pt-5">
+          <div className="flex h-[41%] flex-col justify-between px-5 pb-4 pt-5">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-2 pr-2">
                 <span
@@ -103,7 +103,7 @@ function ProjectIdeaCard({
             }}
           />
 
-          <div className="flex flex-1 flex-col justify-between px-5 pb-5 pt-4">
+          <div className="flex flex-1 flex-col justify-between px-5 pb-4 pt-4">
             <div className="space-y-4">
               <div>
                 <div className="mb-2 flex items-center gap-1.5">
@@ -177,7 +177,7 @@ export function ProjectIdeaCarousel({
         <div className="min-w-0 pt-3 pb-4">
           <div
             ref={scrollContainerRef}
-            className="scrollbar-hide flex gap-5 overflow-x-auto pb-3 pr-1 snap-x snap-mandatory"
+            className="scrollbar-hide flex gap-5 overflow-x-auto pb-8 pr-1 pt-2 snap-x snap-mandatory"
           >
             {items.map((idea, index) => (
               <ProjectIdeaCard
