@@ -104,9 +104,10 @@ export function updateStreak(currentStreak: number, lastTriageDate: string | nul
   const lastDate = new Date(lastTriageDate);
   const now = new Date();
   const diffMs = now.getTime() - lastDate.getTime();
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  const dayMs = 1000 * 60 * 60 * 24;
+  const diffDays = Math.floor(diffMs / dayMs);
 
-  if (diffDays <= 7) {
+  if (diffMs >= 0 && diffDays <= 7) {
     return currentStreak + 1;
   }
 
