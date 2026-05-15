@@ -40,25 +40,25 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
   const backgroundProps =
     theme === 'dark'
       ? {
-          gradientBackgroundStart: 'rgb(7, 12, 9)',
-          gradientBackgroundEnd: 'rgb(14, 20, 16)',
-          firstColor: '56, 127, 102',
-          secondColor: '91, 108, 74',
-          thirdColor: '50, 107, 90',
-          fourthColor: '113, 98, 66',
-          fifthColor: '68, 119, 94',
-          pointerColor: '85, 115, 101',
+          gradientBackgroundStart: 'rgb(8, 12, 11)',
+          gradientBackgroundEnd: 'rgb(15, 20, 18)',
+          firstColor: '52, 104, 90',
+          secondColor: '88, 93, 117',
+          thirdColor: '77, 111, 96',
+          fourthColor: '110, 94, 74',
+          fifthColor: '84, 100, 129',
+          pointerColor: '88, 102, 96',
           blendingValue: 'screen',
         }
       : {
-          gradientBackgroundStart: 'rgb(249, 252, 249)',
-          gradientBackgroundEnd: 'rgb(241, 247, 243)',
-          firstColor: '120, 166, 140',
-          secondColor: '161, 142, 90',
-          thirdColor: '94, 129, 116',
-          fourthColor: '148, 133, 99',
-          fifthColor: '111, 154, 131',
-          pointerColor: '140, 160, 150',
+          gradientBackgroundStart: 'rgb(248, 251, 248)',
+          gradientBackgroundEnd: 'rgb(241, 246, 243)',
+          firstColor: '108, 144, 128',
+          secondColor: '138, 129, 102',
+          thirdColor: '106, 124, 147',
+          fourthColor: '134, 118, 96',
+          fifthColor: '124, 149, 133',
+          pointerColor: '132, 145, 149',
           blendingValue: 'soft-light',
         };
 
