@@ -36,11 +36,11 @@ export const BackgroundGradientAnimation = ({
   containerClassName?: string;
 }) => {
   const interactiveRef = useRef<HTMLDivElement>(null);
-
-  const [curX, setCurX] = useState(0);
-  const [curY, setCurY] = useState(0);
-  const [tgX, setTgX] = useState(0);
-  const [tgY, setTgY] = useState(0);
+  const curXRef = useRef(0);
+  const curYRef = useRef(0);
+  const tgXRef = useRef(0);
+  const tgYRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     document.body.style.setProperty(
@@ -61,28 +61,39 @@ export const BackgroundGradientAnimation = ({
     document.body.style.setProperty('--blending-value', blendingValue);
   }, []);
 
-  useEffect(() => {
-    function move() {
-      if (!interactiveRef.current) {
-        return;
-      }
-      setCurX(curX + (tgX - curX) / 20);
-      setCurY(curY + (tgY - curY) / 20);
-      interactiveRef.current.style.transform = `translate(${Math.round(
-        curX,
-      )}px, ${Math.round(curY)}px)`;
-    }
-
-    move();
-  }, [tgX, tgY]);
-
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (interactiveRef.current) {
       const rect = interactiveRef.current.getBoundingClientRect();
-      setTgX(event.clientX - rect.left);
-      setTgY(event.clientY - rect.top);
+      tgXRef.current = event.clientX - rect.left;
+      tgYRef.current = event.clientY - rect.top;
     }
   };
+
+  useEffect(() => {
+    if (!interactive) {
+      return;
+    }
+
+    const animate = () => {
+      if (interactiveRef.current) {
+        curXRef.current += (tgXRef.current - curXRef.current) / 18;
+        curYRef.current += (tgYRef.current - curYRef.current) / 18;
+        interactiveRef.current.style.transform = `translate(${Math.round(
+          curXRef.current,
+        )}px, ${Math.round(curYRef.current)}px)`;
+      }
+
+      rafRef.current = window.requestAnimationFrame(animate);
+    };
+
+    rafRef.current = window.requestAnimationFrame(animate);
+
+    return () => {
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [interactive]);
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
@@ -118,51 +129,56 @@ export const BackgroundGradientAnimation = ({
       <div className={cn('relative z-10', className)}>{children}</div>
       <div
         className={cn(
-          'gradients-container absolute inset-0 h-full w-full blur-lg',
-          isSafari ? 'blur-2xl' : '[filter:url(#blurMe)_blur(40px)]',
+          'gradients-container absolute inset-0 h-full w-full blur-xl',
+          isSafari ? 'blur-3xl' : '[filter:url(#blurMe)_blur(56px)]',
         )}
       >
         <div
           className={cn(
-            '[background:radial-gradient(circle_at_center,_var(--first-color)_0,_var(--first-color)_50%)_no-repeat]',
+            '[background:radial-gradient(circle_at_center,_rgba(var(--first-color),_0.85)_0,_rgba(var(--first-color),_0.55)_28%,_rgba(var(--first-color),_0)_64%)_no-repeat]',
             '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
             '[transform-origin:center_center]',
+            'will-change-transform',
             'animate-first',
             'opacity-100',
           )}
         />
         <div
           className={cn(
-            '[background:radial-gradient(circle_at_center,_rgba(var(--second-color),_0.8)_0,_rgba(var(--second-color),_0)_50%)_no-repeat]',
+            '[background:radial-gradient(circle_at_center,_rgba(var(--second-color),_0.78)_0,_rgba(var(--second-color),_0.45)_30%,_rgba(var(--second-color),_0)_68%)_no-repeat]',
             '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
             '[transform-origin:calc(50%-400px)]',
+            'will-change-transform',
             'animate-second',
             'opacity-100',
           )}
         />
         <div
           className={cn(
-            '[background:radial-gradient(circle_at_center,_rgba(var(--third-color),_0.8)_0,_rgba(var(--third-color),_0)_50%)_no-repeat]',
+            '[background:radial-gradient(circle_at_center,_rgba(var(--third-color),_0.78)_0,_rgba(var(--third-color),_0.42)_30%,_rgba(var(--third-color),_0)_68%)_no-repeat]',
             '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
             '[transform-origin:calc(50%+400px)]',
+            'will-change-transform',
             'animate-third',
             'opacity-100',
           )}
         />
         <div
           className={cn(
-            '[background:radial-gradient(circle_at_center,_rgba(var(--fourth-color),_0.8)_0,_rgba(var(--fourth-color),_0)_50%)_no-repeat]',
+            '[background:radial-gradient(circle_at_center,_rgba(var(--fourth-color),_0.72)_0,_rgba(var(--fourth-color),_0.38)_28%,_rgba(var(--fourth-color),_0)_64%)_no-repeat]',
             '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
             '[transform-origin:calc(50%-200px)]',
+            'will-change-transform',
             'animate-fourth',
             'opacity-70',
           )}
         />
         <div
           className={cn(
-            '[background:radial-gradient(circle_at_center,_rgba(var(--fifth-color),_0.8)_0,_rgba(var(--fifth-color),_0)_50%)_no-repeat]',
+            '[background:radial-gradient(circle_at_center,_rgba(var(--fifth-color),_0.78)_0,_rgba(var(--fifth-color),_0.44)_30%,_rgba(var(--fifth-color),_0)_68%)_no-repeat]',
             '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
             '[transform-origin:calc(50%-800px)_calc(50%+800px)]',
+            'will-change-transform',
             'animate-fifth',
             'opacity-100',
           )}
@@ -172,9 +188,9 @@ export const BackgroundGradientAnimation = ({
           <div
             ref={interactiveRef}
             className={cn(
-              '[background:radial-gradient(circle_at_center,_rgba(var(--pointer-color),_0.8)_0,_rgba(var(--pointer-color),_0)_50%)_no-repeat]',
+              '[background:radial-gradient(circle_at_center,_rgba(var(--pointer-color),_0.42)_0,_rgba(var(--pointer-color),_0.2)_22%,_rgba(var(--pointer-color),_0)_60%)_no-repeat]',
               '[mix-blend-mode:var(--blending-value)] absolute h-full w-full -top-1/2 -left-1/2',
-              'opacity-70',
+              'opacity-80 will-change-transform',
             )}
           />
         )}
