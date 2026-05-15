@@ -20,6 +20,8 @@ export type { BadgeProps, BadgeVariant } from './Badge';
 
 export { ThemeToggle } from './ThemeToggle';
 
+export { BackgroundGradientAnimation } from './background-gradient-animation';
+
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 

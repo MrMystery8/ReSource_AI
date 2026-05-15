@@ -21,6 +21,8 @@ import { RouteAnnouncer } from './RouteAnnouncer';
 import { DesktopHeader } from './DesktopHeader';
 import { MobileBottomNav } from './MobileBottomNav';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration';
+import { BackgroundGradientAnimation } from '../ui/background-gradient-animation';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export interface AppShellProps {
   children: ReactNode;
@@ -33,64 +35,89 @@ export interface AppShellProps {
 export function AppShell({ children }: AppShellProps): JSX.Element {
   // Preserve and restore scroll position per route pathname (Requirement 4.4)
   useScrollRestoration();
+  const { theme } = useTheme();
+
+  const backgroundProps =
+    theme === 'dark'
+      ? {
+          gradientBackgroundStart: 'rgb(7, 12, 9)',
+          gradientBackgroundEnd: 'rgb(14, 20, 16)',
+          firstColor: '56, 127, 102',
+          secondColor: '91, 108, 74',
+          thirdColor: '50, 107, 90',
+          fourthColor: '113, 98, 66',
+          fifthColor: '68, 119, 94',
+          pointerColor: '85, 115, 101',
+          blendingValue: 'screen',
+        }
+      : {
+          gradientBackgroundStart: 'rgb(249, 252, 249)',
+          gradientBackgroundEnd: 'rgb(241, 247, 243)',
+          firstColor: '120, 166, 140',
+          secondColor: '161, 142, 90',
+          thirdColor: '94, 129, 116',
+          fourthColor: '148, 133, 99',
+          fifthColor: '111, 154, 131',
+          pointerColor: '140, 160, 150',
+          blendingValue: 'soft-light',
+        };
 
   return (
-    /*
-     * Full-height container using min-h-dvh (not 100vh) to account for
-     * dynamic browser chrome on mobile (Requirement 6.6).
-     * Background uses the surface semantic token so it responds to theme changes.
-     */
-    <div
-      className="min-h-dvh"
-      style={{ backgroundColor: 'var(--color-surface)' }}
+    <BackgroundGradientAnimation
+      interactive={false}
+      className="relative z-10"
+      containerClassName="min-h-dvh w-full"
+      {...backgroundProps}
     >
-      {/* 1. SkipLink MUST be the first focusable element (Requirement 4.8, 10.4) */}
-      <SkipLink />
+      <div className="relative isolate min-h-dvh">
+        {/* 1. SkipLink MUST be the first focusable element (Requirement 4.8, 10.4) */}
+        <SkipLink />
 
-      {/*
-       * 2. Desktop header — hidden below 768px via Tailwind responsive utilities.
-       *    Sticky positioning on the outer wrapper so it stays at top on scroll.
-       *    (Requirement 4.1)
-       */}
-      <div className="hidden md:block sticky top-0 z-40">
-        <DesktopHeader />
+        {/*
+         * 2. Desktop header — hidden below 768px via Tailwind responsive utilities.
+         *    Sticky positioning on the outer wrapper so it stays at top on scroll.
+         *    (Requirement 4.1)
+         */}
+        <div className="hidden md:block sticky top-0 z-40">
+          <DesktopHeader />
+        </div>
+
+        {/*
+         * 3. Main content area (Requirement 6.1, 6.2, 6.5)
+         *
+         *    id="main-content" — target for the SkipLink href and RouteAnnouncer focus
+         *    max-w-6xl mx-auto — constrain to 72rem and center horizontally
+         *    px-4 — 16px horizontal padding on mobile (Requirement 6.2)
+         *    md:px-6 — 24px horizontal padding at ≥768px (Requirement 6.2)
+         *    pb-[calc(64px+16px)] — reserve space for the 64px fixed bottom nav
+         *      plus 16px gap on mobile so content is never obscured (Requirement 6.5)
+         *    md:pb-0 — no bottom padding needed on desktop (no bottom nav)
+         *    w-full — fill available width before max-w-6xl kicks in
+         */}
+        <main
+          id="main-content"
+          className="w-full max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-[calc(64px+32px)] md:pb-8"
+        >
+          {children}
+        </main>
+
+        {/*
+         * 4. Mobile bottom nav — visible below 768px only.
+         *    Uses `flex md:hidden` so it is removed from layout on desktop.
+         *    (Requirement 4.2)
+         */}
+        <div className="flex md:hidden">
+          <MobileBottomNav />
+        </div>
+
+        {/*
+         * 5. RouteAnnouncer — visually hidden ARIA live region.
+         *    Announces page title changes to screen readers on route transitions
+         *    and moves focus to #main-content. (Requirement 10.8)
+         */}
+        <RouteAnnouncer />
       </div>
-
-      {/*
-       * 3. Main content area (Requirement 6.1, 6.2, 6.5)
-       *
-       *    id="main-content" — target for the SkipLink href and RouteAnnouncer focus
-       *    max-w-6xl mx-auto — constrain to 72rem and center horizontally
-       *    px-4 — 16px horizontal padding on mobile (Requirement 6.2)
-       *    md:px-6 — 24px horizontal padding at ≥768px (Requirement 6.2)
-       *    pb-[calc(64px+16px)] — reserve space for the 64px fixed bottom nav
-       *      plus 16px gap on mobile so content is never obscured (Requirement 6.5)
-       *    md:pb-0 — no bottom padding needed on desktop (no bottom nav)
-       *    w-full — fill available width before max-w-6xl kicks in
-       */}
-      <main
-        id="main-content"
-        className="w-full max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-[calc(64px+32px)] md:pb-8"
-      >
-        {children}
-      </main>
-
-      {/*
-       * 4. Mobile bottom nav — visible below 768px only.
-       *    Uses `flex md:hidden` so it is removed from layout on desktop.
-       *    (Requirement 4.2)
-       */}
-      <div className="flex md:hidden">
-        <MobileBottomNav />
-      </div>
-
-      {/*
-       * 5. RouteAnnouncer — visually hidden ARIA live region.
-       *    Announces page title changes to screen readers on route transitions
-       *    and moves focus to #main-content. (Requirement 10.8)
-       */}
-      <RouteAnnouncer />
-    </div>
+    </BackgroundGradientAnimation>
   );
 }
 
