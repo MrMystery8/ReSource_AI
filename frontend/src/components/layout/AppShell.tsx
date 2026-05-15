@@ -64,9 +64,10 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
 
   return (
     <BackgroundGradientAnimation
+      key={theme}
       interactive={true}
       className="relative z-10"
-      containerClassName="min-h-dvh w-full"
+      containerClassName="min-h-dvh h-auto w-full"
       {...backgroundProps}
     >
       <div className="relative isolate min-h-dvh">
