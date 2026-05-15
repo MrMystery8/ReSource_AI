@@ -251,7 +251,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                 animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
               />
-              Ask here if confused
+              Need a second opinion? Ask the guide.
             </div>
           </motion.div>
         )}
@@ -302,62 +302,65 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.95 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="relative fixed bottom-[76px] right-6 z-40 flex flex-col w-[min(380px,calc(100vw-3rem))] h-[min(520px,calc(100vh-120px))] rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 88%, transparent)',
-              backdropFilter: 'blur(24px) saturate(150%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(150%)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
-            }}
+            className="fixed bottom-[76px] right-6 z-40 w-[min(380px,calc(100vw-3rem))] h-[min(520px,calc(100vh-120px))]"
           >
             <div
-              className="pointer-events-none absolute inset-0"
+              className="relative flex h-full flex-col rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
               style={{
-                background:
-                  'linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 26%), radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 14%, transparent) 0%, transparent 42%)',
+                backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 88%, transparent)',
+                backdropFilter: 'blur(24px) saturate(150%)',
+                WebkitBackdropFilter: 'blur(24px) saturate(150%)',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
               }}
-            />
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-            {/* Header */}
-            <div className="relative flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10 bg-white/5 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-primary-400" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-text-primary leading-tight">Project Assistant</p>
-                  <p className="text-[10px] text-text-muted leading-tight truncate max-w-[180px]">
-                    {projectContext.ideaTitle}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={onToggle}
-                aria-label="Close chatbot"
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
-              >
-                <X className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div
-              className="relative flex-1 overflow-y-auto px-4 py-3 space-y-3"
-              aria-live="polite"
-              aria-label="Conversation history"
             >
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-center gap-2 py-8">
-                  <MessageCircle className="w-8 h-8 text-text-muted/40" aria-hidden="true" />
-                  <p className="text-sm text-text-muted">
-                    Ask anything about your project.
-                  </p>
-                  <p className="text-xs text-text-muted/60">
-                    I'm scoped to: <span className="font-medium text-text-muted">{projectContext.ideaTitle}</span>
-                  </p>
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 8%, transparent) 0%, transparent 26%), radial-gradient(circle at top right, color-mix(in srgb, var(--color-primary) 14%, transparent) 0%, transparent 42%)',
+                }}
+              />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+              {/* Header */}
+              <div className="relative flex items-center justify-between gap-3 px-4 py-3 border-b border-white/10 bg-white/5 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-primary-400" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary leading-tight">Project Assistant</p>
+                    <p className="text-[10px] text-text-muted leading-tight truncate max-w-[180px]">
+                      {projectContext.ideaTitle}
+                    </p>
+                  </div>
                 </div>
-              )}
+                <button
+                  onClick={onToggle}
+                  aria-label="Close chatbot"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
+                >
+                  <X className="w-4 h-4" aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div
+                className="relative flex-1 overflow-y-auto px-4 py-3 space-y-3"
+                aria-live="polite"
+                aria-label="Conversation history"
+              >
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full text-center gap-2 py-8">
+                    <MessageCircle className="w-8 h-8 text-text-muted/40" aria-hidden="true" />
+                    <p className="text-sm text-text-muted">
+                      Ask anything about your project.
+                    </p>
+                    <p className="text-xs text-text-muted/60">
+                      I'm scoped to: <span className="font-medium text-text-muted">{projectContext.ideaTitle}</span>
+                    </p>
+                  </div>
+                )}
 
               {messages.map((msg) => (
                 <div
@@ -417,59 +420,60 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                 </div>
               )}
 
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="relative shrink-0 border-t border-white/10 bg-white/5 px-3 py-3">
-              <div className="flex items-end gap-2">
-                <div className="flex-1 relative">
-                  <textarea
-                    ref={inputRef}
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask about your project…"
-                    rows={1}
-                    disabled={isLoading}
-                    aria-label="Chat message"
-                    aria-describedby="char-count"
-                    className={[
-                      'w-full resize-none rounded-xl px-3.5 py-2.5 text-sm leading-relaxed',
-                      'bg-surface-elevated border transition-all duration-200',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-500/50',
-                      'placeholder:text-text-muted text-text-primary',
-                      'disabled:opacity-50 disabled:cursor-not-allowed',
-                      'max-h-[120px] overflow-y-auto',
-                      isOverLimit
-                        ? 'border-rose-500/50 focus:ring-rose-500/40'
-                        : 'border-border-subtle focus:border-primary-500/40',
-                    ].join(' ')}
-                    style={{ fieldSizing: 'content' } as React.CSSProperties}
-                  />
-                </div>
-                <button
-                  onClick={() => void sendMessage(inputValue)}
-                  disabled={!canSend}
-                  aria-label="Send message"
-                  className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary-500 text-white hover:bg-primary-400 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
-                >
-                  <Send className="w-4 h-4" aria-hidden="true" />
-                </button>
+                <div ref={messagesEndRef} />
               </div>
 
-              {/* Character count */}
-              <div
-                id="char-count"
-                className={[
-                  'mt-1.5 text-right text-[10px] transition-colors',
-                  isOverLimit ? 'text-rose-400' : charsRemaining <= 50 ? 'text-amber-400' : 'text-text-muted',
-                ].join(' ')}
-                aria-live="polite"
-              >
-                {isOverLimit
-                  ? `${Math.abs(charsRemaining)} characters over limit`
-                  : `${charsRemaining} characters remaining`}
+              {/* Input Area */}
+              <div className="relative shrink-0 border-t border-white/10 bg-white/5 px-3 py-3">
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 relative">
+                    <textarea
+                      ref={inputRef}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask about your project…"
+                      rows={1}
+                      disabled={isLoading}
+                      aria-label="Chat message"
+                      aria-describedby="char-count"
+                      className={[
+                        'w-full resize-none rounded-xl px-3.5 py-2.5 text-sm leading-relaxed',
+                        'bg-surface-elevated border transition-all duration-200',
+                        'focus:outline-none focus:ring-2 focus:ring-primary-500/50',
+                        'placeholder:text-text-muted text-text-primary',
+                        'disabled:opacity-50 disabled:cursor-not-allowed',
+                        'max-h-[120px] overflow-y-auto',
+                        isOverLimit
+                          ? 'border-rose-500/50 focus:ring-rose-500/40'
+                          : 'border-border-subtle focus:border-primary-500/40',
+                      ].join(' ')}
+                      style={{ fieldSizing: 'content' } as React.CSSProperties}
+                    />
+                  </div>
+                  <button
+                    onClick={() => void sendMessage(inputValue)}
+                    disabled={!canSend}
+                    aria-label="Send message"
+                    className="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-primary-500 text-white hover:bg-primary-400 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
+                  >
+                    <Send className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </div>
+
+                {/* Character count */}
+                <div
+                  id="char-count"
+                  className={[
+                    'mt-1.5 text-right text-[10px] transition-colors',
+                    isOverLimit ? 'text-rose-400' : charsRemaining <= 50 ? 'text-amber-400' : 'text-text-muted',
+                  ].join(' ')}
+                  aria-live="polite"
+                >
+                  {isOverLimit
+                    ? `${Math.abs(charsRemaining)} characters over limit`
+                    : `${charsRemaining} characters remaining`}
+                </div>
               </div>
             </div>
           </motion.div>
