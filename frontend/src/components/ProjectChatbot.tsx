@@ -29,7 +29,6 @@ export interface ProjectChatbotProps {
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_HISTORY_MESSAGES = 50;
 const REQUEST_TIMEOUT_MS = 30_000;
-const CHAT_COACHMARK_KEY = 'resource_ai_chat_coachmark_seen';
 
 const API_URL = (import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_API_URL ?? '';
 const API_KEY = (import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_API_KEY ?? '';
@@ -60,10 +59,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessageId, setErrorMessageId] = useState<string | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
-  const [showCoachmark, setShowCoachmark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.localStorage.getItem(CHAT_COACHMARK_KEY) !== 'seen';
-  });
+  const [showCoachmark, setShowCoachmark] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -79,18 +75,12 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
   useEffect(() => {
     if (isOpen) {
       setShowCoachmark(false);
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(CHAT_COACHMARK_KEY, 'seen');
-      }
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
   const dismissCoachmark = useCallback(() => {
     setShowCoachmark(false);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(CHAT_COACHMARK_KEY, 'seen');
-    }
   }, []);
 
   // Clear conversation history on navigation away (Requirement 5.7)
