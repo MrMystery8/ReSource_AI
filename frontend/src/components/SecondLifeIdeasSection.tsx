@@ -49,9 +49,6 @@ export function SecondLifeIdeasSection({
     return [...matched, ...other];
   }, [ideas, userLevel]);
 
-  const matchedCount = orderedItems.filter((item) => item.matched).length;
-  const otherCount = orderedItems.length - matchedCount;
-
   return (
     <motion.section
       {...cardEntrance}
@@ -64,19 +61,14 @@ export function SecondLifeIdeasSection({
             <Lightbulb className="h-5 w-5 text-emerald-400" />
           </div>
           <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
-                Next step
-              </span>
-              <span className="rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-                Project picker
-              </span>
-            </div>
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+              Next step
+            </span>
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Safe Second Life Ideas
             </h3>
             <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-text-secondary)]">
-              Click a project card to open its implementation guide. Matched ideas are shown first, with other safe options following behind.
+              Select one project to open its guide and continue.
             </p>
           </div>
         </div>
@@ -98,28 +90,7 @@ export function SecondLifeIdeasSection({
         </button>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-[var(--color-border-subtle)] bg-[color-mix(in_srgb,var(--color-surface-card)_74%,var(--color-surface-elevated))] p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
-              Select a project
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-[var(--color-text-secondary)]">
-              Choose the idea you want to build next. The selected card opens the step-by-step guide.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
-            <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-500">
-              {matchedCount} matched
-            </span>
-            {otherCount > 0 && (
-              <span className="rounded-full border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2.5 py-1 font-semibold text-[var(--color-text-muted)]">
-                {otherCount} other options
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+      <div className="mb-6 h-px w-full bg-[var(--color-border-subtle)]" />
 
       {reloadError && (
         <motion.div
@@ -146,26 +117,10 @@ export function SecondLifeIdeasSection({
           </p>
         </div>
       ) : (
-        <>
-          <ProjectIdeaCarousel
-            items={orderedItems}
-            onIdeaClick={onIdeaClick}
-            className="group"
-          />
-
-          {otherCount > 0 && (
-            <div className="mt-4 flex flex-wrap items-center gap-4 px-1 text-xs text-[var(--color-text-secondary)]">
-              <span className="flex items-center gap-2">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--color-primary)] shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]" />
-                Matched to your level
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--color-text-muted)] opacity-60" />
-                Other safe options
-              </span>
-            </div>
-          )}
-        </>
+        <ProjectIdeaCarousel
+          items={orderedItems}
+          onIdeaClick={onIdeaClick}
+        />
       )}
     </motion.section>
   );
