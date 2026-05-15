@@ -1,98 +1,107 @@
 import * as React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ChevronLeft, ChevronRight, Package, Wrench } from 'lucide-react';
-import type { ProjectIdea } from '@resource-ai/shared';
+import type { ProjectIdea, IdeaCategory } from '@resource-ai/shared';
 import { cn } from '@/lib/utils';
 
-export interface ProjectIdeaCarouselItem {
-  idea: ProjectIdea;
-  matched: boolean;
-}
-
 export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
-  items: ProjectIdeaCarouselItem[];
+  items: ProjectIdea[];
   onIdeaClick: (idea: ProjectIdea) => void;
 }
+
+const CATEGORY_STYLES: Record<
+  IdeaCategory,
+  {
+    accent: string;
+    background: string;
+  }
+> = {
+  beginner: {
+    accent: 'text-emerald-400',
+    background: 'from-emerald-500/18 via-emerald-500/8 to-transparent',
+  },
+  'stem-learning': {
+    accent: 'text-primary-400',
+    background: 'from-primary-500/18 via-primary-500/8 to-transparent',
+  },
+  'practical-creative': {
+    accent: 'text-amber-400',
+    background: 'from-amber-500/18 via-amber-500/8 to-transparent',
+  },
+};
 
 function ProjectIdeaCard({
-  item,
+  idea,
   onIdeaClick,
 }: {
-  item: ProjectIdeaCarouselItem;
+  idea: ProjectIdea;
   onIdeaClick: (idea: ProjectIdea) => void;
 }) {
-  const { idea, matched } = item;
+  const categoryStyle = CATEGORY_STYLES[idea.category] ?? CATEGORY_STYLES.beginner;
 
   return (
     <motion.button
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
-        'group relative flex-shrink-0 w-[min(84vw,340px)] snap-start rounded-[24px] border text-left shadow-[var(--shadow-md)]',
-        'bg-[var(--color-surface-card)] p-5 sm:w-[340px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]'
+        'group relative flex-shrink-0 w-[min(86vw,360px)] snap-start overflow-hidden rounded-[28px] border text-left shadow-[var(--shadow-md)]',
+        'bg-[var(--color-surface-card)] p-5 sm:w-[360px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ y: -6, scale: 1.012 }}
+      whileHover={{ y: -6, scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 280, damping: 24 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
-        borderColor: matched
-          ? 'color-mix(in srgb, var(--color-primary) 40%, var(--color-border-default))'
-          : 'var(--color-border-default)',
-        boxShadow: matched
-          ? '0 0 0 1px color-mix(in srgb, var(--color-primary) 28%, transparent), 0 0 0 5px color-mix(in srgb, var(--color-primary) 8%, transparent), var(--shadow-md)'
-          : 'var(--shadow-md)',
+        borderColor: 'var(--color-border-default)',
       }}
     >
       <div
-        className="absolute left-0 top-0 h-full w-1.5 rounded-l-[24px]"
-        style={{
-          background: matched
-            ? 'linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 80%, white), var(--color-primary))'
-            : 'linear-gradient(180deg, color-mix(in srgb, var(--color-border-default) 70%, transparent), color-mix(in srgb, var(--color-border-subtle) 70%, transparent))',
-          opacity: matched ? 1 : 0.35,
-        }}
-      />
+        className={cn(
+          'absolute inset-x-0 top-0 h-[42%] overflow-hidden bg-gradient-to-br',
+          categoryStyle.background
+        )}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle at 16% 24%, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 30%), radial-gradient(circle at 84% 22%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 26%), radial-gradient(circle at 50% 66%, rgba(255,255,255,0.14), transparent 34%)',
+          }}
+        />
+        <div
+          className="absolute inset-x-0 bottom-0 h-px"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-border-subtle) 70%, transparent), transparent)',
+            opacity: 0.8,
+          }}
+        />
+      </div>
 
-      <div className="pl-2">
+      <div className="relative pt-24">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="space-y-2">
-            <div
-              className="h-10 w-10 rounded-2xl border"
-              style={{
-                background: matched
-                  ? 'radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-primary) 16%, white), color-mix(in srgb, var(--color-primary) 8%, transparent))'
-                  : 'radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--color-surface-elevated) 90%, white), var(--color-surface-elevated))',
-                borderColor: matched
-                  ? 'color-mix(in srgb, var(--color-primary) 28%, var(--color-border-default))'
-                  : 'var(--color-border-subtle)',
-              }}
-            />
             <h3 className="text-[1.05rem] font-bold leading-tight text-[var(--color-text-primary)] sm:text-xl">
               {idea.title}
             </h3>
+            <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              {idea.description}
+            </p>
           </div>
+
           <span
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border transition-transform duration-300 group-hover:rotate-[-12deg]"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-transform duration-300 group-hover:rotate-[-10deg]"
             style={{
-              borderColor: matched
-                ? 'color-mix(in srgb, var(--color-primary) 22%, var(--color-border-default))'
-                : 'var(--color-border-default)',
-              backgroundColor: matched
-                ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-card))'
-                : 'var(--color-surface-elevated)',
-              color: matched ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderColor: 'var(--color-border-default)',
+              backgroundColor: 'var(--color-surface-elevated)',
+              color: 'var(--color-text-secondary)',
             }}
           >
             <ArrowRight className="h-4 w-4" />
           </span>
         </div>
 
-        <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
-          {idea.description}
-        </p>
-
-        <div className="mt-4 space-y-4 border-t border-[var(--color-border-subtle)] pt-4">
+        <div className="space-y-4 border-t border-[var(--color-border-subtle)] pt-4">
           <div>
             <div className="mb-2 flex items-center gap-1.5">
               <Wrench className="h-3.5 w-3.5 text-[var(--color-primary)]" />
@@ -150,7 +159,7 @@ export function ProjectIdeaCarousel({
     const current = scrollContainerRef.current;
     if (!current) return;
 
-    const scrollAmount = current.clientWidth * 0.88;
+    const scrollAmount = current.clientWidth * 0.86;
     current.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth',
@@ -165,10 +174,10 @@ export function ProjectIdeaCarousel({
             ref={scrollContainerRef}
             className="scrollbar-hide flex gap-5 overflow-x-auto pb-2 pr-1 snap-x snap-mandatory"
           >
-            {items.map((item, index) => (
+            {items.map((idea, index) => (
               <ProjectIdeaCard
-                key={`${item.idea.title}-${item.idea.skillLevel}-${index}`}
-                item={item}
+                key={`${idea.title}-${idea.skillLevel}-${index}`}
+                idea={idea}
                 onIdeaClick={onIdeaClick}
               />
             ))}

@@ -31,8 +31,8 @@ export function SecondLifeIdeasSection({
   const userLevel = EXPERTISE_LEVEL_ORDER[userExpertise] ?? 0;
 
   const orderedItems = useMemo(() => {
-    const matched: Array<{ idea: ProjectIdea; matched: boolean }> = [];
-    const other: Array<{ idea: ProjectIdea; matched: boolean }> = [];
+    const matched: ProjectIdea[] = [];
+    const other: ProjectIdea[] = [];
 
     for (const idea of ideas) {
       const mappedExpertise = IDEA_SKILL_TO_EXPERTISE[idea.skillLevel];
@@ -40,9 +40,9 @@ export function SecondLifeIdeasSection({
       const isMatched = Number.isFinite(ideaLevel) && ideaLevel <= userLevel;
 
       if (isMatched) {
-        matched.push({ idea, matched: true });
+        matched.push(idea);
       } else {
-        other.push({ idea, matched: false });
+        other.push(idea);
       }
     }
 

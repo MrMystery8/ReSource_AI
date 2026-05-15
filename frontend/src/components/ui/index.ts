@@ -27,4 +27,4 @@ export { ErrorState } from './ErrorState';
 export type { ErrorStateProps } from './ErrorState';
 
 export { ProjectIdeaCarousel } from './ProjectIdeaCarousel';
-export type { ProjectIdeaCarouselItem, ProjectIdeaCarouselProps } from './ProjectIdeaCarousel';
+export type { ProjectIdeaCarouselProps } from './ProjectIdeaCarousel';
