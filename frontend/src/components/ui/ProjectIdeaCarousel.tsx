@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, Package, Wrench } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Package, Wrench } from 'lucide-react';
 import type { ProjectIdea, IdeaCategory } from '@resource-ai/shared';
 import { cn } from '@/lib/utils';
 
@@ -44,10 +44,10 @@ function ProjectIdeaCard({
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
-        'group relative flex-shrink-0 w-[min(86vw,360px)] snap-start overflow-hidden rounded-[28px] border text-left shadow-[var(--shadow-md)]',
-        'bg-[var(--color-surface-card)] p-5 sm:w-[360px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]'
+        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border text-left shadow-[var(--shadow-md)]',
+        'bg-[var(--color-surface-card)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ y: -6, scale: 1.01 }}
+      whileHover={{ y: -4, scale: 1.008 }}
       whileTap={{ scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 280, damping: 24 }}
       aria-label={`Open implementation guide for ${idea.title}`}
@@ -57,7 +57,8 @@ function ProjectIdeaCard({
     >
       <div
         className={cn(
-          'absolute inset-x-0 top-0 h-[42%] overflow-hidden bg-gradient-to-br',
+          'relative min-h-[430px] overflow-hidden',
+          'bg-gradient-to-b',
           categoryStyle.background
         )}
       >
@@ -65,82 +66,86 @@ function ProjectIdeaCard({
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(circle at 16% 24%, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 30%), radial-gradient(circle at 84% 22%, color-mix(in srgb, var(--color-accent) 18%, transparent), transparent 26%), radial-gradient(circle at 50% 66%, rgba(255,255,255,0.14), transparent 34%)',
+              'linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 20%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 6%, transparent) 55%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)',
           }}
         />
-        <div
-          className="absolute inset-x-0 bottom-0 h-px"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-border-subtle) 70%, transparent), transparent)',
-            opacity: 0.8,
-          }}
-        />
-      </div>
 
-      <div className="relative pt-24">
-        <div className="mb-4 flex items-start justify-between gap-3">
-          <div className="space-y-2">
-            <h3 className="text-[1.05rem] font-bold leading-tight text-[var(--color-text-primary)] sm:text-xl">
-              {idea.title}
-            </h3>
-            <p className="text-sm leading-relaxed text-[var(--color-text-secondary)]">
+        <div className="relative flex h-full flex-col">
+          <div className="flex h-[44%] flex-col justify-between px-5 pb-4 pt-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-2 pr-2">
+                <span
+                  className="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]"
+                  style={{
+                    borderColor: 'var(--color-border-default)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 72%, transparent)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  {idea.skillLevel}
+                </span>
+                <h3 className="text-[0.98rem] font-bold leading-tight text-[var(--color-text-primary)] sm:text-[1.05rem]">
+                  {idea.title}
+                </h3>
+              </div>
+            </div>
+
+            <p className="max-w-[30ch] text-sm leading-relaxed text-[var(--color-text-secondary)]">
               {idea.description}
             </p>
           </div>
 
-          <span
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-transform duration-300 group-hover:rotate-[-10deg]"
+          <div
+            className="mx-5 h-px"
             style={{
-              borderColor: 'var(--color-border-default)',
-              backgroundColor: 'var(--color-surface-elevated)',
-              color: 'var(--color-text-secondary)',
+              background:
+                'linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-border-subtle) 70%, transparent), transparent)',
             }}
-          >
-            <ArrowRight className="h-4 w-4" />
-          </span>
-        </div>
+          />
 
-        <div className="space-y-4 border-t border-[var(--color-border-subtle)] pt-4">
-          <div>
-            <div className="mb-2 flex items-center gap-1.5">
-              <Wrench className="h-3.5 w-3.5 text-[var(--color-primary)]" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                From device
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {idea.requiredComponents.slice(0, 3).map((component) => (
-                <span
-                  key={component}
-                  className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2 py-1 text-[11px] text-[var(--color-text-secondary)]"
-                >
-                  {component}
-                </span>
-              ))}
+          <div className="flex flex-1 flex-col justify-between px-5 pb-5 pt-4">
+            <div className="space-y-4">
+              <div>
+                <div className="mb-2 flex items-center gap-1.5">
+                  <Wrench className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    From device
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {idea.requiredComponents.slice(0, 3).map((component) => (
+                    <span
+                      key={component}
+                      className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2 py-1 text-[11px] text-[var(--color-text-secondary)]"
+                    >
+                      {component}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {idea.additionalMaterials.length > 0 && (
+                <div>
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <Package className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                      Additional materials
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {idea.additionalMaterials.slice(0, 3).map((material) => (
+                      <span
+                        key={material}
+                        className="rounded-md border border-[var(--color-border-subtle)] bg-[color-mix(in_srgb,var(--color-surface-card)_78%,var(--color-surface-elevated))] px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
+                      >
+                        {material}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          {idea.additionalMaterials.length > 0 && (
-            <div>
-              <div className="mb-2 flex items-center gap-1.5">
-                <Package className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                  Additional materials
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {idea.additionalMaterials.slice(0, 3).map((material) => (
-                  <span
-                    key={material}
-                    className="rounded-md border border-[var(--color-border-subtle)] bg-[color-mix(in_srgb,var(--color-surface-card)_78%,var(--color-surface-elevated))] px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
-                  >
-                    {material}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </motion.button>
@@ -169,10 +174,10 @@ export function ProjectIdeaCarousel({
   return (
     <div className={cn('w-full', className)} {...props}>
       <div className="flex flex-col gap-4">
-        <div className="min-w-0">
+        <div className="min-w-0 pt-3 pb-4">
           <div
             ref={scrollContainerRef}
-            className="scrollbar-hide flex gap-5 overflow-x-auto pb-2 pr-1 snap-x snap-mandatory"
+            className="scrollbar-hide flex gap-5 overflow-x-auto pb-3 pr-1 snap-x snap-mandatory"
           >
             {items.map((idea, index) => (
               <ProjectIdeaCard
