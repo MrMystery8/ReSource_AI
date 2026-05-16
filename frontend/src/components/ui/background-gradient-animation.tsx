@@ -104,7 +104,7 @@ export const BackgroundGradientAnimation = ({
     <div
       onMouseMove={interactive ? handleMouseMove : undefined}
       className={cn(
-        'h-screen w-screen relative overflow-hidden top-0 left-0 bg-[linear-gradient(40deg,var(--gradient-background-start),var(--gradient-background-end))]',
+        'relative min-h-dvh w-full overflow-x-clip bg-[linear-gradient(40deg,var(--gradient-background-start),var(--gradient-background-end))]',
         containerClassName,
       )}
     >
