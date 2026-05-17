@@ -136,7 +136,7 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             '[background:radial-gradient(circle_at_center,_rgba(var(--first-color),_0.85)_0,_rgba(var(--first-color),_0.55)_28%,_rgba(var(--first-color),_0)_64%)_no-repeat]',
-            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
+            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(48%-var(--size)/2)] left-[calc(56%-var(--size)/2)]',
             '[transform-origin:center_center]',
             'will-change-transform',
             'animate-first',
@@ -146,7 +146,7 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             '[background:radial-gradient(circle_at_center,_rgba(var(--second-color),_0.78)_0,_rgba(var(--second-color),_0.45)_30%,_rgba(var(--second-color),_0)_68%)_no-repeat]',
-            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
+            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(48%-var(--size)/2)] left-[calc(56%-var(--size)/2)]',
             '[transform-origin:calc(50%-400px)]',
             'will-change-transform',
             'animate-second',
@@ -156,7 +156,7 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             '[background:radial-gradient(circle_at_center,_rgba(var(--third-color),_0.78)_0,_rgba(var(--third-color),_0.42)_30%,_rgba(var(--third-color),_0)_68%)_no-repeat]',
-            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
+            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(48%-var(--size)/2)] left-[calc(56%-var(--size)/2)]',
             '[transform-origin:calc(50%+400px)]',
             'will-change-transform',
             'animate-third',
@@ -166,7 +166,7 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             '[background:radial-gradient(circle_at_center,_rgba(var(--fourth-color),_0.72)_0,_rgba(var(--fourth-color),_0.38)_28%,_rgba(var(--fourth-color),_0)_64%)_no-repeat]',
-            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
+            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(48%-var(--size)/2)] left-[calc(56%-var(--size)/2)]',
             '[transform-origin:calc(50%-200px)]',
             'will-change-transform',
             'animate-fourth',
@@ -176,7 +176,7 @@ export const BackgroundGradientAnimation = ({
         <div
           className={cn(
             '[background:radial-gradient(circle_at_center,_rgba(var(--fifth-color),_0.78)_0,_rgba(var(--fifth-color),_0.44)_30%,_rgba(var(--fifth-color),_0)_68%)_no-repeat]',
-            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(50%-var(--size)/2)] left-[calc(50%-var(--size)/2)]',
+            '[mix-blend-mode:var(--blending-value)] absolute h-[var(--size)] w-[var(--size)] top-[calc(48%-var(--size)/2)] left-[calc(56%-var(--size)/2)]',
             '[transform-origin:calc(50%-800px)_calc(50%+800px)]',
             'will-change-transform',
             'animate-fifth',
