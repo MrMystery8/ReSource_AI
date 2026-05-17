@@ -329,6 +329,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
         return (
           <motion.section
             key={key}
+            className={key === 'secondLifeIdeas' ? 'mt-4 md:mt-6' : undefined}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.05 }}
