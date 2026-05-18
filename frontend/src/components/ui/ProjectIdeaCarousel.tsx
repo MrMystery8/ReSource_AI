@@ -83,16 +83,17 @@ function ProjectIdeaCard({
       }}
     >
       <div
-          className="relative min-h-[400px] overflow-hidden"
-          style={{
-            background: `linear-gradient(180deg, color-mix(in srgb, ${skillStyle.tint} 18%, var(--color-surface-card)) 0%, color-mix(in srgb, ${skillStyle.tint} 10%, var(--color-surface-card)) 38%, var(--color-surface-card) 100%)`,
-          }}
+          className={cn(
+            'relative min-h-[400px] overflow-hidden',
+            'bg-gradient-to-b',
+            skillStyle.background
+          )}
         >
         <div
           className="absolute inset-0"
           style={{
             background:
-              `radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 26%, transparent), transparent 30%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 26%)`,
+              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 8%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 4%, transparent) 42%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 30%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)`,
           }}
         />
 
