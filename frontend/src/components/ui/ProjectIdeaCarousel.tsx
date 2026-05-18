@@ -68,7 +68,7 @@ function ProjectIdeaCard({
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
-        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border text-left shadow-[var(--shadow-md)] cursor-pointer',
+        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
         'bg-[var(--color-surface-card)] outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
@@ -82,17 +82,16 @@ function ProjectIdeaCard({
       }}
     >
       <div
-          className={cn(
-            'relative min-h-[400px] overflow-hidden',
-            'bg-gradient-to-b',
-            skillStyle.background
-          )}
+          className="relative min-h-[400px] overflow-hidden"
+          style={{
+            background: `linear-gradient(180deg, color-mix(in srgb, ${skillStyle.tint} 18%, var(--color-surface-card)) 0%, color-mix(in srgb, ${skillStyle.tint} 10%, var(--color-surface-card)) 38%, var(--color-surface-card) 100%)`,
+          }}
         >
         <div
           className="absolute inset-0"
           style={{
             background:
-              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 4%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 2%, transparent) 28%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 28%, transparent), transparent 30%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 26%)`,
+              `radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 26%, transparent), transparent 30%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 26%)`,
           }}
         />
 
