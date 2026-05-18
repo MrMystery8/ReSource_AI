@@ -69,13 +69,13 @@ function ProjectIdeaCard({
       onClick={() => onIdeaClick(idea)}
       className={cn(
         'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border text-left shadow-[var(--shadow-md)] cursor-pointer',
-        'bg-[var(--color-surface-card)] outline-none transition-[transform,box-shadow,border-color,background-color] duration-200',
+        'bg-[var(--color-surface-card)] outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ y: -8, scale: 1.012 }}
-      whileTap={{ scale: 0.985 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+      whileHover={{ y: -5, scale: 1.004 }}
+      whileTap={{ y: -2, scale: 0.994 }}
+      transition={{ type: 'tween', duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'var(--color-border-default)',
@@ -210,7 +210,7 @@ export function ProjectIdeaCarousel({
         <div className="min-w-0 pt-3 pb-4">
           <div
             ref={scrollContainerRef}
-            className="scrollbar-hide flex gap-5 overflow-x-auto pb-8 pr-1 pt-2 snap-x snap-mandatory"
+            className="scrollbar-hide flex gap-5 overflow-x-auto overflow-y-visible pb-8 pr-1 pt-5 snap-x snap-mandatory"
           >
             {items.map((idea, index) => (
               <ProjectIdeaCard
