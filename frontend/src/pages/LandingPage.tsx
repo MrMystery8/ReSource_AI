@@ -5,6 +5,9 @@ import './LandingPage.css';
 const CHECKPOINTS = [0, 2, 4 + 9 / 30, 8 + 5 / 30] as const;
 const LAST_CHECKPOINT_INDEX = CHECKPOINTS.length - 1;
 const TRANSITION_MS = 2000;
+const LANDING_VIDEO_URL =
+  import.meta.env.VITE_LANDING_VIDEO_URL ??
+  '/landing/video/laptop-to-project.mp4';
 
 type CheckpointIndex = 0 | 1 | 2 | 3;
 type Mode = 'paused' | 'transition';
@@ -255,7 +258,7 @@ export function LandingPage(): JSX.Element {
         <video
           ref={videoRef}
           className="chapter-video"
-          src="/landing/video/laptop-to-project.mp4"
+          src={LANDING_VIDEO_URL}
           poster="/landing/stills/scene-1.jpg"
           preload="auto"
           muted
