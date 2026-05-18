@@ -5,7 +5,6 @@ import './LandingPage.css';
 const CHECKPOINTS = [0, 2, 4 + 9 / 30, 8 + 5 / 30] as const;
 const LAST_CHECKPOINT_INDEX = CHECKPOINTS.length - 1;
 const TRANSITION_MS = 2000;
-const CAPTION_FADE_MS = 160;
 
 type CheckpointIndex = 0 | 1 | 2 | 3;
 type Mode = 'paused' | 'transition';
@@ -44,6 +43,31 @@ function easeInOutCubic(t: number): number {
   return 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
+function captionState(
+  captionIndex: CheckpointIndex,
+  mode: Mode,
+  checkpoint: CheckpointIndex,
+  transitionFrom: CheckpointIndex,
+  transitionTo: CheckpointIndex,
+  progress: number
+): { opacity: number; y: number } {
+  if (mode === 'paused') {
+    return captionIndex === checkpoint ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 };
+  }
+
+  if (captionIndex === transitionFrom) {
+    const t = clamp(progress / 0.35, 0, 1);
+    return { opacity: 1 - t, y: -18 * t };
+  }
+
+  if (captionIndex === transitionTo) {
+    const t = clamp((progress - 0.62) / 0.38, 0, 1);
+    return { opacity: t, y: 18 * (1 - t) };
+  }
+
+  return { opacity: 0, y: 24 };
+}
+
 export function LandingPage(): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -52,12 +76,12 @@ export function LandingPage(): JSX.Element {
   const modeRef = useRef<Mode>('paused');
   const checkpointRef = useRef<CheckpointIndex>(0);
   const readyRef = useRef(false);
-  const captionTimerRef = useRef<number | null>(null);
 
   const [mode, setMode] = useState<Mode>('paused');
   const [checkpoint, setCheckpoint] = useState<CheckpointIndex>(0);
-  const [captionCheckpoint, setCaptionCheckpoint] = useState<CheckpointIndex>(0);
-  const [captionVisible, setCaptionVisible] = useState(true);
+  const [transitionFrom, setTransitionFrom] = useState<CheckpointIndex>(0);
+  const [transitionTo, setTransitionTo] = useState<CheckpointIndex>(0);
+  const [transitionProgress, setTransitionProgress] = useState(0);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -76,9 +100,6 @@ export function LandingPage(): JSX.Element {
     return () => {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
-      }
-      if (captionTimerRef.current !== null) {
-        window.clearTimeout(captionTimerRef.current);
       }
     };
   }, []);
@@ -109,21 +130,16 @@ export function LandingPage(): JSX.Element {
     const startedAt = performance.now();
 
     setMode('transition');
-    setCaptionVisible(false);
+    setTransitionFrom(current);
+    setTransitionTo(next);
+    setTransitionProgress(0);
     modeRef.current = 'transition';
-    if (captionTimerRef.current !== null) {
-      window.clearTimeout(captionTimerRef.current);
-    }
-    captionTimerRef.current = window.setTimeout(() => {
-      setCaptionCheckpoint(next);
-      setCaptionVisible(true);
-      captionTimerRef.current = null;
-    }, Math.max(0, TRANSITION_MS - CAPTION_FADE_MS));
 
     const animate = (now: number) => {
       const raw = clamp((now - startedAt) / TRANSITION_MS, 0, 1);
       const eased = easeInOutCubic(raw);
       setVideoTime(startTime + (endTime - startTime) * eased);
+      setTransitionProgress(raw);
 
       if (raw < 1) {
         rafRef.current = requestAnimationFrame(animate);
@@ -132,9 +148,8 @@ export function LandingPage(): JSX.Element {
 
       setVideoTime(endTime);
       setCheckpoint(next);
-      setCaptionCheckpoint(next);
-      setCaptionVisible(true);
       setMode('paused');
+      setTransitionProgress(0);
       checkpointRef.current = next;
       modeRef.current = 'paused';
       rafRef.current = null;
@@ -217,8 +232,12 @@ export function LandingPage(): JSX.Element {
     setVideoTime(CHECKPOINTS[0]);
   };
 
-  const currentCaption = CAPTIONS[captionCheckpoint];
+  const currentCaption = CAPTIONS[checkpoint];
   const showFinalActions = mode === 'paused' && checkpoint === LAST_CHECKPOINT_INDEX;
+  const captionZero = captionState(0, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
+  const captionOne = captionState(1, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
+  const captionTwo = captionState(2, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
+  const captionThree = captionState(3, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
 
   return (
     <div
@@ -245,10 +264,28 @@ export function LandingPage(): JSX.Element {
         />
         <div className="chapter-shade" />
 
-        <article className={captionVisible ? 'chapter-caption is-visible' : 'chapter-caption is-hidden'}>
-          <p className="chapter-kicker">{currentCaption.kicker}</p>
-          <h1>{currentCaption.title}</h1>
-          <p>{currentCaption.body}</p>
+        <article className="chapter-caption" style={{ opacity: captionZero.opacity, transform: `translateY(${captionZero.y}px)` }}>
+          <p className="chapter-kicker">{CAPTIONS[0].kicker}</p>
+          <h1>{CAPTIONS[0].title}</h1>
+          <p>{CAPTIONS[0].body}</p>
+        </article>
+
+        <article className="chapter-caption" style={{ opacity: captionOne.opacity, transform: `translateY(${captionOne.y}px)` }}>
+          <p className="chapter-kicker">{CAPTIONS[1].kicker}</p>
+          <h1>{CAPTIONS[1].title}</h1>
+          <p>{CAPTIONS[1].body}</p>
+        </article>
+
+        <article className="chapter-caption" style={{ opacity: captionTwo.opacity, transform: `translateY(${captionTwo.y}px)` }}>
+          <p className="chapter-kicker">{CAPTIONS[2].kicker}</p>
+          <h1>{CAPTIONS[2].title}</h1>
+          <p>{CAPTIONS[2].body}</p>
+        </article>
+
+        <article className="chapter-caption" style={{ opacity: captionThree.opacity, transform: `translateY(${captionThree.y}px)` }}>
+          <p className="chapter-kicker">{CAPTIONS[3].kicker}</p>
+          <h1>{CAPTIONS[3].title}</h1>
+          <p>{CAPTIONS[3].body}</p>
           <div className={showFinalActions ? 'chapter-actions is-visible' : 'chapter-actions is-hidden'}>
             <Link to="/register" className="chapter-btn chapter-btn-primary">
               Get started
