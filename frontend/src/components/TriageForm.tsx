@@ -5,6 +5,8 @@ import type { StructuredUserContext } from '@resource-ai/shared';
 import { Cpu, AlertTriangle, Send, Zap } from 'lucide-react';
 import { StructuredContextInput } from './StructuredContextInput';
 import { Button } from './ui/Button';
+import { NumberedSectionHeading, TintedPanel } from './ui/analysis-primitives';
+import { TRIAGE_CONTENT } from '../design-system/content';
 
 export interface TriageFormData {
   deviceIdentity: string;
@@ -131,10 +133,10 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
                 className="text-2xl font-bold"
                 style={{ color: 'var(--color-text-primary)' }}
               >
-                Device Triage
+                {TRIAGE_CONTENT.title}
               </h1>
               <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                Analyze salvage potential, safety risks, and second-life ideas
+                {TRIAGE_CONTENT.subtitle}
               </p>
             </div>
           </div>
@@ -164,28 +166,8 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
 
         {/* Section 1: Device Description */}
         <motion.section variants={itemVariants} className="mb-6">
-          <div
-            className="rounded-xl border p-5"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              borderColor: 'var(--color-border-default)',
-            }}
-          >
-            <h2
-              className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              <span
-                className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                  color: 'var(--color-primary)',
-                }}
-              >
-                1
-              </span>
-              Device Details
-            </h2>
+          <TintedPanel className="p-5" tone="default">
+            <NumberedSectionHeading step={1} title="Device Details" />
 
             <div className="space-y-4">
               {TEXT_FIELDS.map((field) => {
@@ -255,72 +237,29 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
                 );
               })}
             </div>
-          </div>
+          </TintedPanel>
         </motion.section>
 
         {/* Section 2: Your Context */}
         <motion.section variants={itemVariants} className="mb-6">
-          <div
-            className="rounded-xl border p-5"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              borderColor: 'var(--color-border-default)',
-            }}
-          >
-            <h2
-              className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
-              style={{ color: 'var(--color-text-muted)' }}
-            >
-              <span
-                className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                  color: 'var(--color-primary)',
-                }}
-              >
-                2
-              </span>
-              Your Context
-            </h2>
+          <TintedPanel className="p-5" tone="default">
+            <NumberedSectionHeading step={2} title="Your Context" />
 
             <StructuredContextInput
               value={userContext}
               onChange={setUserContext}
             />
-          </div>
+          </TintedPanel>
         </motion.section>
 
         {/* Section 3: Evidence Upload */}
         {fileUploader && (
           <motion.section variants={itemVariants} className="mb-8">
-            <div
-              className="rounded-xl border p-5"
-              style={{
-                backgroundColor: 'var(--color-surface-card)',
-                borderColor: 'var(--color-border-default)',
-              }}
-            >
-              <h2
-                className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                <span
-                  className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
-                  style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                    color: 'var(--color-primary)',
-                  }}
-                >
-                  3
-                </span>
-                Evidence Photos
-                <span className="text-xs font-normal normal-case tracking-normal" style={{ color: 'var(--color-text-muted)' }}>
-                  (optional)
-                </span>
-              </h2>
+            <TintedPanel className="p-5" tone="default">
+              <NumberedSectionHeading step={3} title="Evidence Photos" subtitle="Optional" />
 
               {fileUploader}
-            </div>
+            </TintedPanel>
           </motion.section>
         )}
 
@@ -335,7 +274,7 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
             isLoading={disabled}
             leftIcon={!disabled ? <Send className="w-4 h-4" /> : undefined}
           >
-            {disabled ? 'Analyzing...' : 'Analyze Device'}
+            {disabled ? TRIAGE_CONTENT.submitLoadingLabel : TRIAGE_CONTENT.submitIdleLabel}
           </Button>
 
           {!isFormValid && !disabled && (

@@ -30,3 +30,6 @@ export type { ErrorStateProps } from './ErrorState';
 
 export { ProjectIdeaCarousel } from './ProjectIdeaCarousel';
 export type { ProjectIdeaCarouselProps } from './ProjectIdeaCarousel';
+
+export { AnalysisCard, TintedPanel, StatusPill, NumberedSectionHeading } from './analysis-primitives';
+export type { AnalysisCardProps, TintedPanelProps, StatusPillProps, NumberedSectionHeadingProps } from './analysis-primitives';

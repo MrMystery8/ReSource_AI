@@ -23,7 +23,8 @@ import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { ApiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from './ui/Card';
-import { Button } from './ui/Button';
+import { StatusPill, TintedPanel } from './ui/analysis-primitives';
+import { RESULTS_CONTENT } from '../design-system/content';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -155,7 +156,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
               transition={{ duration: 1.5, repeat: Infinity }}
             />
             <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-              Connecting to analysis pipeline...
+              {RESULTS_CONTENT.connectingTitle}
             </span>
           </div>
         </Card>
@@ -218,24 +219,17 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
               )}
               <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
                 {status === 'processing'
-                  ? 'Analyzing your device...'
+                  ? RESULTS_CONTENT.processingTitle
                   : status === 'complete'
-                    ? 'Analysis Complete'
-                    : 'Analysis Failed'}
+                    ? RESULTS_CONTENT.completeTitle
+                    : RESULTS_CONTENT.failedTitle}
               </span>
             </div>
             <div className="flex items-center gap-3">
               {status === 'processing' && currentStage && (
-                <span
-                  className="text-xs px-3 py-1 rounded-full"
-                  style={{
-                    color: 'var(--color-text-muted)',
-                    backgroundColor: 'var(--color-surface-elevated)',
-                    border: '1px solid var(--color-border-default)',
-                  }}
-                >
+                <StatusPill className="text-[11px] text-[var(--color-text-muted)]">
                   {STAGE_NAMES[currentStage] ?? currentStage}
-                </span>
+                </StatusPill>
               )}
               <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
                 {completedStages.length}/{totalExpectedStages} stages
@@ -286,13 +280,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
       {status === 'failed' && error && (
         <motion.div {...fadeInUp} role="alert">
           <Card elevation="sm" className="p-5">
-            <div
-              className="rounded-lg p-4"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
-              }}
-            >
+            <TintedPanel className="rounded-lg p-4" tone="error">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-error)' }} />
                 <div className="flex-1">
@@ -316,7 +304,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
                   </button>
                 </div>
               </div>
-            </div>
+            </TintedPanel>
           </Card>
         </motion.div>
       )}

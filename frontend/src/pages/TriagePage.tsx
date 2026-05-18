@@ -10,6 +10,7 @@ import { useTriageSession } from '../hooks/useTriageSession';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
 import type { UserStatsResponse, BadgeInfo, ProjectIdea, ExpertiseLevel, StructuredUserContext } from '@resource-ai/shared';
+import { TintedPanel } from '../components/ui/analysis-primitives';
 
 // ---------------------------------------------------------------------------
 // ARIA live region announcer
@@ -226,16 +227,9 @@ export function TriagePage() {
       )}
 
       {error && (
-        <div
-          className="max-w-3xl mx-auto mt-6 p-4 rounded-xl"
-          style={{
-            backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
-            border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
-          }}
-          role="alert"
-        >
+        <TintedPanel className="max-w-3xl mx-auto mt-6 p-4" tone="error" role="alert">
           <p className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>{error}</p>
-        </div>
+        </TintedPanel>
       )}
 
       <AnimatePresence mode="wait">
