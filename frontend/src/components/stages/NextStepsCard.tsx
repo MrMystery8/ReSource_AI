@@ -1,6 +1,13 @@
 import { motion } from 'framer-motion';
 import type { NextStepsOutput } from '@resource-ai/shared';
 import { Route, CheckCircle2, Package, Ban, AlertTriangle, MapPin, Trash2 } from 'lucide-react';
+import { Card } from '../ui/Card';
+import {
+  ANALYSIS_BODY_WHITE,
+  ANALYSIS_EMERALD,
+  ANALYSIS_MUTED_WHITE,
+  ANALYSIS_WHITE,
+} from '../analysisTheme';
 
 interface Props {
   data: NextStepsOutput;
@@ -8,13 +15,21 @@ interface Props {
 
 export function NextStepsCard({ data }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
+    <Card surface="neon" elevation="md" className="overflow-hidden">
       {/* Header */}
       <div className="p-6 pb-4 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-primary-500/10 border border-primary-500/20 flex items-center justify-center">
-          <Route className="w-5 h-5 text-primary-400" />
+        <div
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.22)',
+          }}
+        >
+          <Route className="w-5 h-5" style={{ color: ANALYSIS_WHITE }} />
         </div>
-        <h3 className="text-lg font-semibold text-text-primary">Safe Next Steps & Recovery Route</h3>
+        <h3 className="text-lg font-semibold" style={{ color: ANALYSIS_EMERALD }}>
+          Safe Next Steps & Recovery Route
+        </h3>
       </div>
 
       <div className="px-6 pb-6 space-y-4">
@@ -25,7 +40,7 @@ export function NextStepsCard({ data }: Props) {
           className="p-4 rounded-xl bg-gradient-to-r from-primary-500/10 to-emerald-500/5 border border-primary-500/20"
         >
           <span className="text-xs font-semibold text-primary-300 uppercase tracking-wide block mb-1">Overall Recommendation</span>
-          <p className="text-sm text-text-primary leading-relaxed">{data.overallRecommendation}</p>
+          <p className="text-sm leading-relaxed" style={{ color: ANALYSIS_BODY_WHITE }}>{data.overallRecommendation}</p>
         </motion.div>
 
         {/* Two Column Layout */}
@@ -48,7 +63,7 @@ export function NextStepsCard({ data }: Props) {
                     <span className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
                       <span className="text-[10px] font-bold text-emerald-400">{i + 1}</span>
                     </span>
-                    <span className="text-xs text-text-secondary leading-relaxed">{action}</span>
+                    <span className="text-xs leading-relaxed" style={{ color: ANALYSIS_BODY_WHITE }}>{action}</span>
                   </li>
                 ))}
               </ol>
@@ -62,11 +77,17 @@ export function NextStepsCard({ data }: Props) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle"
+                className="p-4 rounded-xl border"
+                style={{
+                  backgroundColor: 'rgba(8, 18, 14, 0.78)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                }}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Package className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">Parts to Keep</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: ANALYSIS_EMERALD }}>
+                    Parts to Keep
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {data.partsToKeep.map((part, i) => (
@@ -83,11 +104,17 @@ export function NextStepsCard({ data }: Props) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle"
+                className="p-4 rounded-xl border"
+                style={{
+                  backgroundColor: 'rgba(8, 18, 14, 0.78)',
+                  borderColor: 'rgba(255, 255, 255, 0.12)',
+                }}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Ban className="w-4 h-4 text-rose-400" />
-                  <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">Parts to Avoid</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: ANALYSIS_WHITE }}>
+                    Parts to Avoid
+                  </span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {data.partsToAvoid.map((part, i) => (
@@ -107,18 +134,24 @@ export function NextStepsCard({ data }: Props) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20"
+            className="p-4 rounded-xl border"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              borderColor: 'rgba(255, 255, 255, 0.16)',
+            }}
           >
             <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-semibold text-amber-300 uppercase tracking-wide">Hazard Warnings</span>
+              <AlertTriangle className="w-4 h-4" style={{ color: ANALYSIS_WHITE }} />
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: ANALYSIS_WHITE }}>
+                Hazard Warnings
+              </span>
             </div>
             <div className="space-y-2">
               {data.hazardWarnings.map((warning, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400/70 mt-0.5 shrink-0" />
-                  <span className="text-xs text-text-secondary">
-                    <span className="font-medium text-amber-300">{warning.component}</span> — {warning.risk}
+                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
+                  <span className="text-xs" style={{ color: ANALYSIS_BODY_WHITE }}>
+                    <span className="font-medium" style={{ color: ANALYSIS_WHITE }}>{warning.component}</span> — {warning.risk}
                   </span>
                 </div>
               ))}
@@ -133,15 +166,21 @@ export function NextStepsCard({ data }: Props) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle"
+              className="p-4 rounded-xl border"
+              style={{
+                backgroundColor: 'rgba(8, 18, 14, 0.78)',
+                borderColor: 'rgba(255, 255, 255, 0.12)',
+              }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <Trash2 className="w-4 h-4 text-text-muted" />
-                <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">Disposal Notes</span>
+                <Trash2 className="w-4 h-4" style={{ color: ANALYSIS_WHITE }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: ANALYSIS_EMERALD }}>
+                  Disposal Notes
+                </span>
               </div>
               <ul className="space-y-1.5">
                 {data.trashWarnings.map((warning, i) => (
-                  <li key={i} className="text-xs text-text-secondary leading-relaxed">{warning}</li>
+                  <li key={i} className="text-xs leading-relaxed" style={{ color: ANALYSIS_BODY_WHITE }}>{warning}</li>
                 ))}
               </ul>
             </motion.div>
@@ -152,17 +191,23 @@ export function NextStepsCard({ data }: Props) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              className="p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle"
+              className="p-4 rounded-xl border"
+              style={{
+                backgroundColor: 'rgba(8, 18, 14, 0.78)',
+                borderColor: 'rgba(255, 255, 255, 0.12)',
+              }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <MapPin className="w-4 h-4 text-text-muted" />
-                <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">Local Recovery</span>
+                <MapPin className="w-4 h-4" style={{ color: ANALYSIS_WHITE }} />
+                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: ANALYSIS_EMERALD }}>
+                  Local Recovery
+                </span>
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed">{data.localRecoveryNote}</p>
+              <p className="text-xs leading-relaxed" style={{ color: ANALYSIS_BODY_WHITE }}>{data.localRecoveryNote}</p>
             </motion.div>
           )}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }
