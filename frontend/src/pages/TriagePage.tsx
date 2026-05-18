@@ -9,13 +9,7 @@ import { BadgeUnlockToast } from '../components/gamification/BadgeUnlockToast';
 import { useTriageSession } from '../hooks/useTriageSession';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
-import type {
-  UserStatsResponse,
-  BadgeInfo,
-  ProjectIdea,
-  ExpertiseLevel,
-  StructuredUserContext,
-} from '@resource-ai/shared';
+import type { UserStatsResponse, BadgeInfo, ProjectIdea, ExpertiseLevel, StructuredUserContext } from '@resource-ai/shared';
 
 // ---------------------------------------------------------------------------
 // ARIA live region announcer

@@ -1,15 +1,6 @@
 import { motion } from 'framer-motion';
 import type { QuickVerdictOutput } from '@resource-ai/shared';
 import { Gauge, Cpu, Lightbulb, AlertTriangle, Info } from 'lucide-react';
-import { Card } from '../ui/Card';
-import {
-  ANALYSIS_BODY_WHITE,
-  ANALYSIS_EMERALD,
-  ANALYSIS_EMERALD_GLOW,
-  ANALYSIS_MUTED_WHITE,
-  ANALYSIS_SOFT_SURFACE,
-  ANALYSIS_WHITE,
-} from '../analysisTheme';
 
 interface Props {
   data: QuickVerdictOutput;
@@ -17,27 +8,25 @@ interface Props {
 
 function getSalvageColor(score: number): string {
   if (score >= 4) return 'text-emerald-400';
-  if (score >= 3) return 'text-white';
+  if (score >= 3) return 'text-amber-400';
   return 'text-rose-400';
 }
 
 function getSalvageBg(score: number): string {
   if (score >= 4) return 'from-emerald-500/20 to-emerald-500/5';
-  if (score >= 3) return 'from-white/10 to-white/5';
+  if (score >= 3) return 'from-amber-500/20 to-amber-500/5';
   return 'from-rose-500/20 to-rose-500/5';
 }
 
 export function QuickVerdictCard({ data }: Props) {
   return (
-    <Card surface="neon" elevation="md" className="overflow-hidden">
+    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
       <div className="p-6 pb-4 flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold mb-1" style={{ color: ANALYSIS_EMERALD }}>
-            Quick ReSource Verdict
-          </h3>
+          <h3 className="text-lg font-semibold text-text-primary mb-1">Quick ReSource Verdict</h3>
           <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4" style={{ color: ANALYSIS_WHITE }} />
-            <span className="text-sm" style={{ color: ANALYSIS_BODY_WHITE }}>{data.deviceIdentification}</span>
+            <Cpu className="w-4 h-4 text-primary-400" />
+            <span className="text-sm text-text-secondary">{data.deviceIdentification}</span>
           </div>
         </div>
       </div>
@@ -49,18 +38,17 @@ export function QuickVerdictCard({ data }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className={`rounded-xl border p-4 bg-gradient-to-br ${getSalvageBg(data.salvageScore)}`}
-          style={{ borderColor: 'rgba(52, 211, 153, 0.22)' }}
+          className={`rounded-xl p-4 bg-gradient-to-br ${getSalvageBg(data.salvageScore)} border border-border-subtle`}
         >
           <div className="flex items-center gap-2 mb-1">
-            <Gauge className="w-4 h-4" style={{ color: ANALYSIS_WHITE }} />
-            <span className="text-xs uppercase tracking-wide" style={{ color: ANALYSIS_MUTED_WHITE }}>Salvage Score</span>
+            <Gauge className="w-4 h-4 text-text-muted" />
+            <span className="text-xs text-text-muted uppercase tracking-wide">Salvage Score</span>
           </div>
           <div className="flex items-baseline gap-1">
             <span className={`text-2xl font-bold ${getSalvageColor(data.salvageScore)}`}>
               {data.salvageScore}
             </span>
-            <span className="text-xs" style={{ color: ANALYSIS_MUTED_WHITE }}>/5</span>
+            <span className="text-xs text-text-muted">/5</span>
           </div>
         </motion.div>
 
@@ -69,25 +57,20 @@ export function QuickVerdictCard({ data }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="rounded-xl border p-4 bg-gradient-to-br from-primary-500/10 to-primary-500/5 sm:col-span-2"
-          style={{ borderColor: 'rgba(52, 211, 153, 0.22)' }}
+          className="rounded-xl p-4 bg-gradient-to-br from-primary-500/10 to-primary-500/5 border border-border-subtle sm:col-span-2"
         >
           <div className="flex items-center gap-2 mb-1">
-            <Lightbulb className="w-4 h-4" style={{ color: ANALYSIS_WHITE }} />
-            <span className="text-xs uppercase tracking-wide" style={{ color: ANALYSIS_MUTED_WHITE }}>
-              Recommended Next Step
-            </span>
+            <Lightbulb className="w-4 h-4 text-primary-400" />
+            <span className="text-xs text-text-muted uppercase tracking-wide">Recommended Next Step</span>
           </div>
-          <p className="text-sm leading-relaxed" style={{ color: ANALYSIS_BODY_WHITE }}>{data.bestNextStep}</p>
+          <p className="text-sm text-text-primary leading-relaxed">{data.bestNextStep}</p>
         </motion.div>
       </div>
 
       {/* Reusable Resources */}
       <div className="px-6 pb-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs uppercase tracking-wide" style={{ color: ANALYSIS_EMERALD, textShadow: ANALYSIS_EMERALD_GLOW }}>
-            Top Reusable Resources
-          </span>
+          <span className="text-xs text-text-muted uppercase tracking-wide">Top Reusable Resources</span>
         </div>
         <div className="flex flex-wrap gap-2">
           {data.topReusableResources.map((resource, i) => (
@@ -96,12 +79,7 @@ export function QuickVerdictCard({ data }: Props) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + i * 0.05 }}
-              className="px-3 py-1.5 rounded-lg border text-xs font-medium"
-              style={{
-                backgroundColor: ANALYSIS_SOFT_SURFACE,
-                borderColor: 'rgba(52, 211, 153, 0.22)',
-                color: ANALYSIS_BODY_WHITE,
-              }}
+              className="px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle text-xs text-text-primary font-medium"
             >
               {resource}
             </motion.span>
@@ -111,35 +89,23 @@ export function QuickVerdictCard({ data }: Props) {
 
       {/* Safety Warning */}
       {data.safetyWarning && (
-        <div
-          className="mx-6 mb-4 p-3 rounded-lg border"
-          style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderColor: 'rgba(255, 255, 255, 0.16)',
-          }}
-        >
+        <div className="mx-6 mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: ANALYSIS_WHITE }} />
-            <p className="text-xs leading-relaxed" style={{ color: ANALYSIS_BODY_WHITE }}>{data.safetyWarning}</p>
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-300/90 leading-relaxed">{data.safetyWarning}</p>
           </div>
         </div>
       )}
 
       {/* Missing Info */}
       {data.missingInfoNotes && (
-        <div
-          className="mx-6 mb-6 p-3 rounded-lg border"
-          style={{
-            backgroundColor: 'rgba(8, 18, 14, 0.78)',
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-          }}
-        >
+        <div className="mx-6 mb-6 p-3 rounded-lg bg-surface-elevated/50 border border-border-subtle">
           <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: ANALYSIS_WHITE }} />
-            <p className="text-xs leading-relaxed" style={{ color: ANALYSIS_MUTED_WHITE }}>{data.missingInfoNotes}</p>
+            <Info className="w-4 h-4 text-text-muted shrink-0 mt-0.5" />
+            <p className="text-xs text-text-muted leading-relaxed">{data.missingInfoNotes}</p>
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
