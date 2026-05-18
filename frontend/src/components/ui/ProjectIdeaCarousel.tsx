@@ -68,7 +68,7 @@ function ProjectIdeaCard({
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
-        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
+        'group relative w-full overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
         'bg-[var(--color-surface-card)] outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
@@ -79,7 +79,7 @@ function ProjectIdeaCard({
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'var(--color-border-default)',
-        transformOrigin: 'center top',
+        transformOrigin: 'center center',
       }}
     >
       <div
@@ -208,19 +208,21 @@ export function ProjectIdeaCarousel({
     <div className={cn('w-full', className)} {...props}>
       <div className="flex flex-col gap-4">
         <div className="min-w-0 px-1 py-4">
-          <div
-            className="overflow-visible py-3"
-          >
+          <div className="overflow-visible py-2">
             <div
               ref={scrollContainerRef}
               className="scrollbar-hide flex gap-5 overflow-x-auto px-1 pb-8 snap-x snap-mandatory"
             >
               {items.map((idea, index) => (
-                <ProjectIdeaCard
+                <div
                   key={`${idea.title}-${idea.skillLevel}-${index}`}
-                  idea={idea}
-                  onIdeaClick={onIdeaClick}
-                />
+                  className="w-[min(84vw,320px)] flex-shrink-0 snap-start py-3"
+                >
+                  <ProjectIdeaCard
+                    idea={idea}
+                    onIdeaClick={onIdeaClick}
+                  />
+                </div>
               ))}
             </div>
           </div>
