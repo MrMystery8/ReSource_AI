@@ -9,6 +9,41 @@ export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivEl
   onIdeaClick: (idea: ProjectIdea) => void;
 }
 
+const SKILL_LEVEL_STYLES: Record<
+  ProjectIdea['skillLevel'],
+  {
+    chipBackground: string;
+    chipBorder: string;
+    chipColor: string;
+    tint: string;
+  }
+> = {
+  Beginner: {
+    chipBackground: 'color-mix(in srgb, var(--badge-success-bg) 78%, transparent)',
+    chipBorder: 'var(--badge-success-border)',
+    chipColor: 'var(--badge-success-fg)',
+    tint: 'var(--badge-success-bg)',
+  },
+  Intermediate: {
+    chipBackground: 'color-mix(in srgb, var(--badge-success-bg) 70%, transparent)',
+    chipBorder: 'var(--badge-success-border)',
+    chipColor: 'var(--badge-success-fg)',
+    tint: 'var(--badge-success-bg)',
+  },
+  Advanced: {
+    chipBackground: 'color-mix(in srgb, var(--badge-error-bg) 78%, transparent)',
+    chipBorder: 'var(--badge-error-border)',
+    chipColor: 'var(--badge-error-fg)',
+    tint: 'var(--badge-error-bg)',
+  },
+  Professional: {
+    chipBackground: 'color-mix(in srgb, var(--badge-error-bg) 70%, transparent)',
+    chipBorder: 'var(--badge-error-border)',
+    chipColor: 'var(--badge-error-fg)',
+    tint: 'var(--badge-error-bg)',
+  },
+};
+
 const CATEGORY_STYLES: Record<
   IdeaCategory,
   {
@@ -38,6 +73,7 @@ function ProjectIdeaCard({
   onIdeaClick: (idea: ProjectIdea) => void;
 }) {
   const categoryStyle = CATEGORY_STYLES[idea.category] ?? CATEGORY_STYLES.beginner;
+  const skillStyle = SKILL_LEVEL_STYLES[idea.skillLevel] ?? SKILL_LEVEL_STYLES.Beginner;
 
   return (
     <motion.button
@@ -66,7 +102,7 @@ function ProjectIdeaCard({
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 20%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 6%, transparent) 55%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)',
+              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 20%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 6%, transparent) 55%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 30%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)`,
           }}
         />
 
@@ -77,9 +113,9 @@ function ProjectIdeaCard({
                 <span
                   className="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]"
                   style={{
-                    borderColor: 'var(--color-border-default)',
-                    backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 72%, transparent)',
-                    color: 'var(--color-text-secondary)',
+                    borderColor: skillStyle.chipBorder,
+                    backgroundColor: skillStyle.chipBackground,
+                    color: skillStyle.chipColor,
                   }}
                 >
                   {idea.skillLevel}
