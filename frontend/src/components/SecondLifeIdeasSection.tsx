@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
 import { EXPERTISE_LEVEL_ORDER, IDEA_SKILL_TO_EXPERTISE } from '@resource-ai/shared';
-import { AlertCircle, Lightbulb, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowRight, Lightbulb, RefreshCw } from 'lucide-react';
 import { ProjectIdeaCarousel } from './ui/ProjectIdeaCarousel';
 import { Card } from './ui/Card';
 
@@ -57,24 +57,34 @@ export function SecondLifeIdeasSection({
       className="mt-2"
     >
       <Card elevation="md" className="p-6 md:p-7">
-        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
+          className="mb-5 overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border-default))] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-primary)_12%,var(--color-surface-card))_0%,var(--color-surface-card)_65%)] px-4 py-4 sm:px-5"
+        >
           <div className="flex items-start gap-3">
             <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10">
               <Lightbulb className="h-5 w-5 text-emerald-400" />
             </div>
-            <div className="space-y-1">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+            <div className="min-w-0 space-y-1">
+              <span className="inline-flex rounded-full border border-[color-mix(in_srgb,var(--color-primary)_22%,var(--color-border-default))] bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
                 Next step
               </span>
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Safe Second Life Ideas
+              <h3 className="text-lg font-semibold tracking-tight text-[var(--color-text-primary)] sm:text-xl">
+                Tap a project to continue
               </h3>
               <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-text-secondary)]">
-                Select one project to open its guide and continue.
+                Choose one idea below to open its guide and keep moving.
               </p>
             </div>
+            <div className="ml-auto hidden h-10 w-10 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border-default))] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] text-[var(--color-primary)] sm:flex">
+              <ArrowRight className="h-4 w-4" />
+            </div>
           </div>
+        </motion.div>
 
+        <div className="mb-5 flex justify-end">
           <button
             type="button"
             onClick={onReload}

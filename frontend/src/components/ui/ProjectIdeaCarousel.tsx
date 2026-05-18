@@ -68,12 +68,14 @@ function ProjectIdeaCard({
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
-        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border text-left shadow-[var(--shadow-md)]',
-        'bg-[var(--color-surface-card)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]'
+        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border text-left shadow-[var(--shadow-md)] cursor-pointer',
+        'bg-[var(--color-surface-card)] outline-none transition-[transform,box-shadow,border-color,background-color] duration-200',
+        'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
+        'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ y: -4, scale: 1.006 }}
-      whileTap={{ scale: 0.99 }}
-      transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+      whileHover={{ y: -8, scale: 1.012 }}
+      whileTap={{ scale: 0.985 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 22 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'var(--color-border-default)',
@@ -169,6 +171,13 @@ function ProjectIdeaCard({
                 </div>
               )}
             </div>
+
+            <div className="mt-5 flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-3 text-xs font-medium text-[var(--color-text-secondary)]">
+              <span className="transition-colors group-hover:text-[var(--color-text-primary)] group-focus-visible:text-[var(--color-text-primary)]">
+                Open guide
+              </span>
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:text-[var(--color-primary)] group-focus-visible:translate-x-1 group-focus-visible:text-[var(--color-primary)]" />
+            </div>
           </div>
         </div>
       </div>
@@ -218,7 +227,7 @@ export function ProjectIdeaCarousel({
             type="button"
             onClick={() => scroll('left')}
             aria-label="Scroll project ideas left"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -227,7 +236,7 @@ export function ProjectIdeaCarousel({
             type="button"
             onClick={() => scroll('right')}
             aria-label="Scroll project ideas right"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
