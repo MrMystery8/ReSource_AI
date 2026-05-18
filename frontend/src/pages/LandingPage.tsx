@@ -5,9 +5,11 @@ import './LandingPage.css';
 const CHECKPOINTS = [0, 2, 4 + 9 / 30, 8 + 5 / 30] as const;
 const LAST_CHECKPOINT_INDEX = CHECKPOINTS.length - 1;
 const TRANSITION_MS = 2000;
+const DEFAULT_LANDING_VIDEO_URL =
+  'https://resource-ai-media-714799286226-ap-southeast-1.s3.ap-southeast-1.amazonaws.com/landing/video/laptop-to-project.mp4';
 const LANDING_VIDEO_URL =
   import.meta.env.VITE_LANDING_VIDEO_URL ??
-  '/landing/video/laptop-to-project.mp4';
+  DEFAULT_LANDING_VIDEO_URL;
 
 type CheckpointIndex = 0 | 1 | 2 | 3;
 type Mode = 'paused' | 'transition';
