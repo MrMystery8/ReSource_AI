@@ -1,0 +1,180 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+.chapter-story-root {
+  --chapter-bg: #050c09;
+  --chapter-surface: #0a1611;
+  --chapter-text: #ecf5f0;
+  --chapter-muted: #b7c8bf;
+  --chapter-line: rgba(173, 214, 190, 0.24);
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 18% 10%, #1e4f39 0%, rgba(30, 79, 57, 0) 34%),
+    radial-gradient(circle at 78% 90%, #153728 0%, rgba(21, 55, 40, 0) 36%),
+    linear-gradient(170deg, #050c09 0%, var(--chapter-bg) 58%, #040906 100%);
+  color: var(--chapter-text);
+  font-family: 'Manrope', sans-serif;
+  outline: none;
+}
+
+.chapter-media-shell {
+  position: relative;
+  width: min(100vw, 100svh * (16 / 9));
+  height: min(100svh, 100vw * (9 / 16));
+  overflow: hidden;
+  background: #000;
+}
+
+.chapter-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chapter-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2, 7, 5, 0.14) 0%, rgba(2, 7, 5, 0.56) 72%, rgba(2, 7, 5, 0.86) 100%),
+    linear-gradient(120deg, rgba(4, 11, 8, 0.72) 0%, rgba(4, 11, 8, 0.08) 70%);
+}
+
+.chapter-caption {
+  position: absolute;
+  left: clamp(1rem, 4.4vw, 3.8rem);
+  top: clamp(1.1rem, 8.5vh, 5.4rem);
+  z-index: 2;
+  width: min(600px, calc(100% - 2.2rem));
+  padding: 0;
+  will-change: transform, opacity;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.chapter-caption.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-caption.is-hidden {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.chapter-kicker {
+  margin: 0 0 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.71rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+}
+
+.chapter-caption h1 {
+  margin: 0;
+  max-width: 16ch;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(2rem, 4vw, 4.3rem);
+  line-height: 0.96;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  text-wrap: balance;
+}
+
+.chapter-caption p {
+  margin: 0.8rem 0 0;
+  max-width: 34ch;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(0.98rem, 1.52vw, 1.08rem);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.chapter-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.chapter-actions.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-actions.is-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.chapter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.85rem;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.chapter-btn:hover {
+  transform: translateY(-1px);
+}
+
+.chapter-btn-primary {
+  background: #ffffff;
+  color: #08110d;
+}
+
+.chapter-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.chapter-btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chapter-btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chapter-caption .chapter-kicker,
+.chapter-caption h1,
+.chapter-caption p,
+.chapter-caption .chapter-actions {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
+}
+
+@media (max-width: 800px) {
+  .chapter-caption {
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    bottom: 0.75rem;
+    width: auto;
+    padding: 0.84rem 0.84rem 0.9rem;
+  }
+
+  .chapter-caption h1 {
+    font-size: clamp(1.8rem, 8vw, 3rem);
+  }
+}

@@ -10,10 +10,15 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { ImplementationGuidePage } from './pages/ImplementationGuidePage';
 import { CommunityPage } from './pages/CommunityPage';
+import { LandingPage } from './pages/LandingPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ManagerRoute } from './components/auth/ManagerRoute';
 
 export const router = createBrowserRouter([
+  {
+    path: '/landing',
+    element: <LandingPage />,
+  },
   {
     path: '/',
     element: <App />,
