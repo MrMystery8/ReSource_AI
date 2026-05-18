@@ -73,18 +73,12 @@ function ProjectIdeaCard({
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{
-        scale: 1.02,
-        rotateX: 2.25,
-        rotateY: -2.25,
-        boxShadow: '0 22px 46px rgba(0, 0, 0, 0.44), 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent)',
-      }}
-      whileTap={{ scale: 0.992, rotateX: 0.75, rotateY: -0.75 }}
-      transition={{ type: 'spring', stiffness: 210, damping: 22, mass: 0.6 }}
+      whileHover={{ scale: 1.016 }}
+      whileTap={{ scale: 0.992 }}
+      transition={{ type: 'spring', stiffness: 245, damping: 22, mass: 0.55 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'var(--color-border-default)',
-        transformPerspective: 1200,
       }}
     >
       <div
@@ -95,17 +89,10 @@ function ProjectIdeaCard({
           )}
         >
         <div
-          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
-          style={{
-            background:
-              `radial-gradient(120% 70% at 50% -12%, color-mix(in srgb, ${skillStyle.tint} 28%, transparent), transparent 62%), radial-gradient(80% 55% at 82% 6%, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 68%)`,
-          }}
-        />
-        <div
           className="absolute inset-0"
           style={{
             background:
-              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 10%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 5%, transparent) 38%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 30%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)`,
+              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 4%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 2%, transparent) 28%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 28%, transparent), transparent 30%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 26%)`,
           }}
         />
 
@@ -220,18 +207,22 @@ export function ProjectIdeaCarousel({
   return (
     <div className={cn('w-full', className)} {...props}>
       <div className="flex flex-col gap-4">
-        <div className="min-w-0 pt-3 pb-4">
+        <div className="min-w-0 px-1 py-4">
           <div
-            ref={scrollContainerRef}
-            className="scrollbar-hide flex gap-5 overflow-x-auto overflow-y-visible pb-8 pr-1 pt-5 snap-x snap-mandatory"
+            className="overflow-visible py-3"
           >
-            {items.map((idea, index) => (
-              <ProjectIdeaCard
-                key={`${idea.title}-${idea.skillLevel}-${index}`}
-                idea={idea}
-                onIdeaClick={onIdeaClick}
-              />
-            ))}
+            <div
+              ref={scrollContainerRef}
+              className="scrollbar-hide flex gap-5 overflow-x-auto px-1 pb-8 snap-x snap-mandatory"
+            >
+              {items.map((idea, index) => (
+                <ProjectIdeaCard
+                  key={`${idea.title}-${idea.skillLevel}-${index}`}
+                  idea={idea}
+                  onIdeaClick={onIdeaClick}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
