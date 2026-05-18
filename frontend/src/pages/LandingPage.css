@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 .chapter-story-root {
   --chapter-bg: #050c09;
@@ -31,7 +31,7 @@
   background: #000;
 }
 
-.chapter-frame {
+.chapter-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -49,17 +49,24 @@
 
 .chapter-caption {
   position: absolute;
-  left: 1.3rem;
-  bottom: 1.3rem;
+  left: clamp(1rem, 4.4vw, 3.8rem);
+  top: clamp(1.1rem, 8.5vh, 5.4rem);
   z-index: 2;
-  width: min(560px, calc(100% - 2.6rem));
-  padding: 1rem 1.08rem 1.06rem;
-  border-radius: 0.8rem;
-  border: 1px solid var(--chapter-line);
-  background: linear-gradient(160deg, rgba(8, 23, 17, 0.88) 0%, rgba(6, 14, 11, 0.86) 100%);
-  backdrop-filter: blur(10px);
+  width: min(600px, calc(100% - 2.2rem));
+  padding: 0;
   will-change: transform, opacity;
   pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.chapter-caption.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-caption.is-hidden {
+  opacity: 0;
+  transform: translateY(14px);
 }
 
 .chapter-kicker {
@@ -67,30 +74,107 @@
   text-transform: uppercase;
   letter-spacing: 0.11em;
   font-size: 0.71rem;
-  color: #9ae8c1;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
 }
 
 .chapter-caption h1 {
   margin: 0;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: clamp(1.4rem, 2.9vw, 2.35rem);
-  line-height: 1.08;
+  max-width: 16ch;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(2rem, 4vw, 4.3rem);
+  line-height: 0.96;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+  text-wrap: balance;
 }
 
 .chapter-caption p {
-  margin: 0.55rem 0 0;
-  color: var(--chapter-muted);
-  font-size: clamp(0.9rem, 1.48vw, 1.03rem);
+  margin: 0.8rem 0 0;
+  max-width: 34ch;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(0.98rem, 1.52vw, 1.08rem);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.chapter-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.chapter-actions.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-actions.is-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.chapter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.85rem;
+  padding: 0.72rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.chapter-btn:hover {
+  transform: translateY(-1px);
+}
+
+.chapter-btn-primary {
+  background: #ffffff;
+  color: #08110d;
+}
+
+.chapter-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.chapter-btn-secondary {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chapter-btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.44);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.chapter-caption .chapter-kicker,
+.chapter-caption h1,
+.chapter-caption p,
+.chapter-caption .chapter-actions {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
 }
 
 @media (max-width: 800px) {
   .chapter-caption {
     left: 0.75rem;
     right: 0.75rem;
+    top: auto;
     bottom: 0.75rem;
     width: auto;
     padding: 0.84rem 0.84rem 0.9rem;
+  }
+
+  .chapter-caption h1 {
+    font-size: clamp(1.8rem, 8vw, 3rem);
   }
 }

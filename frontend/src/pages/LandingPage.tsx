@@ -1,12 +1,37 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import './LandingPage.css';
 
-const KEYFRAMES = [0, 108, 191] as const;
-const TRANSITION_MS = 1500;
+const CHECKPOINTS = [0, 2, 4 + 9 / 30, 8 + 5 / 30] as const;
+const LAST_CHECKPOINT_INDEX = CHECKPOINTS.length - 1;
+const TRANSITION_MS = 2000;
+const CAPTION_FADE_MS = 160;
 
-type CheckpointIndex = 0 | 1 | 2;
+type CheckpointIndex = 0 | 1 | 2 | 3;
 type Mode = 'paused' | 'transition';
+
+const CAPTIONS = [
+  {
+    kicker: 'Checkpoint 01',
+    title: 'A broken laptop is still full of value.',
+    body: 'We start at failure state, then isolate what can still be reused safely instead of treating the whole device as waste.',
+  },
+  {
+    kicker: 'Checkpoint 02',
+    title: 'Inside the shell, the usable core appears.',
+    body: 'Recovered cells and boards become the power base for a practical build, with safety and feasibility checked first.',
+  },
+  {
+    kicker: 'Checkpoint 03',
+    title: 'From parts to prototype in one pass.',
+    body: 'The concept becomes a real assembly: structure, wiring, and function come together into a working form.',
+  },
+  {
+    kicker: 'Checkpoint 04',
+    title: 'Second life complete: a working desk fan.',
+    body: 'This is the outcome ReSource AI helps you reach, then document and reproduce on your own discarded hardware.',
+  },
+] as const;
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -19,62 +44,25 @@ function easeInOutCubic(t: number): number {
   return 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function frameSource(frame: number): string {
-  const safeFrame = clamp(Math.round(frame), KEYFRAMES[0], KEYFRAMES[2]);
-  return `/landing/frames/frame-${String(safeFrame).padStart(3, '0')}.jpg`;
-}
-
-function captionState(
-  captionIndex: CheckpointIndex,
-  mode: Mode,
-  checkpoint: CheckpointIndex,
-  transitionFrom: CheckpointIndex,
-  transitionTo: CheckpointIndex,
-  progress: number
-): { opacity: number; y: number } {
-  if (mode === 'paused') {
-    return captionIndex === checkpoint ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 };
-  }
-
-  if (captionIndex === transitionFrom) {
-    const t = clamp(progress / 0.35, 0, 1);
-    return { opacity: 1 - t, y: -18 * t };
-  }
-
-  if (captionIndex === transitionTo) {
-    const t = clamp((progress - 0.62) / 0.38, 0, 1);
-    return { opacity: t, y: 18 * (1 - t) };
-  }
-
-  return { opacity: 0, y: 24 };
-}
-
 export function LandingPage(): JSX.Element {
-  const [frame, setFrame] = useState<number>(KEYFRAMES[0]);
-  const [mode, setMode] = useState<Mode>('paused');
-  const [checkpoint, setCheckpoint] = useState<CheckpointIndex>(0);
-  const [transitionFrom, setTransitionFrom] = useState<CheckpointIndex>(0);
-  const [transitionTo, setTransitionTo] = useState<CheckpointIndex>(0);
-  const [transitionProgress, setTransitionProgress] = useState(0);
-
-  const modeRef = useRef<Mode>('paused');
-  const checkpointRef = useRef<CheckpointIndex>(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const rafRef = useRef<number | null>(null);
   const wheelIntentRef = useRef(0);
   const touchStartYRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const modeRef = useRef<Mode>('paused');
+  const checkpointRef = useRef<CheckpointIndex>(0);
+  const readyRef = useRef(false);
+  const captionTimerRef = useRef<number | null>(null);
+
+  const [mode, setMode] = useState<Mode>('paused');
+  const [checkpoint, setCheckpoint] = useState<CheckpointIndex>(0);
+  const [captionCheckpoint, setCaptionCheckpoint] = useState<CheckpointIndex>(0);
+  const [captionVisible, setCaptionVisible] = useState(true);
 
   useEffect(() => {
     modeRef.current = mode;
     checkpointRef.current = checkpoint;
   }, [mode, checkpoint]);
-
-  useEffect(() => {
-    const preloadFrames = [0, 1, 2, 24, 48, 72, 96, 108, 132, 156, 180, 191];
-    preloadFrames.forEach((index) => {
-      const img = new Image();
-      img.src = frameSource(index);
-    });
-  }, []);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -89,48 +77,66 @@ export function LandingPage(): JSX.Element {
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
+      if (captionTimerRef.current !== null) {
+        window.clearTimeout(captionTimerRef.current);
+      }
     };
   }, []);
 
+  const setVideoTime = (time: number) => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    const safeTime = clamp(time, CHECKPOINTS[0], CHECKPOINTS[LAST_CHECKPOINT_INDEX]);
+    if (Math.abs(video.currentTime - safeTime) > 0.016) {
+      video.currentTime = safeTime;
+    }
+  };
+
   const transitionToCheckpoint = (next: CheckpointIndex) => {
-    if (modeRef.current === 'transition') {
+    if (modeRef.current === 'transition' || !readyRef.current) {
       return;
     }
 
-    const currentCheckpoint = checkpointRef.current;
-    if (next === currentCheckpoint) {
+    const current = checkpointRef.current;
+    if (current === next) {
       return;
     }
 
-    const startFrame = KEYFRAMES[currentCheckpoint];
-    const endFrame = KEYFRAMES[next];
+    const startTime = CHECKPOINTS[current];
+    const endTime = CHECKPOINTS[next];
     const startedAt = performance.now();
 
     setMode('transition');
-    setTransitionFrom(currentCheckpoint);
-    setTransitionTo(next);
-    setTransitionProgress(0);
+    setCaptionVisible(false);
     modeRef.current = 'transition';
+    if (captionTimerRef.current !== null) {
+      window.clearTimeout(captionTimerRef.current);
+    }
+    captionTimerRef.current = window.setTimeout(() => {
+      setCaptionCheckpoint(next);
+      setCaptionVisible(true);
+      captionTimerRef.current = null;
+    }, Math.max(0, TRANSITION_MS - CAPTION_FADE_MS));
 
     const animate = (now: number) => {
       const raw = clamp((now - startedAt) / TRANSITION_MS, 0, 1);
       const eased = easeInOutCubic(raw);
-      const interpolated = Math.round(startFrame + (endFrame - startFrame) * eased);
-
-      setFrame(interpolated);
-      setTransitionProgress(raw);
+      setVideoTime(startTime + (endTime - startTime) * eased);
 
       if (raw < 1) {
         rafRef.current = requestAnimationFrame(animate);
         return;
       }
 
-      setFrame(endFrame);
+      setVideoTime(endTime);
       setCheckpoint(next);
+      setCaptionCheckpoint(next);
+      setCaptionVisible(true);
       setMode('paused');
-      setTransitionProgress(0);
-      modeRef.current = 'paused';
       checkpointRef.current = next;
+      modeRef.current = 'paused';
       rafRef.current = null;
     };
 
@@ -138,12 +144,11 @@ export function LandingPage(): JSX.Element {
   };
 
   const triggerByDirection = (direction: 1 | -1) => {
-    if (modeRef.current === 'transition') {
+    if (modeRef.current === 'transition' || !readyRef.current) {
       return;
     }
-
     const current = checkpointRef.current;
-    if (direction === 1 && current < 2) {
+    if (direction === 1 && current < LAST_CHECKPOINT_INDEX) {
       transitionToCheckpoint((current + 1) as CheckpointIndex);
       return;
     }
@@ -153,7 +158,6 @@ export function LandingPage(): JSX.Element {
   };
 
   const handleWheel = (event: React.WheelEvent<HTMLDivElement>) => {
-    event.preventDefault();
     if (modeRef.current === 'transition') {
       return;
     }
@@ -161,7 +165,7 @@ export function LandingPage(): JSX.Element {
     if (Math.abs(wheelIntentRef.current) < 42) {
       return;
     }
-    const direction = wheelIntentRef.current > 0 ? 1 : -1;
+    const direction: 1 | -1 = wheelIntentRef.current > 0 ? 1 : -1;
     wheelIntentRef.current = 0;
     triggerByDirection(direction);
   };
@@ -171,7 +175,6 @@ export function LandingPage(): JSX.Element {
   };
 
   const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    event.preventDefault();
     if (modeRef.current === 'transition') {
       return;
     }
@@ -185,8 +188,7 @@ export function LandingPage(): JSX.Element {
       return;
     }
     touchStartYRef.current = currentY;
-    const direction: 1 | -1 = delta > 0 ? 1 : -1;
-    triggerByDirection(direction);
+    triggerByDirection(delta > 0 ? 1 : -1);
   };
 
   const handleTouchEnd = () => {
@@ -205,9 +207,18 @@ export function LandingPage(): JSX.Element {
     }
   };
 
-  const captionOne = captionState(0, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
-  const captionTwo = captionState(1, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
-  const captionThree = captionState(2, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    readyRef.current = true;
+    video.pause();
+    setVideoTime(CHECKPOINTS[0]);
+  };
+
+  const currentCaption = CAPTIONS[captionCheckpoint];
+  const showFinalActions = mode === 'paused' && checkpoint === LAST_CHECKPOINT_INDEX;
 
   return (
     <div
@@ -222,32 +233,31 @@ export function LandingPage(): JSX.Element {
       aria-label="Interactive transformation story"
     >
       <div className="chapter-media-shell">
-        <img
-          className="chapter-frame"
-          src={frameSource(frame)}
-          alt="Broken laptop transforming into a cardboard fan."
-          loading="eager"
-          decoding="async"
+        <video
+          ref={videoRef}
+          className="chapter-video"
+          src="/landing/video/laptop-to-project.mp4"
+          poster="/landing/stills/scene-1.jpg"
+          preload="auto"
+          muted
+          playsInline
+          onLoadedMetadata={handleLoadedMetadata}
         />
         <div className="chapter-shade" />
 
-        <motion.article className="chapter-caption" animate={captionOne} transition={{ duration: 0.2 }}>
-          <p className="chapter-kicker">Checkpoint 01</p>
-          <h1>Broken, but not finished</h1>
-          <p>One small scroll starts the first transformation run.</p>
-        </motion.article>
-
-        <motion.article className="chapter-caption" animate={captionTwo} transition={{ duration: 0.2 }}>
-          <p className="chapter-kicker">Checkpoint 02</p>
-          <h1>Core assembly achieved</h1>
-          <p>The midpoint now pauses on frame 108 before the final stage.</p>
-        </motion.article>
-
-        <motion.article className="chapter-caption" animate={captionThree} transition={{ duration: 0.2 }}>
-          <p className="chapter-kicker">Checkpoint 03</p>
-          <h1>Second life complete</h1>
-          <p>Final state reached. Scroll up to autoplay back to earlier checkpoints.</p>
-        </motion.article>
+        <article className={captionVisible ? 'chapter-caption is-visible' : 'chapter-caption is-hidden'}>
+          <p className="chapter-kicker">{currentCaption.kicker}</p>
+          <h1>{currentCaption.title}</h1>
+          <p>{currentCaption.body}</p>
+          <div className={showFinalActions ? 'chapter-actions is-visible' : 'chapter-actions is-hidden'}>
+            <Link to="/register" className="chapter-btn chapter-btn-primary">
+              Get started
+            </Link>
+            <Link to="/login" className="chapter-btn chapter-btn-secondary">
+              I have an account
+            </Link>
+          </div>
+        </article>
       </div>
     </div>
   );

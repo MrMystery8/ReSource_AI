@@ -98,6 +98,16 @@ npm run dev
 
 The frontend runs at `http://localhost:5173`.
 
+### Landing Story Video Validation
+
+When replacing `frontend/public/landing/video/laptop-to-project.mp4` for checkpoint scrubbing, verify keyframe density before shipping:
+
+```bash
+printf 'keyframes: '; ffprobe -v error -select_streams v:0 -show_entries frame=key_frame -of csv=p=0 frontend/public/landing/video/laptop-to-project.mp4 | grep -c '^1'; printf 'total frames: '; ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames -of csv=p=0 frontend/public/landing/video/laptop-to-project.mp4
+```
+
+For smooth `currentTime` scrubbing, keyframes should be near total frames (ideally equal).
+
 ### Backend Development
 
 ```bash
