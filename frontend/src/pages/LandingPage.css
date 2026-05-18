@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600&display=swap');
+
+.chapter-story-root {
+  --chapter-bg: #050c09;
+  --chapter-surface: #0a1611;
+  --chapter-text: #ecf5f0;
+  --chapter-muted: #b7c8bf;
+  --chapter-line: rgba(173, 214, 190, 0.24);
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100svh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 18% 10%, #1e4f39 0%, rgba(30, 79, 57, 0) 34%),
+    radial-gradient(circle at 78% 90%, #153728 0%, rgba(21, 55, 40, 0) 36%),
+    linear-gradient(170deg, #050c09 0%, var(--chapter-bg) 58%, #040906 100%);
+  color: var(--chapter-text);
+  font-family: 'Manrope', sans-serif;
+  outline: none;
+}
+
+.chapter-media-shell {
+  position: relative;
+  width: min(100vw, 100svh * (16 / 9));
+  height: min(100svh, 100vw * (9 / 16));
+  overflow: hidden;
+  background: #000;
+}
+
+.chapter-frame {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chapter-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(2, 7, 5, 0.14) 0%, rgba(2, 7, 5, 0.56) 72%, rgba(2, 7, 5, 0.86) 100%),
+    linear-gradient(120deg, rgba(4, 11, 8, 0.72) 0%, rgba(4, 11, 8, 0.08) 70%);
+}
+
+.chapter-caption {
+  position: absolute;
+  left: 1.3rem;
+  bottom: 1.3rem;
+  z-index: 2;
+  width: min(560px, calc(100% - 2.6rem));
+  padding: 1rem 1.08rem 1.06rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--chapter-line);
+  background: linear-gradient(160deg, rgba(8, 23, 17, 0.88) 0%, rgba(6, 14, 11, 0.86) 100%);
+  backdrop-filter: blur(10px);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.chapter-kicker {
+  margin: 0 0 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  font-size: 0.71rem;
+  color: #9ae8c1;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+}
+
+.chapter-caption h1 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.4rem, 2.9vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.chapter-caption p {
+  margin: 0.55rem 0 0;
+  color: var(--chapter-muted);
+  font-size: clamp(0.9rem, 1.48vw, 1.03rem);
+}
+
+@media (max-width: 800px) {
+  .chapter-caption {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+    padding: 0.84rem 0.84rem 0.9rem;
+  }
+}
