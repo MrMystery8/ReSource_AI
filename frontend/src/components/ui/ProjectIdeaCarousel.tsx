@@ -73,12 +73,18 @@ function ProjectIdeaCard({
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ y: -5, scale: 1.004 }}
-      whileTap={{ y: -2, scale: 0.994 }}
-      transition={{ type: 'tween', duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{
+        scale: 1.02,
+        rotateX: 2.25,
+        rotateY: -2.25,
+        boxShadow: '0 22px 46px rgba(0, 0, 0, 0.44), 0 0 0 1px color-mix(in srgb, var(--color-primary) 22%, transparent)',
+      }}
+      whileTap={{ scale: 0.992, rotateX: 0.75, rotateY: -0.75 }}
+      transition={{ type: 'spring', stiffness: 210, damping: 22, mass: 0.6 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'var(--color-border-default)',
+        transformPerspective: 1200,
       }}
     >
       <div
@@ -89,10 +95,17 @@ function ProjectIdeaCard({
           )}
         >
         <div
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+          style={{
+            background:
+              `radial-gradient(120% 70% at 50% -12%, color-mix(in srgb, ${skillStyle.tint} 28%, transparent), transparent 62%), radial-gradient(80% 55% at 82% 6%, color-mix(in srgb, var(--color-primary) 20%, transparent), transparent 68%)`,
+          }}
+        />
+        <div
           className="absolute inset-0"
           style={{
             background:
-              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 20%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 6%, transparent) 55%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 30%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)`,
+              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 10%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 5%, transparent) 38%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 30%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)`,
           }}
         />
 
@@ -176,7 +189,7 @@ function ProjectIdeaCard({
               <span className="transition-colors group-hover:text-[var(--color-text-primary)] group-focus-visible:text-[var(--color-text-primary)]">
                 Open guide
               </span>
-              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:text-[var(--color-primary)] group-focus-visible:translate-x-1 group-focus-visible:text-[var(--color-primary)]" />
+              <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110 group-hover:text-[var(--color-primary)] group-focus-visible:translate-x-1.5 group-focus-visible:scale-110 group-focus-visible:text-[var(--color-primary)]" />
             </div>
           </div>
         </div>
