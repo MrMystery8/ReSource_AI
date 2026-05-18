@@ -79,6 +79,7 @@ function ProjectIdeaCard({
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'var(--color-border-default)',
+        transformOrigin: 'center top',
       }}
     >
       <div
