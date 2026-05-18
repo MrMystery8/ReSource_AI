@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Package, Wrench } from 'lucide-react';
-import type { ProjectIdea, IdeaCategory } from '@resource-ai/shared';
+import type { ProjectIdea } from '@resource-ai/shared';
 import { cn } from '@/lib/utils';
 
 export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -16,6 +16,8 @@ const SKILL_LEVEL_STYLES: Record<
     chipBorder: string;
     chipColor: string;
     tint: string;
+    background: string;
+    accent: string;
   }
 > = {
   Beginner: {
@@ -23,45 +25,32 @@ const SKILL_LEVEL_STYLES: Record<
     chipBorder: 'var(--badge-success-border)',
     chipColor: 'var(--badge-success-fg)',
     tint: 'var(--badge-success-bg)',
+    background: 'from-emerald-500/18 via-emerald-500/8 to-transparent',
+    accent: 'var(--color-primary)',
   },
   Intermediate: {
     chipBackground: 'color-mix(in srgb, var(--badge-success-bg) 70%, transparent)',
     chipBorder: 'var(--badge-success-border)',
     chipColor: 'var(--badge-success-fg)',
     tint: 'var(--badge-success-bg)',
+    background: 'from-emerald-500/16 via-emerald-500/7 to-transparent',
+    accent: 'var(--color-primary)',
   },
   Advanced: {
     chipBackground: 'color-mix(in srgb, var(--badge-error-bg) 78%, transparent)',
     chipBorder: 'var(--badge-error-border)',
     chipColor: 'var(--badge-error-fg)',
     tint: 'var(--badge-error-bg)',
+    background: 'from-rose-500/20 via-rose-500/9 to-transparent',
+    accent: 'var(--color-error)',
   },
   Professional: {
     chipBackground: 'color-mix(in srgb, var(--badge-error-bg) 70%, transparent)',
     chipBorder: 'var(--badge-error-border)',
     chipColor: 'var(--badge-error-fg)',
     tint: 'var(--badge-error-bg)',
-  },
-};
-
-const CATEGORY_STYLES: Record<
-  IdeaCategory,
-  {
-    accent: string;
-    background: string;
-  }
-> = {
-  beginner: {
-    accent: 'text-emerald-400',
-    background: 'from-emerald-500/18 via-emerald-500/8 to-transparent',
-  },
-  'stem-learning': {
-    accent: 'text-primary-400',
-    background: 'from-primary-500/18 via-primary-500/8 to-transparent',
-  },
-  'practical-creative': {
-    accent: 'text-amber-400',
-    background: 'from-amber-500/18 via-amber-500/8 to-transparent',
+    background: 'from-rose-500/22 via-rose-500/10 to-transparent',
+    accent: 'var(--color-error)',
   },
 };
 
@@ -72,7 +61,6 @@ function ProjectIdeaCard({
   idea: ProjectIdea;
   onIdeaClick: (idea: ProjectIdea) => void;
 }) {
-  const categoryStyle = CATEGORY_STYLES[idea.category] ?? CATEGORY_STYLES.beginner;
   const skillStyle = SKILL_LEVEL_STYLES[idea.skillLevel] ?? SKILL_LEVEL_STYLES.Beginner;
 
   return (
@@ -92,12 +80,12 @@ function ProjectIdeaCard({
       }}
     >
       <div
-        className={cn(
-          'relative min-h-[400px] overflow-hidden',
-          'bg-gradient-to-b',
-          categoryStyle.background
-        )}
-      >
+          className={cn(
+            'relative min-h-[400px] overflow-hidden',
+            'bg-gradient-to-b',
+            skillStyle.background
+          )}
+        >
         <div
           className="absolute inset-0"
           style={{
@@ -143,7 +131,7 @@ function ProjectIdeaCard({
             <div className="space-y-4">
               <div>
                 <div className="mb-2 flex items-center gap-1.5">
-                  <Wrench className="h-3.5 w-3.5 text-[var(--color-primary)]" />
+                  <Wrench className="h-3.5 w-3.5" style={{ color: skillStyle.accent }} />
                   <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
                     From device
                   </span>
