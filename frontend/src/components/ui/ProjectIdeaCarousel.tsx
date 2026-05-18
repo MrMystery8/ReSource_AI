@@ -3,6 +3,13 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Package, Wrench } from 'lucide-react';
 import type { ProjectIdea } from '@resource-ai/shared';
 import { cn } from '@/lib/utils';
+import {
+  ANALYSIS_BODY_WHITE,
+  ANALYSIS_EMERALD,
+  ANALYSIS_MUTED_WHITE,
+  ANALYSIS_SOFT_SURFACE,
+  ANALYSIS_WHITE,
+} from '../analysisTheme';
 
 export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivElement> {
   items: ProjectIdea[];
@@ -21,36 +28,36 @@ const SKILL_LEVEL_STYLES: Record<
   }
 > = {
   Beginner: {
-    chipBackground: 'color-mix(in srgb, var(--badge-success-bg) 78%, transparent)',
-    chipBorder: 'var(--badge-success-border)',
-    chipColor: 'var(--badge-success-fg)',
-    tint: 'var(--badge-success-bg)',
+    chipBackground: 'rgba(52, 211, 153, 0.96)',
+    chipBorder: 'rgba(52, 211, 153, 0.96)',
+    chipColor: '#000000',
+    tint: 'rgba(52, 211, 153, 0.32)',
     background: 'from-emerald-500/18 via-emerald-500/8 to-transparent',
-    accent: 'var(--color-primary)',
+    accent: ANALYSIS_EMERALD,
   },
   Intermediate: {
-    chipBackground: 'color-mix(in srgb, var(--badge-success-bg) 70%, transparent)',
-    chipBorder: 'var(--badge-success-border)',
-    chipColor: 'var(--badge-success-fg)',
-    tint: 'var(--badge-success-bg)',
+    chipBackground: 'rgba(52, 211, 153, 0.10)',
+    chipBorder: 'rgba(52, 211, 153, 0.30)',
+    chipColor: ANALYSIS_EMERALD,
+    tint: 'rgba(52, 211, 153, 0.24)',
     background: 'from-emerald-500/16 via-emerald-500/7 to-transparent',
-    accent: 'var(--color-primary)',
+    accent: ANALYSIS_EMERALD,
   },
   Advanced: {
-    chipBackground: 'color-mix(in srgb, var(--badge-error-bg) 78%, transparent)',
-    chipBorder: 'var(--badge-error-border)',
-    chipColor: 'var(--badge-error-fg)',
-    tint: 'var(--badge-error-bg)',
-    background: 'from-rose-500/20 via-rose-500/9 to-transparent',
-    accent: 'var(--color-error)',
+    chipBackground: 'rgba(255, 255, 255, 0.08)',
+    chipBorder: 'rgba(255, 255, 255, 0.18)',
+    chipColor: ANALYSIS_WHITE,
+    tint: 'rgba(255, 255, 255, 0.14)',
+    background: 'from-white/10 via-white/5 to-transparent',
+    accent: ANALYSIS_WHITE,
   },
   Professional: {
-    chipBackground: 'color-mix(in srgb, var(--badge-error-bg) 70%, transparent)',
-    chipBorder: 'var(--badge-error-border)',
-    chipColor: 'var(--badge-error-fg)',
-    tint: 'var(--badge-error-bg)',
-    background: 'from-rose-500/22 via-rose-500/10 to-transparent',
-    accent: 'var(--color-error)',
+    chipBackground: 'rgba(255, 255, 255, 0.10)',
+    chipBorder: 'rgba(255, 255, 255, 0.22)',
+    chipColor: ANALYSIS_WHITE,
+    tint: 'rgba(255, 255, 255, 0.18)',
+    background: 'from-white/12 via-white/6 to-transparent',
+    accent: ANALYSIS_WHITE,
   },
 };
 
@@ -68,32 +75,30 @@ function ProjectIdeaCard({
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
-        'group relative w-full overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
-        'bg-[var(--color-surface-card)] outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
-        'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
+        'group relative flex-shrink-0 w-[min(84vw,320px)] snap-start overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
+        'bg-black outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ scale: 1.024 }}
-      whileTap={{ scale: 0.991 }}
+      whileHover={{ scale: 1.016 }}
+      whileTap={{ scale: 0.992 }}
       transition={{ type: 'spring', stiffness: 245, damping: 22, mass: 0.55 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
-        borderColor: 'var(--color-border-default)',
-        transformOrigin: 'center center',
+        borderColor: 'rgba(52, 211, 153, 0.34)',
+        boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.2), 0 0 18px rgba(52, 211, 153, 0.14), 0 18px 42px rgba(0, 0, 0, 0.42)',
       }}
     >
       <div
-          className={cn(
-            'relative min-h-[400px] overflow-hidden',
-            'bg-gradient-to-b',
-            skillStyle.background
-          )}
+          className="relative min-h-[400px] overflow-hidden"
+          style={{
+            background: `linear-gradient(180deg, color-mix(in srgb, ${skillStyle.tint} 34%, #000000) 0%, color-mix(in srgb, ${skillStyle.tint} 12%, #000000) 38%, #000000 100%)`,
+          }}
         >
         <div
           className="absolute inset-0"
           style={{
             background:
-              `linear-gradient(180deg, color-mix(in srgb, var(--color-surface-card) 8%, transparent) 0%, color-mix(in srgb, var(--color-surface-card) 4%, transparent) 42%, transparent 100%), radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 30%, transparent), transparent 28%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 14%, transparent), transparent 24%)`,
+              `radial-gradient(circle at 14% 16%, color-mix(in srgb, ${skillStyle.tint} 26%, transparent), transparent 30%), radial-gradient(circle at 86% 16%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 26%)`,
           }}
         />
 
@@ -111,13 +116,13 @@ function ProjectIdeaCard({
                 >
                   {idea.skillLevel}
                 </span>
-                <h3 className="text-[0.98rem] font-bold leading-tight text-[var(--color-text-primary)] sm:text-[1.05rem]">
+                <h3 className="text-[0.98rem] font-bold leading-tight sm:text-[1.05rem]" style={{ color: ANALYSIS_WHITE }}>
                   {idea.title}
                 </h3>
               </div>
             </div>
 
-            <p className="max-w-[30ch] text-sm leading-relaxed text-[var(--color-text-secondary)]">
+            <p className="max-w-[30ch] text-sm leading-relaxed" style={{ color: ANALYSIS_EMERALD }}>
               {idea.description}
             </p>
           </div>
@@ -135,18 +140,23 @@ function ProjectIdeaCard({
               <div>
                 <div className="mb-2 flex items-center gap-1.5">
                   <Wrench className="h-3.5 w-3.5" style={{ color: skillStyle.accent }} />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
-                    From device
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {idea.requiredComponents.slice(0, 3).map((component) => (
-                    <span
-                      key={component}
-                      className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2 py-1 text-[11px] text-[var(--color-text-secondary)]"
-                    >
-                      {component}
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: ANALYSIS_EMERALD }}>
+                      From device
                     </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {idea.requiredComponents.slice(0, 3).map((component) => (
+                      <span
+                        key={component}
+                        className="rounded-md border px-2 py-1 text-[11px]"
+                        style={{
+                          borderColor: 'rgba(52, 211, 153, 0.18)',
+                          backgroundColor: ANALYSIS_SOFT_SURFACE,
+                          color: ANALYSIS_BODY_WHITE,
+                        }}
+                      >
+                        {component}
+                      </span>
                   ))}
                 </div>
               </div>
@@ -154,8 +164,8 @@ function ProjectIdeaCard({
               {idea.additionalMaterials.length > 0 && (
                 <div>
                   <div className="mb-2 flex items-center gap-1.5">
-                    <Package className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    <Package className="h-3.5 w-3.5" style={{ color: ANALYSIS_WHITE }} />
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: ANALYSIS_WHITE }}>
                       Additional materials
                     </span>
                   </div>
@@ -163,7 +173,12 @@ function ProjectIdeaCard({
                     {idea.additionalMaterials.slice(0, 3).map((material) => (
                       <span
                         key={material}
-                        className="rounded-md border border-[var(--color-border-subtle)] bg-[color-mix(in_srgb,var(--color-surface-card)_78%,var(--color-surface-elevated))] px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
+                        className="rounded-md border px-2 py-1 text-[11px]"
+                        style={{
+                          borderColor: 'rgba(255, 255, 255, 0.14)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                          color: ANALYSIS_MUTED_WHITE,
+                        }}
                       >
                         {material}
                       </span>
@@ -173,11 +188,17 @@ function ProjectIdeaCard({
               )}
             </div>
 
-            <div className="mt-5 flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-3 text-xs font-medium text-[var(--color-text-secondary)]">
-              <span className="transition-colors group-hover:text-[var(--color-text-primary)] group-focus-visible:text-[var(--color-text-primary)]">
+            <div
+              className="mt-5 flex items-center justify-between border-t pt-3 text-xs font-medium"
+              style={{
+                borderColor: 'rgba(52, 211, 153, 0.14)',
+                color: ANALYSIS_BODY_WHITE,
+              }}
+            >
+              <span className="transition-colors group-hover:text-white group-focus-visible:text-white">
                 Open guide
               </span>
-              <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110 group-hover:text-[var(--color-primary)] group-focus-visible:translate-x-1.5 group-focus-visible:scale-110 group-focus-visible:text-[var(--color-primary)]" />
+              <ChevronRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5 group-hover:scale-110 group-focus-visible:translate-x-1.5 group-focus-visible:scale-110" style={{ color: ANALYSIS_EMERALD }} />
             </div>
           </div>
         </div>
@@ -209,21 +230,19 @@ export function ProjectIdeaCarousel({
     <div className={cn('w-full', className)} {...props}>
       <div className="flex flex-col gap-4">
         <div className="min-w-0 px-1 py-4">
-          <div className="overflow-visible py-2">
+          <div
+            className="overflow-visible py-3"
+          >
             <div
               ref={scrollContainerRef}
               className="scrollbar-hide flex gap-5 overflow-x-auto px-1 pb-8 snap-x snap-mandatory"
             >
               {items.map((idea, index) => (
-                <div
+                <ProjectIdeaCard
                   key={`${idea.title}-${idea.skillLevel}-${index}`}
-                  className="w-[min(84vw,320px)] flex-shrink-0 snap-start py-3"
-                >
-                  <ProjectIdeaCard
-                    idea={idea}
-                    onIdeaClick={onIdeaClick}
-                  />
-                </div>
+                  idea={idea}
+                  onIdeaClick={onIdeaClick}
+                />
               ))}
             </div>
           </div>
@@ -234,7 +253,12 @@ export function ProjectIdeaCarousel({
             type="button"
             onClick={() => scroll('left')}
             aria-label="Scroll project ideas left"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-black shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            style={{
+              borderColor: 'rgba(52, 211, 153, 0.28)',
+              color: ANALYSIS_WHITE,
+              boxShadow: '0 0 16px rgba(52, 211, 153, 0.12)',
+            }}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -243,7 +267,12 @@ export function ProjectIdeaCarousel({
             type="button"
             onClick={() => scroll('right')}
             aria-label="Scroll project ideas right"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-black shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            style={{
+              borderColor: 'rgba(52, 211, 153, 0.28)',
+              color: ANALYSIS_WHITE,
+              boxShadow: '0 0 16px rgba(52, 211, 153, 0.12)',
+            }}
           >
             <ChevronRight className="h-5 w-5" />
           </button>

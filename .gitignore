@@ -29,3 +29,4 @@ Thumbs.db
 
 # Frontend build
 frontend/dist/
+frontend/public/landing/video/
