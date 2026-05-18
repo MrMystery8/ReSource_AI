@@ -73,8 +73,8 @@ function ProjectIdeaCard({
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
-      whileHover={{ scale: 1.016 }}
-      whileTap={{ scale: 0.992 }}
+      whileHover={{ scale: 1.024 }}
+      whileTap={{ scale: 0.991 }}
       transition={{ type: 'spring', stiffness: 245, damping: 22, mass: 0.55 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
