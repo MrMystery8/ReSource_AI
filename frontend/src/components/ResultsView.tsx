@@ -19,7 +19,7 @@ import { SafetyGateCard } from './stages/SafetyGateCard';
 import { DetailedAnalysisCard } from './stages/DetailedAnalysisCard';
 import { NextStepsCard } from './stages/NextStepsCard';
 import { SecondLifeIdeasSection } from './SecondLifeIdeasSection';
-import { AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Cpu, RefreshCw } from 'lucide-react';
 import { ApiClient } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from './ui/Card';
@@ -67,6 +67,55 @@ const fadeInUp = {
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
 };
+
+function ResultsHero({
+  status,
+  completedStages,
+  totalExpectedStages,
+}: {
+  status: 'processing' | 'complete' | 'failed';
+  completedStages: number;
+  totalExpectedStages: number;
+}) {
+  const subtitle =
+    status === 'processing'
+      ? RESULTS_CONTENT.heroProcessingSubtitle
+      : status === 'complete'
+        ? RESULTS_CONTENT.heroCompleteSubtitle
+        : RESULTS_CONTENT.heroFailedSubtitle;
+
+  return (
+    <motion.header {...fadeInUp}>
+      <TintedPanel tone="primary" className="p-5 sm:p-6">
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border sm:h-12 sm:w-12"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-primary) 16%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+            }}
+          >
+            <Cpu className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
+          </div>
+          <div className="min-w-0">
+            <h1
+              className="text-2xl font-semibold tracking-tight sm:text-3xl"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {RESULTS_CONTENT.heroTitle}
+            </h1>
+            <p className="mt-1 text-sm leading-relaxed sm:text-base" style={{ color: 'var(--color-text-secondary)' }}>
+              {subtitle}
+            </p>
+            <p className="mt-2 text-xs tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+              {completedStages}/{totalExpectedStages} core stages completed
+            </p>
+          </div>
+        </div>
+      </TintedPanel>
+    </motion.header>
+  );
+}
 
 export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, sessionInputs }: ResultsViewProps) {
   const { token } = useAuth();
@@ -146,6 +195,8 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
         transition={{ duration: 0.3 }}
         className="w-full min-w-0 max-w-4xl mx-auto space-y-6"
       >
+        <ResultsHero status="processing" completedStages={0} totalExpectedStages={5} />
+
         {/* Status Header Skeleton */}
         <Card elevation="sm" className="p-5">
           <div className="flex items-center gap-3">
@@ -198,6 +249,12 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
+      <ResultsHero
+        status={status}
+        completedStages={completedStages.length}
+        totalExpectedStages={totalExpectedStages}
+      />
+
       {/* Status Header */}
       <motion.div {...fadeInUp}>
         <Card elevation="sm" className="p-5">
@@ -227,11 +284,11 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
             </div>
             <div className="flex items-center gap-3">
               {status === 'processing' && currentStage && (
-                <StatusPill className="text-[11px] text-[var(--color-text-muted)]">
+                <StatusPill tone="primary" className="text-[11px] text-[var(--color-text-primary)]">
                   {STAGE_NAMES[currentStage] ?? currentStage}
                 </StatusPill>
               )}
-              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-xs tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
                 {completedStages.length}/{totalExpectedStages} stages
               </span>
               {/* Tiny vision indicator — green dot = images analyzed, invisible otherwise */}
@@ -260,7 +317,10 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
             >
               <motion.div
                 className="h-full rounded-full"
-                style={{ backgroundColor: 'var(--color-primary)' }}
+                style={{
+                  background:
+                    'linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 90%, white) 0%, var(--color-primary) 100%)',
+                }}
                 animate={{ width: `${(completedStages.length / totalExpectedStages) * 100}%` }}
                 transition={{ duration: 0.5 }}
               />
