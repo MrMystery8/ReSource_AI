@@ -7,6 +7,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Construct } from 'constructs';
@@ -964,5 +965,413 @@ export class ResourceAiStack extends cdk.Stack {
         });
       }
     }
+
+    // --- CloudWatch Dashboard ---
+    this.buildDashboard();
+  }
+
+  private buildDashboard(): void {
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    const fn = (f: NodejsFunction) => f.functionName!;
+
+    const lambdaInvocations = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Invocations',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+        label,
+      });
+
+    const lambdaErrors = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Errors',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+        label,
+        color: '#d62728',
+      });
+
+    const lambdaDuration = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Duration',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'p99',
+        period: cdk.Duration.minutes(5),
+        label,
+      });
+
+    const lambdaThrottles = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Throttles',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+        label,
+        color: '#ff7f0e',
+      });
+
+    const apiMetric = (metricName: string, stat: string, label: string, color?: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/ApiGateway',
+        metricName,
+        dimensionsMap: { ApiName: 'ReSource AI API', Stage: 'prod' },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+        label,
+        ...(color ? { color } : {}),
+      });
+
+    const dynamoMetric = (tableName: string, metricName: string, stat: string, label: string, color?: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/DynamoDB',
+        metricName,
+        dimensionsMap: { TableName: tableName },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+        label,
+        ...(color ? { color } : {}),
+      });
+
+    const cfMetric = (metricName: string, stat: string, label: string, color?: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/CloudFront',
+        metricName,
+        dimensionsMap: { DistributionId: this.distribution.distributionId, Region: 'Global' },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+        label,
+        ...(color ? { color } : {}),
+      });
+
+    // ── Section header helper ─────────────────────────────────────────────────
+
+    const header = (title: string): cloudwatch.TextWidget =>
+      new cloudwatch.TextWidget({
+        markdown: `## ${title}`,
+        width: 24,
+        height: 1,
+      });
+
+    // ── Row 0: Title ──────────────────────────────────────────────────────────
+
+    const titleWidget = new cloudwatch.TextWidget({
+      markdown: [
+        '# 🌿 ReSource AI — Operations Dashboard',
+        `**Region:** ${this.region} &nbsp;|&nbsp; **Auth mode:** ${this.authMode} &nbsp;|&nbsp; **API:** [prod](https://console.aws.amazon.com/apigateway)`,
+        '',
+        'Refresh: 1 min &nbsp;|&nbsp; All Lambda durations are **p99** &nbsp;|&nbsp; Errors shown in red, throttles in orange',
+      ].join('\n'),
+      width: 24,
+      height: 2,
+    });
+
+    // ── Row 1: API Gateway overview ───────────────────────────────────────────
+
+    const apiRequestsWidget = new cloudwatch.GraphWidget({
+      title: 'API — Requests / 5 min',
+      left: [apiMetric('Count', 'Sum', 'Requests', '#1f77b4')],
+      width: 8,
+      height: 6,
+    });
+
+    const apiLatencyWidget = new cloudwatch.GraphWidget({
+      title: 'API — Latency p99 (ms)',
+      left: [
+        apiMetric('Latency', 'p99', 'p99 Latency', '#2ca02c'),
+        apiMetric('IntegrationLatency', 'p99', 'Integration p99', '#9467bd'),
+      ],
+      width: 8,
+      height: 6,
+    });
+
+    const api4xxWidget = new cloudwatch.GraphWidget({
+      title: 'API — 4xx / 5xx Errors',
+      left: [
+        apiMetric('4XXError', 'Sum', '4xx', '#ff7f0e'),
+        apiMetric('5XXError', 'Sum', '5xx', '#d62728'),
+      ],
+      width: 8,
+      height: 6,
+    });
+
+    // ── Row 2: CloudFront ─────────────────────────────────────────────────────
+
+    const cfRequestsWidget = new cloudwatch.GraphWidget({
+      title: 'CloudFront — Requests / 5 min',
+      left: [cfMetric('Requests', 'Sum', 'Requests', '#1f77b4')],
+      width: 8,
+      height: 6,
+    });
+
+    const cfBytesWidget = new cloudwatch.GraphWidget({
+      title: 'CloudFront — Bytes Downloaded',
+      left: [cfMetric('BytesDownloaded', 'Sum', 'Bytes', '#17becf')],
+      width: 8,
+      height: 6,
+    });
+
+    const cfErrorWidget = new cloudwatch.GraphWidget({
+      title: 'CloudFront — Error Rate %',
+      left: [
+        cfMetric('4xxErrorRate', 'Average', '4xx Rate', '#ff7f0e'),
+        cfMetric('5xxErrorRate', 'Average', '5xx Rate', '#d62728'),
+      ],
+      width: 8,
+      height: 6,
+    });
+
+    // ── Row 3: Core Lambda — Invocations ─────────────────────────────────────
+
+    const coreInvocationsWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — Invocations / 5 min',
+      left: [
+        lambdaInvocations(this.submitHandler, 'Submit'),
+        lambdaInvocations(this.pollHandler, 'Poll'),
+        lambdaInvocations(this.uploadHandler, 'Upload'),
+        lambdaInvocations(this.authHandler, 'Auth'),
+        lambdaInvocations(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const coreErrorsWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — Errors / 5 min',
+      left: [
+        lambdaErrors(this.submitHandler, 'Submit'),
+        lambdaErrors(this.pollHandler, 'Poll'),
+        lambdaErrors(this.uploadHandler, 'Upload'),
+        lambdaErrors(this.authHandler, 'Auth'),
+        lambdaErrors(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 4: Core Lambda — Duration & Throttles ─────────────────────────────
+
+    const coreDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — p99 Duration (ms)',
+      left: [
+        lambdaDuration(this.submitHandler, 'Submit'),
+        lambdaDuration(this.pollHandler, 'Poll'),
+        lambdaDuration(this.uploadHandler, 'Upload'),
+        lambdaDuration(this.authHandler, 'Auth'),
+        lambdaDuration(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const coreThrottlesWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — Throttles / 5 min',
+      left: [
+        lambdaThrottles(this.submitHandler, 'Submit'),
+        lambdaThrottles(this.pollHandler, 'Poll'),
+        lambdaThrottles(this.uploadHandler, 'Upload'),
+        lambdaThrottles(this.authHandler, 'Auth'),
+        lambdaThrottles(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 5: Pipeline ───────────────────────────────────────────────────────
+
+    const pipelineWidget = new cloudwatch.GraphWidget({
+      title: 'Pipeline Orchestrator — Invocations & Errors',
+      left: [lambdaInvocations(this.pipelineOrchestrator, 'Invocations')],
+      right: [lambdaErrors(this.pipelineOrchestrator, 'Errors')],
+      width: 12,
+      height: 6,
+    });
+
+    const pipelineDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Pipeline Orchestrator — p99 Duration (ms)',
+      left: [lambdaDuration(this.pipelineOrchestrator, 'Duration p99')],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 6: Gamification Lambdas ───────────────────────────────────────────
+
+    const gamificationInvocationsWidget = new cloudwatch.GraphWidget({
+      title: 'Gamification Lambdas — Invocations / 5 min',
+      left: [
+        lambdaInvocations(this.guideGenerateHandler, 'Guide Generate'),
+        lambdaInvocations(this.guideChatHandler, 'Guide Chat'),
+        lambdaInvocations(this.projectSubmitHandler, 'Project Submit'),
+        lambdaInvocations(this.projectsListHandler, 'Projects List'),
+        lambdaInvocations(this.projectUpdateHandler, 'Project Update'),
+        lambdaInvocations(this.projectGetHandler, 'Project Get'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const gamificationErrorsWidget = new cloudwatch.GraphWidget({
+      title: 'Gamification Lambdas — Errors / 5 min',
+      left: [
+        lambdaErrors(this.guideGenerateHandler, 'Guide Generate'),
+        lambdaErrors(this.guideChatHandler, 'Guide Chat'),
+        lambdaErrors(this.projectSubmitHandler, 'Project Submit'),
+        lambdaErrors(this.projectsListHandler, 'Projects List'),
+        lambdaErrors(this.projectUpdateHandler, 'Project Update'),
+        lambdaErrors(this.projectGetHandler, 'Project Get'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 7: Gamification Duration ──────────────────────────────────────────
+
+    const gamificationDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Gamification Lambdas — p99 Duration (ms)',
+      left: [
+        lambdaDuration(this.guideGenerateHandler, 'Guide Generate'),
+        lambdaDuration(this.guideChatHandler, 'Guide Chat'),
+        lambdaDuration(this.projectSubmitHandler, 'Project Submit'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const communityWidget = new cloudwatch.GraphWidget({
+      title: 'Community Lambda — Invocations & Errors',
+      left: [lambdaInvocations(this.communityHandler, 'Invocations')],
+      right: [lambdaErrors(this.communityHandler, 'Errors')],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 8: DynamoDB ───────────────────────────────────────────────────────
+
+    const dynamoReadWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — Consumed Read Capacity',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'ConsumedReadCapacityUnits', 'Sum', 'Sessions', '#1f77b4'),
+        dynamoMetric('resource-ai-users', 'ConsumedReadCapacityUnits', 'Sum', 'Users', '#2ca02c'),
+        dynamoMetric('resource-ai-projects', 'ConsumedReadCapacityUnits', 'Sum', 'Projects', '#9467bd'),
+        dynamoMetric('resource-ai-community', 'ConsumedReadCapacityUnits', 'Sum', 'Community', '#8c564b'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const dynamoWriteWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — Consumed Write Capacity',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'ConsumedWriteCapacityUnits', 'Sum', 'Sessions', '#1f77b4'),
+        dynamoMetric('resource-ai-users', 'ConsumedWriteCapacityUnits', 'Sum', 'Users', '#2ca02c'),
+        dynamoMetric('resource-ai-projects', 'ConsumedWriteCapacityUnits', 'Sum', 'Projects', '#9467bd'),
+        dynamoMetric('resource-ai-community', 'ConsumedWriteCapacityUnits', 'Sum', 'Community', '#8c564b'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 9: DynamoDB Errors & Latency ─────────────────────────────────────
+
+    const dynamoErrorWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — System Errors',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'SystemErrors', 'Sum', 'Sessions', '#d62728'),
+        dynamoMetric('resource-ai-users', 'SystemErrors', 'Sum', 'Users', '#ff7f0e'),
+        dynamoMetric('resource-ai-projects', 'SystemErrors', 'Sum', 'Projects', '#9467bd'),
+        dynamoMetric('resource-ai-community', 'SystemErrors', 'Sum', 'Community', '#8c564b'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const dynamoLatencyWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — Successful Request Latency (ms)',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'SuccessfulRequestLatency', 'p99', 'Sessions p99', '#1f77b4'),
+        dynamoMetric('resource-ai-users', 'SuccessfulRequestLatency', 'p99', 'Users p99', '#2ca02c'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 10: Admin & Leaderboard ───────────────────────────────────────────
+
+    const adminLeaderboardWidget = new cloudwatch.GraphWidget({
+      title: 'Admin & Leaderboard — Invocations & Errors',
+      left: [
+        lambdaInvocations(this.adminHandler, 'Admin'),
+        lambdaInvocations(this.leaderboardHandler, 'Leaderboard'),
+      ],
+      right: [
+        lambdaErrors(this.adminHandler, 'Admin Errors'),
+        lambdaErrors(this.leaderboardHandler, 'Leaderboard Errors'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const adminLeaderboardDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Admin & Leaderboard — p99 Duration (ms)',
+      left: [
+        lambdaDuration(this.adminHandler, 'Admin'),
+        lambdaDuration(this.leaderboardHandler, 'Leaderboard'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Assemble dashboard ────────────────────────────────────────────────────
+
+    new cloudwatch.Dashboard(this, 'ResourceAiDashboard', {
+      dashboardName: 'ReSource-AI-Operations',
+      defaultInterval: cdk.Duration.hours(3),
+      widgets: [
+        // Title
+        [titleWidget],
+
+        // API Gateway
+        [header('🌐 API Gateway')],
+        [apiRequestsWidget, apiLatencyWidget, api4xxWidget],
+
+        // CloudFront
+        [header('☁️ CloudFront (Frontend CDN)')],
+        [cfRequestsWidget, cfBytesWidget, cfErrorWidget],
+
+        // Core Lambdas
+        [header('⚡ Core Lambda Functions')],
+        [coreInvocationsWidget, coreErrorsWidget],
+        [coreDurationWidget, coreThrottlesWidget],
+
+        // Pipeline
+        [header('🔬 AI Pipeline (Bedrock)')],
+        [pipelineWidget, pipelineDurationWidget],
+
+        // Gamification
+        [header('🎮 Gamification & Projects')],
+        [gamificationInvocationsWidget, gamificationErrorsWidget],
+        [gamificationDurationWidget, communityWidget],
+
+        // Admin & Leaderboard
+        [header('🛡️ Admin & Leaderboard')],
+        [adminLeaderboardWidget, adminLeaderboardDurationWidget],
+
+        // DynamoDB
+        [header('🗄️ DynamoDB')],
+        [dynamoReadWidget, dynamoWriteWidget],
+        [dynamoErrorWidget, dynamoLatencyWidget],
+      ],
+    });
+
+    new cdk.CfnOutput(this, 'DashboardUrl', {
+      value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=ReSource-AI-Operations`,
+      description: 'CloudWatch Operations Dashboard URL',
+    });
   }
 }
