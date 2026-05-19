@@ -15,6 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   CommunityPost,
   CommunityComment,
+  UserLevel,
   CreateCommunityPostRequest,
   CreateCommunityPostResponse,
   CommunityFeedResponse,
@@ -28,6 +29,7 @@ import {
   COMMUNITY_POINTS,
 } from '@resource-ai/shared';
 import { UserStore } from '../auth/user-store';
+import { AvatarService } from '../auth/avatar-service';
 import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const COMMUNITY_TABLE_NAME = process.env.COMMUNITY_TABLE_NAME!;
@@ -39,6 +41,7 @@ const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({});
 const userStore = new UserStore();
+const avatarService = new AvatarService();
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -90,6 +93,45 @@ async function getUserDisplayName(userId: string): Promise<string> {
     return result.Item?.displayName ?? 'Anonymous';
   } catch {
     return 'Anonymous';
+  }
+}
+
+async function getUserLevel(userId: string): Promise<UserLevel | undefined> {
+  try {
+    const result = await docClient.send(
+      new GetCommand({
+        TableName: USERS_TABLE_NAME,
+        Key: { userId },
+        ProjectionExpression: '#lvl',
+        ExpressionAttributeNames: { '#lvl': 'level' },
+      })
+    );
+
+    const level = result.Item?.level;
+    return typeof level === 'string' ? (level as UserLevel) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function getUserAvatarUrl(userId: string): Promise<string | undefined> {
+  try {
+    const result = await docClient.send(
+      new GetCommand({
+        TableName: USERS_TABLE_NAME,
+        Key: { userId },
+        ProjectionExpression: 'avatarKey',
+      })
+    );
+
+    const avatarKey = result.Item?.avatarKey;
+    if (typeof avatarKey !== 'string' || avatarKey.length === 0) {
+      return undefined;
+    }
+
+    return await avatarService.getAvatarUrl(avatarKey);
+  } catch {
+    return undefined;
   }
 }
 
@@ -357,6 +399,8 @@ async function handleCreatePost(
   }
 
   const displayName = await getUserDisplayName(userId);
+  const userLevel = await getUserLevel(userId);
+  const avatarUrl = await getUserAvatarUrl(userId);
   const postId = uuidv4();
   const now = new Date().toISOString();
 
@@ -364,6 +408,8 @@ async function handleCreatePost(
     postId,
     userId,
     displayName,
+    avatarUrl,
+    userLevel,
     projectId: body.projectId,
     ideaTitle: projectResult.Item.ideaTitle ?? 'Untitled Project',
     grade: projectResult.Item.submission?.grade ?? 'C',
@@ -386,7 +432,19 @@ async function handleCreatePost(
         GSI1SK: now,
         GSI2PK: `USER#${userId}`,
         GSI2SK: now,
-        ...post,
+        postId: post.postId,
+        userId: post.userId,
+        displayName: post.displayName,
+        userLevel: post.userLevel,
+        projectId: post.projectId,
+        ideaTitle: post.ideaTitle,
+        grade: post.grade,
+        text: post.text,
+        imageKeys: post.imageKeys,
+        upvotes: post.upvotes,
+        downvotes: post.downvotes,
+        commentCount: post.commentCount,
+        createdAt: post.createdAt,
       },
     })
   );
@@ -477,7 +535,23 @@ async function handleGetFeed(
   }
 
   // Enrich posts with signed image URLs and user's vote status
+  const levelCache = new Map<string, UserLevel | undefined>();
+  const avatarCache = new Map<string, string | undefined>();
   for (const post of posts) {
+    if (!post.userLevel && post.userId) {
+      if (!levelCache.has(post.userId)) {
+        levelCache.set(post.userId, await getUserLevel(post.userId));
+      }
+      post.userLevel = levelCache.get(post.userId);
+    }
+
+    if (post.userId) {
+      if (!avatarCache.has(post.userId)) {
+        avatarCache.set(post.userId, await getUserAvatarUrl(post.userId));
+      }
+      post.avatarUrl = avatarCache.get(post.userId);
+    }
+
     post.imageUrls = await getSignedImageUrls(post.imageKeys ?? []);
 
     // Check if current user has voted on this post
@@ -701,6 +775,7 @@ async function handleCreateComment(
   }
 
   const displayName = await getUserDisplayName(userId);
+  const avatarUrl = await getUserAvatarUrl(userId);
   const commentId = uuidv4();
   const now = new Date().toISOString();
 
@@ -709,6 +784,7 @@ async function handleCreateComment(
     postId,
     userId,
     displayName,
+    avatarUrl,
     text: body.text.trim(),
     createdAt: now,
   };
@@ -720,7 +796,12 @@ async function handleCreateComment(
       Item: {
         PK: `POST#${postId}`,
         SK: `COMMENT#${now}#${commentId}`,
-        ...comment,
+        commentId: comment.commentId,
+        postId: comment.postId,
+        userId: comment.userId,
+        displayName: comment.displayName,
+        text: comment.text,
+        createdAt: comment.createdAt,
       },
     })
   );
@@ -768,14 +849,24 @@ async function handleGetComments(
     })
   );
 
-  const comments: CommunityComment[] = (result.Items ?? []).map((item: any) => ({
-    commentId: item.commentId,
-    postId: item.postId,
-    userId: item.userId,
-    displayName: item.displayName,
-    text: item.text,
-    createdAt: item.createdAt,
-  }));
+  const avatarCache = new Map<string, string | undefined>();
+  const comments: CommunityComment[] = [];
+  for (const item of result.Items ?? []) {
+    const commentUserId = item.userId as string;
+    if (commentUserId && !avatarCache.has(commentUserId)) {
+      avatarCache.set(commentUserId, await getUserAvatarUrl(commentUserId));
+    }
+
+    comments.push({
+      commentId: item.commentId,
+      postId: item.postId,
+      userId: commentUserId,
+      displayName: item.displayName,
+      avatarUrl: avatarCache.get(commentUserId),
+      text: item.text,
+      createdAt: item.createdAt,
+    });
+  }
 
   const response: CommentsListResponse = {
     comments,

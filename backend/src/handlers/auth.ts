@@ -13,19 +13,24 @@ import {
   LoginRequest,
   LoginResponse,
   ProfileUpdateRequest,
+  AvatarUploadRequest,
+  AvatarUploadResponse,
   ErrorResponse,
   UserStatsResponse,
   BadgeInfo,
   UserLevel,
   BADGE_DEFINITIONS,
   LEVEL_THRESHOLDS,
+  ALLOWED_IMAGE_TYPES,
 } from '@resource-ai/shared';
+import { AvatarService } from '../auth/avatar-service';
 import { hashPassword, verifyPassword } from '../auth/password-service';
 import { generateToken } from '../auth/jwt-service';
 import { UserStore } from '../auth/user-store';
-import { resolveAuthenticatedUserId } from '../auth/request-identity';
+import { resolveAuthenticatedUserId, syncCognitoUserFromClaims } from '../auth/request-identity';
 
 const userStore = new UserStore();
+const avatarService = new AvatarService();
 const AUTH_MODE = (process.env.AUTH_MODE ?? 'legacy').toLowerCase();
 const COGNITO_APP_CLIENT_ID = process.env.COGNITO_APP_CLIENT_ID;
 const cognitoClient = new CognitoIdentityProviderClient({});
@@ -80,22 +85,28 @@ function decodeJwtPayload(token: string): Record<string, unknown> {
   return JSON.parse(json) as Record<string, unknown>;
 }
 
-function userProfileFromCognitoIdToken(idToken: string): UserProfile {
-  const claims = decodeJwtPayload(idToken);
-  const sub = typeof claims.sub === 'string' ? claims.sub : '';
-  const email = typeof claims.email === 'string' ? claims.email : '';
-  const displayNameRaw =
-    (typeof claims.name === 'string' && claims.name) ||
-    (typeof claims['cognito:username'] === 'string' && claims['cognito:username']) ||
-    email ||
-    'User';
+function getStringClaim(claims: Record<string, unknown>, key: string): string | undefined {
+  return typeof claims[key] === 'string' ? (claims[key] as string) : undefined;
+}
 
+function decodeCognitoClaims(idToken: string): {
+  sub?: string;
+  email?: string;
+  name?: string;
+  picture?: string;
+  identities?: string;
+  ['cognito:groups']?: string | string[];
+} {
+  const claims = decodeJwtPayload(idToken);
+  const groups = claims['cognito:groups'];
   return {
-    userId: sub || email || uuidv4(),
-    email: email || `${sub || 'user'}@users.local`,
-    displayName: displayNameRaw,
-    role: 'user',
-    createdAt: new Date().toISOString(),
+    sub: getStringClaim(claims, 'sub'),
+    email: getStringClaim(claims, 'email'),
+    name: getStringClaim(claims, 'name') ?? getStringClaim(claims, 'cognito:username'),
+    picture: getStringClaim(claims, 'picture'),
+    identities: getStringClaim(claims, 'identities'),
+    ['cognito:groups']:
+      typeof groups === 'string' || Array.isArray(groups) ? (groups as string | string[]) : undefined,
   };
 }
 
@@ -127,11 +138,21 @@ async function initiateCognitoPasswordAuth(
 
 // --- Response helpers ---
 
-function toUserProfile(user: User): UserProfile {
+async function toUserProfile(user: User): Promise<UserProfile> {
+  let avatarUrl: string | undefined;
+  if (user.avatarKey) {
+    try {
+      avatarUrl = await avatarService.getAvatarUrl(user.avatarKey);
+    } catch (error) {
+      console.warn('Failed to sign avatar URL:', error);
+    }
+  }
+
   return {
     userId: user.userId,
     email: user.email,
     displayName: user.displayName,
+    avatarUrl,
     role: user.role,
     createdAt: user.createdAt,
   };
@@ -219,9 +240,20 @@ async function handleRegister(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         });
       }
 
+      const user =
+        (await syncCognitoUserFromClaims(decodeCognitoClaims(idToken), userStore, avatarService)) ??
+        ({
+          userId: uuidv4(),
+          email: normalizedEmail,
+          displayName: body.displayName.trim(),
+          role: 'user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } satisfies User);
+
       const response: LoginResponse = {
         token: idToken,
-        user: userProfileFromCognitoIdToken(idToken),
+        user: await toUserProfile(user),
       };
       return successResponse(201, response);
     } catch (err) {
@@ -279,7 +311,7 @@ async function handleRegister(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   const response: LoginResponse = {
     token,
-    user: toUserProfile(user),
+    user: await toUserProfile(user),
   };
 
   return successResponse(201, response);
@@ -323,9 +355,20 @@ async function handleLogin(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
         });
       }
 
+      const user =
+        (await syncCognitoUserFromClaims(decodeCognitoClaims(idToken), userStore, avatarService)) ??
+        ({
+          userId: uuidv4(),
+          email: normalizedEmail,
+          displayName: normalizedEmail,
+          role: 'user',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } satisfies User);
+
       const response: LoginResponse = {
         token: idToken,
-        user: userProfileFromCognitoIdToken(idToken),
+        user: await toUserProfile(user),
       };
       return successResponse(200, response);
     } catch (err) {
@@ -364,7 +407,7 @@ async function handleLogin(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
 
   const response: LoginResponse = {
     token,
-    user: toUserProfile(user),
+    user: await toUserProfile(user),
   };
 
   return successResponse(200, response);
@@ -385,7 +428,7 @@ async function handleGetProfile(event: APIGatewayProxyEvent): Promise<APIGateway
     });
   }
 
-  return successResponse(200, toUserProfile(user));
+  return successResponse(200, await toUserProfile(user));
 }
 
 async function handleUpdateProfile(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -406,20 +449,87 @@ async function handleUpdateProfile(event: APIGatewayProxyEvent): Promise<APIGate
     });
   }
 
-  // Validate displayName
-  const displayNameError = validateDisplayName(body.displayName);
-  if (displayNameError) {
+  if (!body.displayName && !body.avatarKey) {
     return errorResponse(400, {
-      error: { code: 'VALIDATION_ERROR', message: displayNameError, field: 'displayName' },
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'At least one profile field must be provided',
+      },
     });
   }
 
-  // Update user
-  const updatedUser = await userStore.updateUser(userId, {
-    displayName: body.displayName.trim(),
-  });
+  const updates: Partial<User> = {};
 
-  return successResponse(200, toUserProfile(updatedUser));
+  if (body.displayName !== undefined) {
+    const displayNameError = validateDisplayName(body.displayName);
+    if (displayNameError) {
+      return errorResponse(400, {
+        error: { code: 'VALIDATION_ERROR', message: displayNameError, field: 'displayName' },
+      });
+    }
+    updates.displayName = body.displayName.trim();
+  }
+
+  if (body.avatarKey !== undefined) {
+    if (typeof body.avatarKey !== 'string' || body.avatarKey.trim().length === 0) {
+      return errorResponse(400, {
+        error: { code: 'VALIDATION_ERROR', message: 'avatarKey is required', field: 'avatarKey' },
+      });
+    }
+
+    const avatarKey = body.avatarKey.trim();
+    if (!avatarService.avatarKeyBelongsToUser(userId, avatarKey)) {
+      return errorResponse(403, {
+        error: { code: 'FORBIDDEN', message: 'You cannot attach another user\'s avatar' },
+      });
+    }
+
+    if (!(await avatarService.avatarExists(avatarKey))) {
+      return errorResponse(400, {
+        error: { code: 'VALIDATION_ERROR', message: 'Avatar upload could not be found', field: 'avatarKey' },
+      });
+    }
+
+    updates.avatarKey = avatarKey;
+  }
+
+  const updatedUser = await userStore.updateUser(userId, updates);
+
+  return successResponse(200, await toUserProfile(updatedUser));
+}
+
+async function handleCreateAvatarUploadUrl(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const userId = await resolveAuthenticatedUserId(event, userStore);
+  if (!userId) {
+    return errorResponse(401, {
+      error: { code: 'AUTH_FAILURE', message: 'Unauthorized' },
+    });
+  }
+
+  let body: AvatarUploadRequest;
+  try {
+    body = JSON.parse(event.body || '');
+  } catch {
+    return errorResponse(400, {
+      error: { code: 'VALIDATION_ERROR', message: 'Request body must be valid JSON' },
+    });
+  }
+
+  const contentType = body.contentType?.trim().toLowerCase();
+  if (!contentType) {
+    return errorResponse(400, {
+      error: { code: 'VALIDATION_ERROR', message: 'contentType is required', field: 'contentType' },
+    });
+  }
+
+  if (!ALLOWED_IMAGE_TYPES.includes(contentType as (typeof ALLOWED_IMAGE_TYPES)[number])) {
+    return errorResponse(400, {
+      error: { code: 'VALIDATION_ERROR', message: 'Unsupported avatar image type', field: 'contentType' },
+    });
+  }
+
+  const response: AvatarUploadResponse = await avatarService.createUploadUrl(userId, contentType);
+  return successResponse(200, response);
 }
 
 async function handleGetStats(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -517,6 +627,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // GET /auth/stats
     if (method === 'GET' && path.endsWith('/stats')) {
       return await handleGetStats(event);
+    }
+
+    // POST /auth/profile/avatar-upload
+    if (method === 'POST' && path.endsWith('/avatar-upload')) {
+      return await handleCreateAvatarUploadUrl(event);
     }
 
     // PUT /auth/profile

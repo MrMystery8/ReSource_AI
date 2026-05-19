@@ -410,7 +410,7 @@ export function ImplementationGuidePage() {
             Navigate here by clicking an idea card from your triage results.
           </p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/triage')}
             className={BACK_BUTTON_CLASS}
             style={BACK_BUTTON_STYLE}
           >

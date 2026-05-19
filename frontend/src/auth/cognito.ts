@@ -111,7 +111,7 @@ export async function startCognitoLogin(
 
   sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier);
   sessionStorage.setItem(PKCE_STATE_KEY, state);
-  sessionStorage.setItem(RETURN_TO_KEY, returnTo || '/');
+  sessionStorage.setItem(RETURN_TO_KEY, returnTo || '/triage');
 
   const params = new URLSearchParams({
     client_id: COGNITO_CLIENT_ID,
@@ -150,7 +150,7 @@ export async function exchangeCognitoCodeForToken(
 
   const storedVerifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
   const storedState = sessionStorage.getItem(PKCE_STATE_KEY);
-  const returnTo = sessionStorage.getItem(RETURN_TO_KEY) ?? '/';
+  const returnTo = sessionStorage.getItem(RETURN_TO_KEY) ?? '/triage';
 
   sessionStorage.removeItem(PKCE_VERIFIER_KEY);
   sessionStorage.removeItem(PKCE_STATE_KEY);

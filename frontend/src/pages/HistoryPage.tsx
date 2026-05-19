@@ -234,7 +234,7 @@ function TriageSessionsTab({ token }: TriageSessionsTabProps) {
           title="No sessions yet"
           description="Start your first e-waste triage to see your history here."
           ctaLabel="Start your first triage"
-          onCta={() => navigate('/')}
+          onCta={() => navigate('/triage')}
         />
       </div>
     );

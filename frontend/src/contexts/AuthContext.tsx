@@ -6,7 +6,7 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import type { UserProfile, LoginResponse } from '@resource-ai/shared';
+import type { UserProfile, LoginResponse, ProfileUpdateRequest } from '@resource-ai/shared';
 import {
   AUTH_MODE,
   type AuthMode,
@@ -31,7 +31,8 @@ export interface AuthContextValue {
   loginWithProvider: (provider?: CognitoProvider, returnTo?: string) => Promise<void>;
   completeCognitoCallback: (code: string, state: string | null) => Promise<string>;
   logout: () => void;
-  updateProfile: (displayName: string) => Promise<void>;
+  updateProfile: (updates: ProfileUpdateRequest) => Promise<void>;
+  uploadAvatar: (file: File) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -164,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const loginWithProvider = useCallback(
-    async (provider?: CognitoProvider, returnTo: string = '/') => {
+    async (provider?: CognitoProvider, returnTo: string = '/triage') => {
       if (AUTH_MODE !== 'cognito') {
         throw new Error('Social sign-in is only available when VITE_AUTH_MODE=cognito.');
       }
@@ -189,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateProfile = useCallback(
-    async (displayName: string) => {
+    async (updates: ProfileUpdateRequest) => {
       if (!token) {
         throw new Error('Not authenticated');
       }
@@ -201,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           'x-api-key': API_KEY,
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ displayName }),
+        body: JSON.stringify(updates),
       });
 
       if (response.status === 401) {
@@ -222,6 +223,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [token]
   );
 
+  const uploadAvatar = useCallback(
+    async (file: File) => {
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const uploadInitResponse = await fetch(`${API_URL}/auth/profile/avatar-upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ contentType: file.type }),
+      });
+
+      if (uploadInitResponse.status === 401) {
+        window.dispatchEvent(new Event('auth:expired'));
+        throw new Error('Session expired');
+      }
+
+      if (!uploadInitResponse.ok) {
+        const errorBody = await uploadInitResponse.json().catch(() => null);
+        const message =
+          errorBody?.error?.message ?? `Avatar upload initialization failed (${uploadInitResponse.status})`;
+        throw new Error(message);
+      }
+
+      const { uploadUrl, avatarKey } = (await uploadInitResponse.json()) as {
+        uploadUrl: string;
+        avatarKey: string;
+      };
+
+      const putResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!putResponse.ok) {
+        throw new Error(`Avatar upload failed (${putResponse.status})`);
+      }
+
+      await updateProfile({ avatarKey });
+    },
+    [token, updateProfile]
+  );
+
   const value: AuthContextValue = {
     user,
     token,
@@ -234,6 +285,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     completeCognitoCallback,
     logout,
     updateProfile,
+    uploadAvatar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

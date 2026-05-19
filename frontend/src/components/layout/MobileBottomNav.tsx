@@ -24,7 +24,7 @@ interface NavItem {
 
 /** Items shown to all authenticated users (no admin). */
 const BASE_NAV_ITEMS: NavItem[] = [
-  { path: '/', label: 'Triage', icon: Leaf },
+  { path: '/triage', label: 'Triage', icon: Leaf },
   { path: '/community', label: 'Community', icon: Users },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { path: '/profile', label: 'Profile', icon: User },
@@ -62,7 +62,7 @@ export function MobileBottomNav(): JSX.Element {
           <li key={path} className="flex flex-1">
             <NavLink
               to={path}
-              end={path === '/'}
+              end={path === '/triage'}
               className="flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] rounded-md transition-colors duration-150"
               style={({ isActive }) => ({
                 color: isActive

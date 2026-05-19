@@ -67,7 +67,7 @@ export function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/triage', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -167,7 +167,7 @@ export function RegisterPage() {
 
     try {
       await register(formData.email, formData.password, formData.displayName.trim());
-      navigate('/', { replace: true });
+      navigate('/triage', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
       // Check for 409 conflict (email already registered)
@@ -184,7 +184,7 @@ export function RegisterPage() {
   const handleCognitoStart = async (provider?: 'Google' | 'SignInWithApple') => {
     setToast(null);
     try {
-      await loginWithProvider(provider, '/');
+      await loginWithProvider(provider, '/triage');
     } catch (err) {
       setToast(err instanceof Error ? err.message : 'Failed to start Cognito registration');
     }

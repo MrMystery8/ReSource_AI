@@ -8,6 +8,8 @@ import type {
   LoginResponse,
   UserProfile,
   ProfileUpdateRequest,
+  AvatarUploadRequest,
+  AvatarUploadResponse,
   UserStatsResponse,
   LeaderboardResponse,
   UserSessionsResponse,
@@ -101,7 +103,7 @@ export class ApiClient {
     return (
       path === '/upload' ||
       path === '/leaderboard' ||
-      path === '/auth/profile' ||
+      path.startsWith('/auth/profile') ||
       path === '/auth/stats' ||
       path.startsWith('/sessions') ||
       path.startsWith('/admin')
@@ -216,6 +218,14 @@ export class ApiClient {
       body: JSON.stringify(data),
     });
     return this.parseResponse<UserProfile>(response);
+  }
+
+  async createAvatarUploadUrl(data: AvatarUploadRequest): Promise<AvatarUploadResponse> {
+    const response = await this.request('/auth/profile/avatar-upload', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return this.parseResponse<AvatarUploadResponse>(response);
   }
 
   async getStats(): Promise<UserStatsResponse> {

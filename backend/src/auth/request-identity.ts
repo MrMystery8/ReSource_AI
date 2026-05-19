@@ -1,5 +1,6 @@
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 import type { AuthProvider, User, UserRole } from '@resource-ai/shared';
+import { AvatarService } from './avatar-service';
 import { UserStore } from './user-store';
 
 type AuthorizerShape = {
@@ -13,6 +14,7 @@ interface CognitoClaims {
   sub?: string;
   email?: string;
   name?: string;
+  picture?: string;
   identities?: string;
   ['cognito:groups']?: string | string[];
 }
@@ -74,15 +76,29 @@ export function getRoleFromEvent(event: APIGatewayProxyEvent): UserRole | undefi
   return inferRole(claims);
 }
 
-export async function resolveAuthenticatedUserId(
-  event: APIGatewayProxyEvent,
-  userStore: UserStore
+async function tryImportGoogleAvatar(
+  claims: CognitoClaims,
+  userId: string,
+  avatarService?: AvatarService
 ): Promise<string | undefined> {
-  const legacyUserId = getLegacyUserId(event);
-  if (legacyUserId) return legacyUserId;
+  if (!avatarService || !claims.picture || inferAuthProvider(claims) !== 'google') {
+    return undefined;
+  }
 
-  const claims = getCognitoClaims(event);
-  if (!claims?.sub) return undefined;
+  try {
+    return await avatarService.importGoogleAvatar(userId, claims.picture);
+  } catch (error) {
+    console.warn('Failed to import Google avatar:', error);
+    return undefined;
+  }
+}
+
+export async function syncCognitoUserFromClaims(
+  claims: CognitoClaims,
+  userStore: UserStore,
+  avatarService?: AvatarService
+): Promise<User | undefined> {
+  if (!claims.sub) return undefined;
 
   const cognitoSub = claims.sub;
   const email = claims.email ? normalizeEmail(claims.email) : undefined;
@@ -101,25 +117,35 @@ export async function resolveAuthenticatedUserId(
         updates.role = nextRole;
       }
 
-      if (!existingUser.authProvider) {
-        updates.authProvider = inferAuthProvider(claims);
+      const nextProvider = inferAuthProvider(claims);
+      if (!existingUser.authProvider || existingUser.authProvider === 'unknown') {
+        updates.authProvider = nextProvider;
+      }
+
+      if (!existingUser.avatarKey) {
+        const importedAvatarKey = await tryImportGoogleAvatar(claims, existingUser.userId, avatarService);
+        if (importedAvatarKey) {
+          updates.avatarKey = importedAvatarKey;
+        }
       }
 
       if (Object.keys(updates).length > 0) {
-        await userStore.updateUser(existingUser.userId, updates);
+        return userStore.updateUser(existingUser.userId, updates);
       }
 
-      return existingUser.userId;
+      return existingUser;
     }
   }
 
   const now = new Date().toISOString();
   const displayName = claims.name?.trim() || email?.split('@')[0] || 'User';
+  const avatarKey = await tryImportGoogleAvatar(claims, cognitoSub, avatarService);
   const newUser: User = {
     userId: cognitoSub,
     email: email ?? `${cognitoSub}@users.local`,
     passwordHash: '',
     displayName,
+    avatarKey,
     role: inferRole(claims),
     cognitoSub,
     authProvider: inferAuthProvider(claims),
@@ -129,12 +155,33 @@ export async function resolveAuthenticatedUserId(
 
   try {
     await userStore.createUser(newUser);
+    return newUser;
   } catch {
     if (email) {
       const created = await userStore.getUserByEmail(email);
-      if (created) return created.userId;
+      if (created) {
+        if (!created.avatarKey && avatarKey) {
+          return userStore.updateUser(created.userId, { avatarKey });
+        }
+        return created;
+      }
     }
   }
 
-  return newUser.userId;
+  return newUser;
+}
+
+export async function resolveAuthenticatedUserId(
+  event: APIGatewayProxyEvent,
+  userStore: UserStore
+): Promise<string | undefined> {
+  const legacyUserId = getLegacyUserId(event);
+  if (legacyUserId) return legacyUserId;
+
+  const claims = getCognitoClaims(event);
+  if (!claims?.sub) return undefined;
+
+  const avatarService = process.env.BUCKET_NAME ? new AvatarService() : undefined;
+  const user = await syncCognitoUserFromClaims(claims, userStore, avatarService);
+  return user?.userId;
 }

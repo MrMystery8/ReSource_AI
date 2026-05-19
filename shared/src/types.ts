@@ -156,6 +156,8 @@ export interface User {
   email: string;           // Unique, lowercase, trimmed
   passwordHash?: string;   // bcrypt hash (cost 10), legacy auth only
   displayName: string;     // 1-100 characters
+  avatarKey?: string;
+  avatarUrl?: string;
   role: UserRole;
   cognitoSub?: string;
   authProvider?: AuthProvider;
@@ -168,6 +170,7 @@ export interface UserProfile {
   userId: string;
   email: string;
   displayName: string;
+  avatarUrl?: string;
   role: UserRole;
   createdAt: string;
 }
@@ -199,7 +202,18 @@ export interface LoginResponse {
 }
 
 export interface ProfileUpdateRequest {
-  displayName: string;
+  displayName?: string;
+  avatarKey?: string;
+}
+
+export interface AvatarUploadRequest {
+  contentType: string;
+}
+
+export interface AvatarUploadResponse {
+  uploadUrl: string;
+  avatarKey: string;
+  expiresIn: number;
 }
 
 // --- Admin Response Types ---
@@ -397,6 +411,8 @@ export interface CommunityPost {
   postId: string;
   userId: string;
   displayName: string;
+  avatarUrl?: string;
+  userLevel?: UserLevel;
   projectId: string;
   ideaTitle: string;
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
@@ -415,6 +431,7 @@ export interface CommunityComment {
   postId: string;
   userId: string;
   displayName: string;
+  avatarUrl?: string;
   text: string;
   createdAt: string;
 }

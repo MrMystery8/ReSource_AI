@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User,
@@ -35,14 +35,21 @@ import {
   Lock,
   Info,
   ChevronRight,
+  Upload,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
-import { BADGE_DEFINITIONS, LEVEL_THRESHOLDS } from '@resource-ai/shared';
+import {
+  ALLOWED_IMAGE_TYPES,
+  BADGE_DEFINITIONS,
+  LEVEL_THRESHOLDS,
+  MAX_AVATAR_FILE_SIZE_BYTES,
+} from '@resource-ai/shared';
 import type { UserStatsResponse, UserLevel } from '@resource-ai/shared';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { LevelBadge } from '../components/gamification/LevelBadge';
+import { Avatar } from '../components/ui/Avatar';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -152,12 +159,14 @@ function Toast({
 // ProfilePage
 // ---------------------------------------------------------------------------
 export function ProfilePage() {
-  const { user, token, updateProfile } = useAuth();
+  const { user, token, updateProfile, uploadAvatar } = useAuth();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Display name editing state
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(user?.displayName ?? '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Gamification stats
   const [stats, setStats] = useState<UserStatsResponse | null>(null);
@@ -218,7 +227,7 @@ export function ProfilePage() {
 
     setIsSaving(true);
     try {
-      await updateProfile(trimmed);
+      await updateProfile({ displayName: trimmed });
       setIsEditing(false);
       setToast({ message: 'Profile updated successfully', type: 'success' });
     } catch (err) {
@@ -237,6 +246,34 @@ export function ProfilePage() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSave();
     if (e.key === 'Escape') handleCancel();
+  };
+
+  const handleAvatarFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type as (typeof ALLOWED_IMAGE_TYPES)[number])) {
+      setToast({ message: 'Please upload a JPG, PNG, WEBP, or GIF image.', type: 'error' });
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_FILE_SIZE_BYTES) {
+      setToast({ message: 'Profile pictures must be 5 MB or smaller.', type: 'error' });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      await uploadAvatar(file);
+      setToast({ message: 'Profile picture updated successfully', type: 'success' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to upload profile picture';
+      setToast({ message, type: 'error' });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   // Calculate progress bar values
@@ -307,6 +344,60 @@ export function ProfilePage() {
             </h2>
 
             <div className="space-y-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <Avatar
+                    name={user?.displayName ?? 'User'}
+                    src={user?.avatarUrl}
+                    sizeClassName="w-20 h-20"
+                    textClassName="text-xl"
+                  />
+                  <div>
+                    <p
+                      className="text-xs font-medium uppercase tracking-wide"
+                      style={{ color: 'var(--color-text-muted)' }}
+                    >
+                      Profile Picture
+                    </p>
+                    <p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                      JPG, PNG, WEBP, or GIF up to 5 MB.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept={ALLOWED_IMAGE_TYPES.join(',')}
+                    className="hidden"
+                    onChange={handleAvatarFileChange}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{
+                      backgroundColor: 'var(--color-primary)',
+                      color: '#ffffff',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-primary)';
+                    }}
+                  >
+                    {isUploadingAvatar ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    {user?.avatarUrl ? 'Change Photo' : 'Upload Photo'}
+                  </button>
+                </div>
+              </div>
+
               {/* Display Name (editable) */}
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">

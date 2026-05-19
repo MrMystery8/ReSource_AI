@@ -258,6 +258,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         USERS_TABLE_NAME: this.usersTable.tableName,
+        BUCKET_NAME: this.fileStorageBucket.bucketName,
         JWT_SECRET: this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production',
         AUTH_MODE: this.authMode,
       },
@@ -467,6 +468,7 @@ export class ResourceAiStack extends cdk.Stack {
     // AuthHandler: DynamoDB read/write on users table + read on sessions table (for stats/session count)
     this.usersTable.grantReadWriteData(this.authHandler);
     this.sessionsTable.grantReadData(this.authHandler);
+    this.fileStorageBucket.grantReadWrite(this.authHandler);
 
     // SessionsHandler: DynamoDB read on sessions table
     this.sessionsTable.grantReadData(this.sessionsHandler);
@@ -599,9 +601,11 @@ export class ResourceAiStack extends cdk.Stack {
           userPool: this.cognitoUserPool,
           clientId: googleClientId,
           clientSecretValue: cdk.SecretValue.unsafePlainText(googleClientSecret),
-          scopes: ['openid', 'email'],
+          scopes: ['openid', 'email', 'profile'],
           attributeMapping: {
             email: cognito.ProviderAttribute.GOOGLE_EMAIL,
+            fullname: cognito.ProviderAttribute.GOOGLE_NAME,
+            profilePicture: cognito.ProviderAttribute.GOOGLE_PICTURE,
           },
         });
         supportedIdentityProviders.push(cognito.UserPoolClientIdentityProvider.GOOGLE);
@@ -771,6 +775,8 @@ export class ResourceAiStack extends cdk.Stack {
     const authProfileResource = authResource.addResource('profile');
     authProfileResource.addMethod('GET', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
     authProfileResource.addMethod('PUT', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
+    const authProfileAvatarUploadResource = authProfileResource.addResource('avatar-upload');
+    authProfileAvatarUploadResource.addMethod('POST', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
 
     // GET /auth/stats — Protected (API key + authorizer)
     const authStatsResource = authResource.addResource('stats');
@@ -1329,8 +1335,9 @@ export class ResourceAiStack extends cdk.Stack {
 
     // ── Assemble dashboard ────────────────────────────────────────────────────
 
+    const dashboardName = `${this.stackName}-Operations`;
     new cloudwatch.Dashboard(this, 'ResourceAiDashboard', {
-      dashboardName: 'ReSource-AI-Operations',
+      dashboardName,
       defaultInterval: cdk.Duration.hours(3),
       widgets: [
         // Title
@@ -1370,7 +1377,7 @@ export class ResourceAiStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'DashboardUrl', {
-      value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=ReSource-AI-Operations`,
+      value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=${dashboardName}`,
       description: 'CloudWatch Operations Dashboard URL',
     });
   }

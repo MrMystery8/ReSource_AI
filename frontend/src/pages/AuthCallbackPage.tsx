@@ -20,7 +20,7 @@ export function AuthCallbackPage() {
 
     completeCognitoCallback(code, state)
       .then((returnTo) => {
-        navigate(returnTo || '/', { replace: true });
+        navigate(returnTo || '/triage', { replace: true });
       })
       .catch((err) => {
         const message = err instanceof Error ? err.message : 'Failed to complete sign-in.';

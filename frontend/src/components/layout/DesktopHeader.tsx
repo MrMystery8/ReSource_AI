@@ -38,6 +38,7 @@ import { ThemeToggle } from '../ui/ThemeToggle';
 import { ApiClient } from '../../services/api';
 import type { UserLevel, UserStatsResponse } from '@resource-ai/shared';
 import { SITE_LOGO_URL } from '../../lib/siteAssets';
+import { Avatar } from '../ui/Avatar';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -59,7 +60,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { path: '/', label: 'Triage', icon: Leaf, requiresAuth: true },
+  { path: '/triage', label: 'Triage', icon: Leaf, requiresAuth: true },
   { path: '/community', label: 'Community', icon: Users, requiresAuth: true },
   { path: '/history', label: 'History', icon: History, requiresAuth: true },
   { path: '/leaderboard', label: 'Leaderboard', icon: Trophy, requiresAuth: true },
@@ -110,16 +111,6 @@ const LEVEL_BADGE_STYLES: Record<UserLevel, { color: string; bg: string; border:
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Returns up to 2 uppercase initials from a display name */
-function getInitials(displayName: string): string {
-  return displayName
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0]?.toUpperCase() ?? '')
-    .join('');
-}
-
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -150,6 +141,7 @@ function LevelBadge({ level }: LevelBadgeProps): JSX.Element {
 
 interface ProfileDropdownProps {
   displayName: string;
+  avatarUrl?: string;
   level: UserLevel | null;
   onClose: () => void;
   onLogout: () => void;
@@ -157,6 +149,7 @@ interface ProfileDropdownProps {
 
 function ProfileDropdown({
   displayName,
+  avatarUrl,
   level,
   onClose,
   onLogout,
@@ -220,17 +213,22 @@ function ProfileDropdown({
         className="px-4 py-3 border-b"
         style={{ borderColor: 'var(--color-border-default)' }}
       >
-        <p
-          className="text-sm font-semibold truncate"
-          style={{ color: 'var(--color-text-primary)' }}
-        >
-          {displayName}
-        </p>
-        {level && (
-          <div className="mt-1">
-            <LevelBadge level={level} />
+        <div className="flex items-center gap-3">
+          <Avatar name={displayName} src={avatarUrl} sizeClassName="w-10 h-10" textClassName="text-sm" />
+          <div className="min-w-0">
+            <p
+              className="text-sm font-semibold truncate"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {displayName}
+            </p>
+            {level && (
+              <div className="mt-1">
+                <LevelBadge level={level} />
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Menu items */}
@@ -366,7 +364,6 @@ export function DesktopHeader(): JSX.Element {
 
   // ── Derived values ────────────────────────────────────────────────────────
   const displayName = user?.displayName ?? 'User';
-  const initials = getInitials(displayName);
   const isManager = user?.role === 'manager';
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
@@ -421,7 +418,7 @@ export function DesktopHeader(): JSX.Element {
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
-                    end={item.path === '/'}
+                    end={item.path === '/triage'}
                     className={({ isActive }) =>
                       [
                         'flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium',
@@ -479,17 +476,12 @@ export function DesktopHeader(): JSX.Element {
                     'var(--color-text-secondary)';
                 }}
               >
-                {/* Avatar with initials */}
-                <span
-                  className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold shrink-0"
-                  style={{
-                    backgroundColor: 'var(--color-primary)',
-                    color: '#fff',
-                  }}
-                  aria-hidden="true"
-                >
-                  {initials || <User size={14} />}
-                </span>
+                <Avatar
+                  name={displayName}
+                  src={user?.avatarUrl}
+                  sizeClassName="w-7 h-7"
+                  textClassName="text-[11px]"
+                />
 
                 {/* Display name */}
                 <span className="max-w-[120px] truncate">{displayName}</span>
@@ -508,6 +500,7 @@ export function DesktopHeader(): JSX.Element {
               {dropdownOpen && (
                 <ProfileDropdown
                   displayName={displayName}
+                  avatarUrl={user?.avatarUrl}
                   level={stats?.level ?? null}
                   onClose={handleDropdownClose}
                   onLogout={handleLogout}

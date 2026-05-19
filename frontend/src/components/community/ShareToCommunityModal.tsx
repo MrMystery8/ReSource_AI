@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ApiClient } from '../../services/api';
+import { Avatar } from '../ui/Avatar';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -193,16 +194,12 @@ export function ShareToCommunityModal({
                 <div className="p-5 space-y-4">
                   {/* User info */}
                   <div className="flex items-center gap-3">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                      style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
-                    >
-                      {user?.displayName
-                        ?.split(' ')
-                        .slice(0, 2)
-                        .map((w) => w[0]?.toUpperCase())
-                        .join('') ?? 'U'}
-                    </div>
+                    <Avatar
+                      name={user?.displayName ?? 'User'}
+                      src={user?.avatarUrl}
+                      sizeClassName="w-10 h-10"
+                      textClassName="text-sm"
+                    />
                     <div>
                       <p
                         className="text-sm font-semibold"
