@@ -9,6 +9,9 @@ export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivEl
   onIdeaClick: (idea: ProjectIdea) => void;
 }
 
+const MIN_UNIFORM_CARD_HEIGHT = 400;
+const MAX_UNIFORM_CARD_HEIGHT = 560;
+
 interface ProjectIdeaCardProps {
   idea: ProjectIdea;
   onIdeaClick: (idea: ProjectIdea) => void;
@@ -130,7 +133,10 @@ function ProjectIdeaCard({
               </div>
             </div>
 
-            <p className="max-w-[30ch] text-sm leading-relaxed text-white/85">
+            <p
+              className="max-w-[30ch] text-sm leading-relaxed text-white/85 overflow-hidden"
+              style={{ display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical' }}
+            >
               {idea.description}
             </p>
           </div>
@@ -262,7 +268,10 @@ export function ProjectIdeaCarousel({
       return;
     }
 
-    const maxHeight = Math.max(...heights);
+    const maxHeight = Math.min(
+      Math.max(Math.max(...heights), MIN_UNIFORM_CARD_HEIGHT),
+      MAX_UNIFORM_CARD_HEIGHT
+    );
     setUniformCardHeight((prev) => (prev === maxHeight ? prev : maxHeight));
   }, []);
 
