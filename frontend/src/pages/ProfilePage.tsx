@@ -34,6 +34,7 @@ import {
   MessagesSquare,
   Lock,
   Info,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
@@ -168,6 +169,16 @@ export function ProfilePage() {
 
   // Ladder Modal State
   const [showLadder, setShowLadder] = useState(false);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showLadder) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showLadder]);
 
   // Fetch gamification stats
   const fetchStats = useCallback(async () => {
@@ -721,7 +732,7 @@ export function ProfilePage() {
         </motion.div>
       </motion.div>
 
-      {/* Level Ladder Modal */}
+      {/* Level Progression Modal */}
       <AnimatePresence>
         {showLadder && stats && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -732,16 +743,16 @@ export function ProfilePage() {
               exit={{ opacity: 0 }}
               onClick={() => setShowLadder(false)}
               className="absolute inset-0"
-              style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+              style={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
             />
 
-            {/* Modal Card */}
+            {/* Modal */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 24 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-lg rounded-xl border overflow-hidden max-h-[85vh] flex flex-col z-10"
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              className="relative w-full max-w-2xl rounded-xl border overflow-hidden max-h-[90vh] flex flex-col z-10"
               style={{
                 backgroundColor: 'var(--color-surface-card)',
                 borderColor: 'var(--color-border-default)',
@@ -750,15 +761,15 @@ export function ProfilePage() {
             >
               {/* Header */}
               <div
-                className="px-6 py-5 border-b flex items-center justify-between"
+                className="px-6 py-4 border-b flex items-center justify-between"
                 style={{ borderColor: 'var(--color-border-default)' }}
               >
                 <div>
                   <h3 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
-                    <Trophy className="w-4 h-4" style={{ color: 'var(--color-accent)' }} />
+                    <Trophy className="w-4 h-4" style={{ color: 'var(--color-primary)' }} />
                     Level Progression
                   </h3>
-                  <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
                     Earn points through triages, projects, and community engagement.
                   </p>
                 </div>
@@ -775,43 +786,93 @@ export function ProfilePage() {
 
               {/* Scrollable content */}
               <div className="flex-1 overflow-y-auto px-6 py-5">
-                {/* Summary card */}
+                {/* Summary banner */}
                 <div
-                  className="rounded-lg p-4 border mb-6 flex items-center justify-between"
+                  className="rounded-lg p-4 border mb-5 flex items-center justify-between"
                   style={{
                     backgroundColor: `color-mix(in srgb, ${accent} 4%, var(--color-surface-elevated))`,
                     borderColor: `color-mix(in srgb, ${accent} 18%, var(--color-border-default))`,
                   }}
                 >
                   <div>
-                    <p className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>Current Standing</p>
+                    <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Current Standing</p>
                     <p className="text-lg font-bold tabular-nums mt-0.5" style={{ color: 'var(--color-text-primary)' }}>
-                      {stats.points.toLocaleString()} <span className="text-xs font-normal" style={{ color: 'var(--color-text-secondary)' }}>points</span>
+                      {stats.points.toLocaleString()}
+                      <span className="text-xs font-normal ml-1" style={{ color: 'var(--color-text-secondary)' }}>points</span>
                     </p>
                   </div>
                   <LevelBadge level={currentLevel} size="md" />
                 </div>
 
-                {/* Vertical timeline */}
-                <div className="relative">
-                  {/* Connecting rail */}
-                  <div
-                    className="absolute left-[11px] top-3 bottom-3 w-px"
-                    style={{ backgroundColor: 'var(--color-border-default)' }}
-                  />
-
-                  <div className="space-y-1">
-                    {LEVEL_THRESHOLDS.map((threshold) => {
+                {/* Horizontal progress track */}
+                <div className="mb-5">
+                  {/* Track background */}
+                  <div className="flex items-center gap-0.5">
+                    {LEVEL_THRESHOLDS.map((threshold, idx) => {
+                      const stepAccent = LEVEL_ACCENT[threshold.level];
                       const isCurrent = threshold.level === currentLevel;
                       const isPassed = stats.points >= threshold.minPoints && !isCurrent;
-                      const isNext = stats.nextLevel === threshold.level;
-                      const stepAccent = LEVEL_ACCENT[threshold.level];
+
+                      // Calculate segment fill for current level
+                      let segmentFill = 0;
+                      if (isPassed) segmentFill = 100;
+                      else if (isCurrent && threshold.maxPoints !== Infinity) {
+                        const range = threshold.maxPoints - threshold.minPoints + 1;
+                        const inLevel = stats.points - threshold.minPoints;
+                        segmentFill = Math.min(100, Math.max(0, Math.round((inLevel / range) * 100)));
+                      } else if (isCurrent && threshold.maxPoints === Infinity) {
+                        segmentFill = 100;
+                      }
 
                       return (
-                        <div key={threshold.level} className="relative flex items-start gap-3 py-2">
-                          {/* Timeline dot */}
+                        <div key={threshold.level} className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: `color-mix(in srgb, ${stepAccent} 12%, var(--color-surface-card))` }}>
                           <div
-                            className="relative z-10 mt-1 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center shrink-0"
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${segmentFill}%`, backgroundColor: stepAccent }}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Level cards grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {LEVEL_THRESHOLDS.map((threshold, idx) => {
+                    const isCurrent = threshold.level === currentLevel;
+                    const isPassed = stats.points >= threshold.minPoints && !isCurrent;
+                    const isLocked = !isPassed && !isCurrent;
+                    const stepAccent = LEVEL_ACCENT[threshold.level];
+
+                    // Per-card progress for current level
+                    let cardProgress = 0;
+                    if (isCurrent && threshold.maxPoints !== Infinity) {
+                      const range = threshold.maxPoints - threshold.minPoints + 1;
+                      const inLevel = stats.points - threshold.minPoints;
+                      cardProgress = Math.min(100, Math.max(0, Math.round((inLevel / range) * 100)));
+                    } else if (isCurrent && threshold.maxPoints === Infinity) {
+                      cardProgress = 100;
+                    }
+
+                    return (
+                      <div
+                        key={threshold.level}
+                        className="rounded-lg p-3.5 border transition-all"
+                        style={{
+                          backgroundColor: isCurrent
+                            ? `color-mix(in srgb, ${stepAccent} 5%, var(--color-surface-elevated))`
+                            : 'var(--color-surface-elevated)',
+                          borderColor: isCurrent
+                            ? `color-mix(in srgb, ${stepAccent} 30%, var(--color-border-default))`
+                            : 'var(--color-border-subtle)',
+                          opacity: isLocked ? 0.5 : 1,
+                        }}
+                      >
+                        {/* Top row: status indicator + level name + points range */}
+                        <div className="flex items-center gap-2.5">
+                          {/* Status circle */}
+                          <div
+                            className="w-7 h-7 rounded-full border-2 flex items-center justify-center shrink-0"
                             style={{
                               backgroundColor: isPassed
                                 ? 'var(--color-success)'
@@ -826,81 +887,91 @@ export function ProfilePage() {
                             }}
                           >
                             {isPassed ? (
-                              <Check className="w-3 h-3" style={{ color: '#fff' }} />
+                              <Check className="w-3.5 h-3.5" style={{ color: '#fff' }} />
                             ) : isCurrent ? (
                               <div className="w-2 h-2 rounded-full bg-white" />
                             ) : (
-                              <Lock className="w-2.5 h-2.5" style={{ color: 'var(--color-text-muted)' }} />
+                              <Lock className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
                             )}
                           </div>
 
-                          {/* Step content */}
-                          <div
-                            className="flex-1 rounded-lg p-3 border transition-colors"
-                            style={{
-                              backgroundColor: isCurrent
-                                ? `color-mix(in srgb, ${stepAccent} 5%, var(--color-surface-elevated))`
-                                : 'var(--color-surface-elevated)',
-                              borderColor: isCurrent
-                                ? `color-mix(in srgb, ${stepAccent} 20%, var(--color-border-default))`
-                                : isNext
-                                ? 'var(--color-border-default)'
-                                : 'var(--color-border-subtle)',
-                              opacity: isPassed || isCurrent ? 1 : 0.65,
-                            }}
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <LevelBadge level={threshold.level} size="sm" showLabel={true} />
-                                {isCurrent && (
-                                  <span
-                                    className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-px rounded"
-                                    style={{
-                                      color: stepAccent,
-                                      backgroundColor: `color-mix(in srgb, ${stepAccent} 10%, transparent)`,
-                                    }}
-                                  >
-                                    You are here
-                                  </span>
-                                )}
-                              </div>
-                              <span className="text-[11px] tabular-nums font-medium" style={{ color: 'var(--color-text-muted)' }}>
-                                {threshold.minPoints.toLocaleString()}{threshold.maxPoints === Infinity ? '+' : `–${threshold.maxPoints.toLocaleString()}`} pts
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-semibold truncate" style={{ color: isCurrent ? stepAccent : 'var(--color-text-primary)' }}>
+                                {threshold.level}
                               </span>
-                            </div>
-
-                            {/* Mini progress bar for current level */}
-                            {isCurrent && threshold.maxPoints !== Infinity && (
-                              <div className="mt-2.5">
-                                <div className="flex justify-between text-[10px] mb-1" style={{ color: 'var(--color-text-muted)' }}>
-                                  <span>{progressPercent}% complete</span>
-                                  <span className="tabular-nums">{stats.points.toLocaleString()} / {threshold.maxPoints.toLocaleString()}</span>
-                                </div>
-                                <div
-                                  className="w-full h-1.5 rounded-full overflow-hidden"
-                                  style={{ backgroundColor: `color-mix(in srgb, ${stepAccent} 12%, var(--color-surface-card))` }}
+                              {isCurrent && (
+                                <span
+                                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-px rounded shrink-0"
+                                  style={{
+                                    color: stepAccent,
+                                    backgroundColor: `color-mix(in srgb, ${stepAccent} 12%, transparent)`,
+                                  }}
                                 >
-                                  <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progressPercent}%` }}
-                                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                                    className="h-full rounded-full"
-                                    style={{ backgroundColor: stepAccent }}
-                                  />
-                                </div>
-                              </div>
-                            )}
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+                              {threshold.minPoints.toLocaleString()}{threshold.maxPoints === Infinity ? '+' : `\u2013${threshold.maxPoints.toLocaleString()}`} pts
+                            </span>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        {/* Progress bar for current level */}
+                        {isCurrent && threshold.maxPoints !== Infinity && (
+                          <div className="mt-3">
+                            <div className="flex justify-between text-[10px] mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                              <span>{cardProgress}% complete</span>
+                              <span className="tabular-nums">{stats.points.toLocaleString()} / {threshold.maxPoints.toLocaleString()}</span>
+                            </div>
+                            <div
+                              className="w-full h-1.5 rounded-full overflow-hidden"
+                              style={{ backgroundColor: `color-mix(in srgb, ${stepAccent} 12%, var(--color-surface-card))` }}
+                            >
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${cardProgress}%` }}
+                                transition={{ duration: 0.6, ease: 'easeOut', delay: 0.1 }}
+                                className="h-full rounded-full"
+                                style={{ backgroundColor: stepAccent }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Completed date for passed levels */}
+                        {isPassed && (
+                          <p className="text-[10px] mt-2 flex items-center gap-1" style={{ color: 'var(--color-success)' }}>
+                            <Check className="w-3 h-3" />
+                            Completed
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Earned badges count */}
+                <div
+                  className="mt-5 rounded-lg p-3 border flex items-center justify-between"
+                  style={{
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    borderColor: 'var(--color-border-subtle)',
+                  }}
+                >
+                  <span className="text-xs font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                    Badges Earned
+                  </span>
+                  <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--color-text-primary)' }}>
+                    {earnedBadgeIds.size} / {BADGE_DEFINITIONS.length}
+                  </span>
                 </div>
               </div>
 
               {/* Footer */}
               <div
-                className="px-6 py-4 border-t text-right"
+                className="px-6 py-3.5 border-t text-right"
                 style={{
                   borderColor: 'var(--color-border-default)',
                   backgroundColor: 'var(--color-surface-elevated)',
