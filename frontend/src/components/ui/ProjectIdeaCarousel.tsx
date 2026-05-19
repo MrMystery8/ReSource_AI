@@ -9,15 +9,7 @@ export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivEl
   onIdeaClick: (idea: ProjectIdea) => void;
 }
 
-const MIN_UNIFORM_CARD_HEIGHT = 400;
-const MAX_UNIFORM_CARD_HEIGHT = 560;
-
-interface ProjectIdeaCardProps {
-  idea: ProjectIdea;
-  onIdeaClick: (idea: ProjectIdea) => void;
-  cardHeight?: number;
-  registerRef?: (node: HTMLButtonElement | null) => void;
-}
+const CARD_HEIGHT_PX = 460;
 
 const SKILL_LEVEL_STYLES: Record<
   ProjectIdea['skillLevel'],
@@ -67,14 +59,14 @@ const SKILL_LEVEL_STYLES: Record<
 function ProjectIdeaCard({
   idea,
   onIdeaClick,
-  cardHeight,
-  registerRef,
-}: ProjectIdeaCardProps) {
+}: {
+  idea: ProjectIdea;
+  onIdeaClick: (idea: ProjectIdea) => void;
+}) {
   const skillStyle = SKILL_LEVEL_STYLES[idea.skillLevel] ?? SKILL_LEVEL_STYLES.Beginner;
 
   return (
     <motion.button
-      ref={registerRef}
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
@@ -101,8 +93,8 @@ function ProjectIdeaCard({
           skillStyle.background
         )}
         style={{
-          minHeight: '400px',
-          height: cardHeight ? `${cardHeight}px` : undefined,
+          minHeight: `${CARD_HEIGHT_PX}px`,
+          height: `${CARD_HEIGHT_PX}px`,
         }}
       >
         <div
@@ -127,7 +119,10 @@ function ProjectIdeaCard({
                 >
                   {idea.skillLevel}
                 </span>
-                <h3 className="text-[0.98rem] font-bold leading-tight text-white sm:text-[1.05rem]">
+                <h3
+                  className="text-[0.98rem] font-bold leading-tight text-white sm:text-[1.05rem] overflow-hidden"
+                  style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+                >
                   {idea.title}
                 </h3>
               </div>
@@ -135,7 +130,7 @@ function ProjectIdeaCard({
 
             <p
               className="max-w-[30ch] text-sm leading-relaxed text-white/85 overflow-hidden"
-              style={{ display: '-webkit-box', WebkitLineClamp: 6, WebkitBoxOrient: 'vertical' }}
+              style={{ display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical' }}
             >
               {idea.description}
             </p>
@@ -215,9 +210,7 @@ export function ProjectIdeaCarousel({
 }: ProjectIdeaCarouselProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const scrollTrackRef = React.useRef<HTMLDivElement>(null);
-  const cardRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
   const isDraggingScrollRef = React.useRef(false);
-  const [uniformCardHeight, setUniformCardHeight] = React.useState<number | undefined>(undefined);
   const [scrollState, setScrollState] = React.useState({
     canLeft: false,
     canRight: false,
@@ -258,27 +251,6 @@ export function ProjectIdeaCarousel({
     setScrollByProgress(relativeX / rect.width);
   }, [setScrollByProgress]);
 
-  const syncCardHeights = React.useCallback(() => {
-    const heights = cardRefs.current
-      .filter((node): node is HTMLButtonElement => node != null)
-      .map((node) => node.offsetHeight);
-
-    if (heights.length === 0) {
-      setUniformCardHeight(undefined);
-      return;
-    }
-
-    const maxHeight = Math.min(
-      Math.max(Math.max(...heights), MIN_UNIFORM_CARD_HEIGHT),
-      MAX_UNIFORM_CARD_HEIGHT
-    );
-    setUniformCardHeight((prev) => (prev === maxHeight ? prev : maxHeight));
-  }, []);
-
-  React.useEffect(() => {
-    syncCardHeights();
-  }, [items, syncCardHeights]);
-
   React.useEffect(() => {
     const current = scrollContainerRef.current;
     if (!current) return;
@@ -316,25 +288,6 @@ export function ProjectIdeaCarousel({
     };
   }, [updateScrollFromClientX]);
 
-  React.useEffect(() => {
-    if (typeof ResizeObserver === 'undefined') {
-      return;
-    }
-
-    const observer = new ResizeObserver(() => {
-      syncCardHeights();
-      updateScrollState();
-    });
-
-    for (const node of cardRefs.current) {
-      if (node) {
-        observer.observe(node);
-      }
-    }
-
-    return () => observer.disconnect();
-  }, [items, syncCardHeights, updateScrollState]);
-
   const scroll = React.useCallback((direction: 'left' | 'right') => {
     const current = scrollContainerRef.current;
     if (!current) return;
@@ -366,10 +319,6 @@ export function ProjectIdeaCarousel({
                   <ProjectIdeaCard
                     idea={idea}
                     onIdeaClick={onIdeaClick}
-                    cardHeight={uniformCardHeight}
-                    registerRef={(node) => {
-                      cardRefs.current[index] = node;
-                    }}
                   />
                 </div>
               ))}
