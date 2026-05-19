@@ -36,16 +36,16 @@ const TEXT_FIELDS: TextFieldConfig[] = [
   {
     name: 'deviceIdentity',
     label: 'Device Identity',
-    placeholder: 'e.g., Samsung Galaxy S10, cracked screen, visible battery bulge...',
+    placeholder: 'e.g., Samsung Galaxy S10, Dell Inspiron 15, iPhone 12 Pro...',
     icon: <Cpu className="w-4 h-4" />,
-    description: 'Describe the device and any visible parts or damage',
+    description: 'Identify the device model, brand, or variant only',
   },
   {
     name: 'failureSymptoms',
     label: 'Failure Symptoms',
     placeholder: "e.g., Won't turn on, overheating, smoke smell, broken charging port...",
     icon: <AlertTriangle className="w-4 h-4" />,
-    description: 'What went wrong? Any safety concerns?',
+    description: 'Describe damage, faults, symptoms, and any safety concerns',
   },
 ];
 
