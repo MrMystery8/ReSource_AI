@@ -76,7 +76,7 @@ function ProjectIdeaCard({
       onClick={() => onIdeaClick(idea)}
       className={cn(
         'group relative w-full overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
-        'bg-black outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
+        'outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
@@ -86,17 +86,21 @@ function ProjectIdeaCard({
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
         borderColor: 'rgba(52, 211, 153, 0.34)',
+        backgroundColor: 'var(--color-surface-card)',
         transformOrigin: 'center center',
         boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.18), 0 16px 36px rgba(0, 0, 0, 0.4)',
-        minHeight: cardHeight ? `${cardHeight}px` : undefined,
       }}
     >
       <div
         className={cn(
-          'relative min-h-[400px] overflow-hidden',
+          'relative overflow-hidden',
           'bg-gradient-to-b',
           skillStyle.background
         )}
+        style={{
+          minHeight: '400px',
+          height: cardHeight ? `${cardHeight}px` : undefined,
+        }}
       >
         <div
           className="absolute inset-0"
@@ -204,7 +208,9 @@ export function ProjectIdeaCarousel({
   ...props
 }: ProjectIdeaCarouselProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const scrollTrackRef = React.useRef<HTMLDivElement>(null);
   const cardRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  const isDraggingScrollRef = React.useRef(false);
   const [uniformCardHeight, setUniformCardHeight] = React.useState<number | undefined>(undefined);
   const [scrollState, setScrollState] = React.useState({
     canLeft: false,
@@ -228,6 +234,23 @@ export function ProjectIdeaCarousel({
       viewRatio,
     });
   }, []);
+
+  const setScrollByProgress = React.useCallback((progress: number) => {
+    const current = scrollContainerRef.current;
+    if (!current) return;
+    const clamped = Math.min(1, Math.max(0, progress));
+    const maxScroll = Math.max(current.scrollWidth - current.clientWidth, 0);
+    current.scrollLeft = maxScroll * clamped;
+  }, []);
+
+  const updateScrollFromClientX = React.useCallback((clientX: number) => {
+    const track = scrollTrackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const relativeX = Math.min(rect.width, Math.max(0, clientX - rect.left));
+    setScrollByProgress(relativeX / rect.width);
+  }, [setScrollByProgress]);
 
   const syncCardHeights = React.useCallback(() => {
     const heights = cardRefs.current
@@ -261,6 +284,28 @@ export function ProjectIdeaCarousel({
       window.removeEventListener('resize', updateScrollState);
     };
   }, [updateScrollState]);
+
+  React.useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDraggingScrollRef.current) return;
+      updateScrollFromClientX(event.clientX);
+    };
+
+    const handleMouseUp = () => {
+      if (!isDraggingScrollRef.current) return;
+      isDraggingScrollRef.current = false;
+      document.body.style.userSelect = '';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+    };
+  }, [updateScrollFromClientX]);
 
   React.useEffect(() => {
     if (typeof ResizeObserver === 'undefined') {
@@ -336,16 +381,42 @@ export function ProjectIdeaCarousel({
           </button>
 
           <div
-            className="relative h-1.5 w-28 overflow-hidden rounded-full"
-            aria-hidden="true"
+            ref={scrollTrackRef}
+            className="relative h-1.5 w-28 overflow-hidden rounded-full cursor-pointer"
+            aria-label="Project ideas scroll position"
+            role="slider"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(scrollState.progress * 100)}
+            tabIndex={0}
             style={{ backgroundColor: 'rgba(255, 255, 255, 0.16)' }}
+            onMouseDown={(event) => {
+              isDraggingScrollRef.current = true;
+              document.body.style.userSelect = 'none';
+              updateScrollFromClientX(event.clientX);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                setScrollByProgress(scrollState.progress - 0.08);
+              } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                setScrollByProgress(scrollState.progress + 0.08);
+              }
+            }}
           >
             <div
-              className="absolute top-0 h-full rounded-full transition-[left,width] duration-150"
+              className="absolute top-0 h-full rounded-full transition-[left,width] duration-150 cursor-grab active:cursor-grabbing"
               style={{
                 left: `${thumbLeftPercent}%`,
                 width: `${thumbWidthPercent}%`,
                 background: 'linear-gradient(90deg, rgba(52, 211, 153, 0.95), rgba(110, 231, 183, 0.95))',
+              }}
+              onMouseDown={(event) => {
+                event.stopPropagation();
+                isDraggingScrollRef.current = true;
+                document.body.style.userSelect = 'none';
+                updateScrollFromClientX(event.clientX);
               }}
             />
           </div>

@@ -118,6 +118,7 @@ export function DetailedAnalysisCard({ data }: Props) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="p-4 rounded-xl bg-surface-elevated/55 border border-border-subtle"
         >
           <div className="flex items-center gap-2 mb-2">
             <Stethoscope className="w-4 h-4 text-text-muted" />
