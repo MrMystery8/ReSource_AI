@@ -515,12 +515,12 @@ export function HistoryPage() {
   const tabs: { id: ActiveTab; label: string; icon: React.ReactNode }[] = [
     {
       id: 'projects',
-      label: 'Projects',
+      label: 'My Projects',
       icon: <FolderOpen className="w-4 h-4" />,
     },
     {
       id: 'triage',
-      label: 'Triage Sessions',
+      label: 'My Devices',
       icon: <ClipboardList className="w-4 h-4" />,
     },
   ];

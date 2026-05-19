@@ -19,6 +19,7 @@ import { ProjectChatbot } from '../components/ProjectChatbot';
 import { ProjectSubmission } from '../components/ProjectSubmission';
 import { PointsAnimation } from '../components/gamification/PointsAnimation';
 import { Card } from '../components/ui/Card';
+import { TintedPanel } from '../components/ui/analysis-primitives';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -35,12 +36,12 @@ const BACK_BUTTON_STYLE: React.CSSProperties = {
 };
 
 const GUIDE_PANEL_CLASS =
-  'p-6 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]';
+  'p-1 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]';
 
 const GUIDE_PANEL_STYLE: React.CSSProperties = {
-  backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 92%, transparent)',
+  backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 88%, transparent)',
   borderColor: 'color-mix(in srgb, var(--color-primary) 14%, var(--color-border-default))',
-  boxShadow: '0 8px 26px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.03)',
+  boxShadow: '0 12px 28px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.04)',
 };
 
 // ─── State shape passed via React Router location.state ───
@@ -498,176 +499,192 @@ export function ImplementationGuidePage() {
           </div>
 
           {/* Safety warnings */}
-          <Card
-            elevation="sm"
-            className={GUIDE_PANEL_CLASS}
-            style={GUIDE_PANEL_STYLE}
-            aria-labelledby="safety-heading"
-          >
-            <h2
-              id="safety-heading"
-              className="flex items-center gap-2 text-lg font-semibold mb-4"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              <ShieldAlert className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
-              Safety Warnings
-            </h2>
-            {guide.safetyWarnings.length === 1 &&
-            guide.safetyWarnings[0] === 'No specific safety concerns' ? (
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                No specific safety concerns for this project.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {guide.safetyWarnings.map((warning, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm"
-                    style={{ color: 'var(--color-warning)' }}
-                  >
-                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-                    {warning}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
-          {/* Materials list */}
-          <Card
-            elevation="sm"
-            className={GUIDE_PANEL_CLASS}
-            style={GUIDE_PANEL_STYLE}
-            aria-labelledby="materials-heading"
-          >
-            <h2
-              id="materials-heading"
-              className="flex items-center gap-2 text-lg font-semibold mb-4"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              <Package className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-              Materials &amp; Tools
-              <span
-                className="ml-auto text-xs font-normal"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                {guide.materials.length} item{guide.materials.length !== 1 ? 's' : ''}
-              </span>
-            </h2>
-            <ul className="space-y-2">
-              {guide.materials.map((material, index) => (
-                <li
-                  key={index}
-                  className="flex items-start gap-2 text-sm"
-                  style={{ color: 'var(--color-text-secondary)' }}
-                >
-                  <CheckCircle2
-                    className="w-4 h-4 mt-0.5 shrink-0"
-                    style={{ color: 'var(--color-success)' }}
-                  />
-                  {material}
-                </li>
-              ))}
-            </ul>
-          </Card>
-
-          {/* Step-by-step instructions */}
-          <Card
-            elevation="sm"
-            className={GUIDE_PANEL_CLASS}
-            style={GUIDE_PANEL_STYLE}
-            aria-labelledby="steps-heading"
-          >
-            <h2
-              id="steps-heading"
-              className="flex items-center gap-2 text-lg font-semibold mb-4"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              <ListOrdered className="w-5 h-5" style={{ color: 'var(--color-primary)' }} />
-              Step-by-Step Instructions
-              <span
-                className="ml-auto text-xs font-normal"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                {guide.steps.length} step{guide.steps.length !== 1 ? 's' : ''}
-              </span>
-            </h2>
-            <ol className="space-y-5">
-              {guide.steps.map((step) => (
-                <li key={step.stepNumber} className="flex gap-4">
-                  {/* Step number badge */}
-                  <span
-                    className="flex-shrink-0 w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center mt-0.5"
-                    style={{
-                      backgroundColor: 'var(--badge-info-bg)',
-                      color: 'var(--badge-info-fg)',
-                      border: '1px solid var(--badge-info-border)',
-                    }}
-                    aria-hidden="true"
-                  >
-                    {step.stepNumber}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-sm leading-relaxed prose-container"
-                      style={{ color: 'var(--color-text-primary)' }}
-                    >
-                      {step.instruction}
-                    </p>
-                    {/* Show explanation for Beginner level (or whenever explanation is present) */}
-                    {(isBeginnerLevel || step.explanation) && step.explanation && (
-                      <p
-                        className="mt-1.5 text-xs leading-relaxed italic pl-3 prose-container"
-                        style={{
-                          color: 'var(--color-text-muted)',
-                          borderLeft: '2px solid var(--color-border-default)',
-                        }}
-                      >
-                        {step.explanation}
-                      </p>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </Card>
-
-          {/* Project Submission section */}
-          {projectId && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
             <Card
               elevation="sm"
               className={GUIDE_PANEL_CLASS}
               style={GUIDE_PANEL_STYLE}
-              aria-labelledby="submission-heading"
+              aria-labelledby="safety-heading"
             >
-              <h2
-                id="submission-heading"
-                className="flex items-center gap-2 text-lg font-semibold mb-4"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Submit Your Project
-              </h2>
-              {/* Points animation overlay — positioned relative to this container */}
-              <div className="relative">
-                <PointsAnimation
-                  points={pointsEarned}
-                  visible={showPoints}
-                  onComplete={() => setShowPoints(false)}
-                />
-                <ProjectSubmission
-                  projectId={projectId}
-                  guideContext={{
-                    ideaTitle: effectiveState.ideaTitle,
-                    expectedOutcome: effectiveState.ideaDescription,
-                    steps: guide.steps.map((s) => s.instruction),
-                  }}
-                  onGraded={handleGraded}
-                  apiUrl={API_URL}
-                  apiKey={API_KEY}
-                  authToken={token}
-                />
-              </div>
+              <TintedPanel tone="warning" className="p-5 sm:p-6">
+                <h2
+                  id="safety-heading"
+                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  style={{ color: '#ffffff' }}
+                >
+                  <ShieldAlert className="w-5 h-5" style={{ color: '#fbbf24' }} />
+                  Safety Warnings
+                </h2>
+                {guide.safetyWarnings.length === 1 &&
+                guide.safetyWarnings[0] === 'No specific safety concerns' ? (
+                  <p className="text-sm" style={{ color: 'rgba(255,255,255,0.82)' }}>
+                    No specific safety concerns for this project.
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {guide.safetyWarnings.map((warning, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-2 text-sm"
+                        style={{ color: '#fbbf24' }}
+                      >
+                        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                        <span style={{ color: 'rgba(255,255,255,0.88)' }}>{warning}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </TintedPanel>
             </Card>
+          </motion.div>
+
+          {/* Materials list */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+            <Card
+              elevation="sm"
+              className={GUIDE_PANEL_CLASS}
+              style={GUIDE_PANEL_STYLE}
+              aria-labelledby="materials-heading"
+            >
+              <TintedPanel tone="primary" className="p-5 sm:p-6">
+                <h2
+                  id="materials-heading"
+                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  style={{ color: '#ffffff' }}
+                >
+                  <Package className="w-5 h-5" style={{ color: '#34d399' }} />
+                  Materials &amp; Tools
+                  <span
+                    className="ml-auto text-xs font-normal"
+                    style={{ color: 'rgba(255,255,255,0.64)' }}
+                  >
+                    {guide.materials.length} item{guide.materials.length !== 1 ? 's' : ''}
+                  </span>
+                </h2>
+                <ul className="space-y-2">
+                  {guide.materials.map((material, index) => (
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 text-sm"
+                      style={{ color: 'rgba(255,255,255,0.86)' }}
+                    >
+                      <CheckCircle2
+                        className="w-4 h-4 mt-0.5 shrink-0"
+                        style={{ color: '#34d399' }}
+                      />
+                      {material}
+                    </li>
+                  ))}
+                </ul>
+              </TintedPanel>
+            </Card>
+          </motion.div>
+
+          {/* Step-by-step instructions */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
+            <Card
+              elevation="sm"
+              className={GUIDE_PANEL_CLASS}
+              style={GUIDE_PANEL_STYLE}
+              aria-labelledby="steps-heading"
+            >
+              <TintedPanel tone="default" className="p-5 sm:p-6">
+                <h2
+                  id="steps-heading"
+                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  style={{ color: '#ffffff' }}
+                >
+                  <ListOrdered className="w-5 h-5" style={{ color: '#34d399' }} />
+                  Step-by-Step Instructions
+                  <span
+                    className="ml-auto text-xs font-normal"
+                    style={{ color: 'rgba(255,255,255,0.64)' }}
+                  >
+                    {guide.steps.length} step{guide.steps.length !== 1 ? 's' : ''}
+                  </span>
+                </h2>
+                <ol className="space-y-5">
+                  {guide.steps.map((step) => (
+                    <li key={step.stepNumber} className="flex gap-4">
+                      {/* Step number badge */}
+                      <span
+                        className="flex-shrink-0 w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center mt-0.5"
+                        style={{
+                          backgroundColor: 'rgba(52,211,153,0.18)',
+                          color: '#34d399',
+                          border: '1px solid rgba(52,211,153,0.45)',
+                        }}
+                        aria-hidden="true"
+                      >
+                        {step.stepNumber}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-sm leading-relaxed prose-container"
+                          style={{ color: 'rgba(255,255,255,0.92)' }}
+                        >
+                          {step.instruction}
+                        </p>
+                        {/* Show explanation for Beginner level (or whenever explanation is present) */}
+                        {(isBeginnerLevel || step.explanation) && step.explanation && (
+                          <p
+                            className="mt-1.5 text-xs leading-relaxed italic pl-3 prose-container"
+                            style={{
+                              color: 'rgba(255,255,255,0.68)',
+                              borderLeft: '2px solid rgba(52,211,153,0.32)',
+                            }}
+                          >
+                            {step.explanation}
+                          </p>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </TintedPanel>
+            </Card>
+          </motion.div>
+
+          {/* Project Submission section */}
+          {projectId && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <Card
+                elevation="sm"
+                className={GUIDE_PANEL_CLASS}
+                style={GUIDE_PANEL_STYLE}
+                aria-labelledby="submission-heading"
+              >
+                <TintedPanel tone="primary" className="p-5 sm:p-6">
+                  <h2
+                    id="submission-heading"
+                    className="flex items-center gap-2 text-lg font-semibold mb-4"
+                    style={{ color: '#ffffff' }}
+                  >
+                    Submit Your Project
+                  </h2>
+                  {/* Points animation overlay — positioned relative to this container */}
+                  <div className="relative">
+                    <PointsAnimation
+                      points={pointsEarned}
+                      visible={showPoints}
+                      onComplete={() => setShowPoints(false)}
+                    />
+                    <ProjectSubmission
+                      projectId={projectId}
+                      guideContext={{
+                        ideaTitle: effectiveState.ideaTitle,
+                        expectedOutcome: effectiveState.ideaDescription,
+                        steps: guide.steps.map((s) => s.instruction),
+                      }}
+                      onGraded={handleGraded}
+                      apiUrl={API_URL}
+                      apiKey={API_KEY}
+                      authToken={token}
+                    />
+                  </div>
+                </TintedPanel>
+              </Card>
+            </motion.div>
           )}
         </motion.div>
       )}
