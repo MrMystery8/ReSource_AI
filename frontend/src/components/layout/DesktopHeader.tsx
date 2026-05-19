@@ -5,7 +5,7 @@
  * Hidden below 768px — MobileBottomNav handles smaller screens.
  *
  * Contains:
- *  - Logo: "ReSource AI" with Leaf icon, no glow/animation
+ *  - Logo: "ReSource AI" with the brand image, no glow/animation
  *  - Horizontal nav links with icon + text label (NavLink active state)
  *  - Active item: primary color text + bg-primary/10 background
  *  - ThemeToggle button
@@ -37,6 +37,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { ApiClient } from '../../services/api';
 import type { UserLevel, UserStatsResponse } from '@resource-ai/shared';
+import { SITE_LOGO_URL } from '../../lib/siteAssets';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -381,12 +382,14 @@ export function DesktopHeader(): JSX.Element {
             'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
           ].join(' ')}
         >
-          <span
-            className="flex items-center justify-center w-8 h-8 rounded-lg"
-            style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
-          >
-            <Leaf size={16} aria-hidden="true" />
-          </span>
+          <img
+            src={SITE_LOGO_URL}
+            alt=""
+            aria-hidden="true"
+            className="h-8 w-8 rounded-lg object-cover"
+            loading="eager"
+            decoding="async"
+          />
           <span
             className="text-base font-semibold tracking-tight"
             style={{ color: 'var(--color-text-primary)' }}
