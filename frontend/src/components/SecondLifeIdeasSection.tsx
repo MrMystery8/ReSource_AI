@@ -79,9 +79,6 @@ export function SecondLifeIdeasSection({
                 <h3 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: '#ffffff' }}>
                   Second Life Ideas
                 </h3>
-                <p className="max-w-2xl text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.68)' }}>
-                  Choose project to continue.
-                </p>
                 <p className="max-w-2xl text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
                   Choose one idea below to open its guide and keep moving.
                 </p>
