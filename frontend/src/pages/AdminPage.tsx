@@ -812,13 +812,13 @@ export function AdminPage() {
       {/* Header */}
       <div className="mb-6">
         <h1
-          className="text-2xl font-bold flex items-center gap-2"
+          className="text-3xl font-bold tracking-tight sm:text-4xl flex items-center gap-2"
           style={{ color: 'var(--color-text-primary)' }}
         >
           <Shield className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
           Admin Panel
         </h1>
-        <p className="mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+        <p className="mt-1 text-sm sm:text-base" style={{ color: 'var(--color-text-secondary)' }}>
           Manage users and oversee system sessions
         </p>
       </div>

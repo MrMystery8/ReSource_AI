@@ -535,13 +535,13 @@ export function HistoryPage() {
       {/* Page header */}
       <div className="mb-6">
         <h1
-          className="text-2xl font-bold"
+          className="text-3xl font-bold tracking-tight sm:text-4xl"
           style={{ color: 'var(--color-text-primary)' }}
         >
           History
         </h1>
         <p
-          className="text-sm mt-1"
+          className="text-sm sm:text-base mt-1"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           Track your recycling projects and triage sessions

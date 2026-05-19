@@ -434,13 +434,13 @@ export function ImplementationGuidePage() {
       {/* Page title */}
       <div className="mb-6">
         <h1
-          className="text-2xl font-bold"
+          className="text-3xl font-bold tracking-tight sm:text-4xl"
           style={{ color: 'var(--color-text-primary)' }}
         >
           {effectiveState.ideaTitle}
         </h1>
         <p
-          className="text-sm mt-1 prose-container"
+          className="text-sm sm:text-base mt-1 prose-container"
           style={{ color: 'var(--color-text-secondary)' }}
         >
           {effectiveState.ideaDescription}

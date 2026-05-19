@@ -479,13 +479,13 @@ export function CommunityPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1
-            className="text-2xl font-bold flex items-center gap-2"
+            className="text-3xl font-bold tracking-tight sm:text-4xl flex items-center gap-2"
             style={{ color: 'var(--color-text-primary)' }}
           >
             <Users className="w-6 h-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
             Community
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+          <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             See what others are building from e-waste
           </p>
         </div>

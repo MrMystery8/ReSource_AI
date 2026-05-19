@@ -258,12 +258,12 @@ export function ProfilePage() {
         {/* Page Title */}
         <div className="mb-2">
           <h1
-            className="text-2xl font-bold"
+            className="text-3xl font-bold tracking-tight sm:text-4xl"
             style={{ color: 'var(--color-text-primary)' }}
           >
             Profile
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+          <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--color-text-secondary)' }}>
             Manage your account and track your progress
           </p>
         </div>

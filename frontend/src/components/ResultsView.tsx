@@ -99,7 +99,7 @@ function ResultsHero({
           </div>
           <div className="min-w-0">
             <h1
-              className="text-2xl font-semibold tracking-tight sm:text-3xl"
+              className="text-3xl font-bold tracking-tight sm:text-4xl"
               style={{ color: '#ffffff' }}
             >
               {RESULTS_CONTENT.heroTitle}

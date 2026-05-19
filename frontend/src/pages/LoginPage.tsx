@@ -66,7 +66,7 @@ export function LoginPage() {
             <AuthPanelBadge />
           </motion.div>
           <h1
-            className="text-2xl font-bold"
+            className="text-3xl font-bold tracking-tight sm:text-4xl"
             style={{ color: '#ffffff' }}
           >
             Welcome Back
