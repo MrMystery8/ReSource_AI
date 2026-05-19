@@ -139,7 +139,7 @@ export function LeaderboardPage() {
         >
           <Trophy
             className="w-6 h-6"
-            style={{ color: 'var(--color-warning, #f59e0b)' }}
+            style={{ color: 'var(--color-text-primary)' }}
             aria-hidden
           />
           Leaderboard
