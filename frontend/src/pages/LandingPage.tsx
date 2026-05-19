@@ -18,37 +18,44 @@ const CAPTIONS = [
   {
     kicker: 'Checkpoint 01',
     titleLines: [
-      'Thirteen unused or broken devices per household.',
+      'Thirteen devices left unused in one home.',
       'Now multiply that by millions of homes.',
     ],
-    subtext:
-      'WEEE Forum. (2022, October 13). International E-waste Day: Of ~16 billion mobile phones possessed worldwide, ~5.3 billion will become waste in 2022.',
+    subtext: '',
+    subtextPrefix: 'WEEE Forum. (2022, October 13). ',
+    subtextItalic:
+      'International E-waste Day: Of ~16 billion mobile phones possessed worldwide, ~5.3 billion will become waste in 2022.',
   },
   {
     kicker: 'Checkpoint 02',
     titleLines: [
       'An old device is not empty.',
-      'It still holds materials, parts, and possibility.',
+      'It holds materials, parts, and possibilities.',
     ],
-    subtext:
-      'Inside are the pieces we often overlook: metals, circuits, wiring, screws, and components that may still have value.',
+    subtext: 'Circuits, wiring, and components remain inside.',
+    subtextPrefix: '',
+    subtextItalic: '',
   },
   {
     kicker: 'Checkpoint 03',
     titleLines: ['Inside the shell, the useful core appears.'],
-    subtext:
-      'The outer layer opens to reveal the parts and structure hidden beneath the surface.',
+    subtext: 'The device opens to reveal what was hidden beneath the surface.',
+    subtextPrefix: '',
+    subtextItalic: '',
   },
   {
     kicker: 'Checkpoint 04',
     titleLines: ['Parts begin to shift into purpose.'],
-    subtext: '',
+    subtext: 'Recovered pieces start taking on a new function.',
+    subtextPrefix: '',
+    subtextItalic: '',
   },
   {
     kicker: 'Checkpoint 05',
     titleLines: ['What was left behind now has a new purpose.'],
-    subtext:
-      'A second-life concept built from recovered components and guided by ReSource AI.',
+    subtext: 'ReSource AI turns recovery into responsible second-life design.',
+    subtextPrefix: '',
+    subtextItalic: '',
   },
 ] as const;
 
@@ -298,6 +305,12 @@ export function LandingPage(): JSX.Element {
               ))}
             </h1>
             {caption.subtext ? <p className="chapter-subtext">{caption.subtext}</p> : null}
+            {caption.subtextPrefix ? (
+              <p className="chapter-subtext">
+                {caption.subtextPrefix}
+                <em>{caption.subtextItalic}</em>
+              </p>
+            ) : null}
             {index === LAST_CHECKPOINT_INDEX ? (
               <div className={showFinalActions ? 'chapter-actions is-visible' : 'chapter-actions is-hidden'}>
                 <Link to="/register" className="chapter-btn chapter-btn-primary">
