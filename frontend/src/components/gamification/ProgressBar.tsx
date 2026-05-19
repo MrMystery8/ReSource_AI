@@ -9,24 +9,14 @@ export interface ProgressBarProps {
   pointsToNextLevel: number;
 }
 
-const LEVEL_GRADIENT: Record<UserLevel, string> = {
-  Recycler: 'from-emerald-500 to-emerald-300',
-  'Eco-Sorter': 'from-teal-500 to-teal-300',
-  'Resource Salvager': 'from-blue-500 to-blue-300',
-  'Triage Specialist': 'from-indigo-500 to-indigo-300',
-  'E-Waste Champion': 'from-purple-500 to-purple-300',
-  'Green Guardian': 'from-amber-500 to-amber-300',
-  'Eco-Legend': 'from-rose-500 to-rose-300',
-};
-
-const LEVEL_BG: Record<UserLevel, string> = {
-  Recycler: 'bg-emerald-500/20',
-  'Eco-Sorter': 'bg-teal-500/20',
-  'Resource Salvager': 'bg-blue-500/20',
-  'Triage Specialist': 'bg-indigo-500/20',
-  'E-Waste Champion': 'bg-purple-500/20',
-  'Green Guardian': 'bg-amber-500/20',
-  'Eco-Legend': 'bg-rose-500/20',
+const LEVEL_ACCENT: Record<UserLevel, string> = {
+  Recycler:            '#10b981',
+  'Eco-Sorter':        '#14b8a6',
+  'Resource Salvager': '#3b82f6',
+  'Triage Specialist': '#6366f1',
+  'E-Waste Champion':  '#a855f7',
+  'Green Guardian':    '#f59e0b',
+  'Eco-Legend':        '#ef4444',
 };
 
 export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: ProgressBarProps) {
@@ -34,10 +24,10 @@ export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: Pro
   const currentThreshold = LEVEL_THRESHOLDS.find((t) => t.level === level);
   const minPoints = currentThreshold?.minPoints ?? 0;
   const maxPoints = currentThreshold?.maxPoints ?? Infinity;
+  const accent = LEVEL_ACCENT[level];
 
   let progress: number;
   if (maxPoints === Infinity) {
-    // Max level reached
     progress = 100;
   } else {
     const levelRange = maxPoints - minPoints + 1;
@@ -49,43 +39,41 @@ export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: Pro
     <div className="w-full" role="progressbar" aria-valuenow={points} aria-label={`Progress toward ${nextLevel ?? 'max level'}`}>
       {/* Labels */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-text-secondary">
+        <span className="text-xs font-medium" style={{ color: accent }}>
           {level}
         </span>
         {nextLevel ? (
-          <span className="text-xs font-medium text-text-secondary">
+          <span className="text-xs font-medium" style={{ color: 'var(--color-text-muted)' }}>
             {nextLevel}
           </span>
         ) : (
-          <span className="text-xs font-medium text-amber-400">
+          <span className="text-xs font-medium" style={{ color: 'var(--color-accent)' }}>
             Max Level!
           </span>
         )}
       </div>
 
       {/* Bar */}
-      <div className={`relative h-3 rounded-full overflow-hidden ${LEVEL_BG[level]}`}>
+      <div
+        className="relative h-2 rounded-full overflow-hidden"
+        style={{ backgroundColor: `color-mix(in srgb, ${accent} 12%, var(--color-surface-card))` }}
+      >
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${LEVEL_GRADIENT[level]}`}
-        />
-        {/* Shimmer effect */}
-        <motion.div
-          className="absolute inset-y-0 w-20 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-          animate={{ x: ['-80px', '400px'] }}
-          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{ backgroundColor: accent }}
         />
       </div>
 
       {/* Points info */}
       <div className="flex items-center justify-between mt-1.5">
-        <span className="text-xs text-text-secondary">
+        <span className="text-xs tabular-nums" style={{ color: 'var(--color-text-secondary)' }}>
           {points.toLocaleString()} pts
         </span>
         {nextLevel && (
-          <span className="text-xs text-text-secondary">
+          <span className="text-xs tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
             {pointsToNextLevel.toLocaleString()} pts to go
           </span>
         )}
@@ -95,3 +83,4 @@ export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: Pro
 }
 
 export default ProgressBar;
+
