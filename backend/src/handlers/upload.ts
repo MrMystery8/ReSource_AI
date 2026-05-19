@@ -10,6 +10,8 @@ import {
   UploadFileResponse,
   ErrorResponse,
 } from '@resource-ai/shared';
+import { UserStore } from '../auth/user-store';
+import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -34,6 +36,7 @@ const CONTENT_TYPE_TO_EXTENSION: Record<string, string> = {
 };
 
 let fileStore: FileStore | undefined;
+const userStore = new UserStore();
 
 function getFileStore(): FileStore {
   if (!fileStore) {
@@ -110,9 +113,7 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     // Extract userId from authorizer context (for audit trail and access control)
-    const userId =
-      (event.requestContext.authorizer?.lambda?.userId as string | undefined) ??
-      (event.requestContext.authorizer?.userId as string | undefined);
+    const userId = await resolveAuthenticatedUserId(event, userStore);
 
     if (!userId) {
       const errorResponse: ErrorResponse = {

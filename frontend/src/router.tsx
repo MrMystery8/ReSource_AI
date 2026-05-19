@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import App from './App';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { TriagePage } from './pages/TriagePage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SessionDetailPage } from './pages/SessionDetailPage';
@@ -38,6 +39,10 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         element: <RegisterPage />,
+      },
+      {
+        path: 'auth/callback',
+        element: <AuthCallbackPage />,
       },
       {
         path: 'history',

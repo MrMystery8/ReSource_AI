@@ -39,7 +39,7 @@ const itemVariants = {
 } as const;
 
 export function RegisterPage() {
-  const { register, isAuthenticated } = useAuth();
+  const { register, isAuthenticated, authMode, loginWithProvider } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
@@ -180,12 +180,97 @@ export function RegisterPage() {
     }
   };
 
+  const handleCognitoStart = async (provider?: 'Google' | 'SignInWithApple') => {
+    setToast(null);
+    try {
+      await loginWithProvider(provider, '/');
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Failed to start Cognito registration');
+    }
+  };
+
   // Cleanup debounce timers on unmount
   useEffect(() => {
     return () => {
       Object.values(debounceTimers.current).forEach(clearTimeout);
     };
   }, []);
+
+  if (authMode === 'cognito') {
+    return (
+      <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">
+        <motion.div
+          className="w-full max-w-md"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+        >
+          <Card surface="analysis" elevation="md" className="p-8 sm:p-10">
+            <div className="text-center mb-8">
+              <AuthPanelBadge />
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: '#ffffff' }}>
+                Create Account
+              </h1>
+              <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
+                Use Cognito managed authentication to create your account
+              </p>
+            </div>
+
+            {toast && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 flex items-center gap-2 px-4 py-3 rounded-lg text-sm"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+                  border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+                  color: 'var(--color-error)',
+                }}
+                role="alert"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span className="flex-1">{toast}</span>
+                <button
+                  type="button"
+                  onClick={() => setToast(null)}
+                  className="shrink-0 transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--color-error)' }}
+                  aria-label="Dismiss error"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            )}
+
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="primary"
+                className="w-full !bg-[#34d399] !text-[#04110d] hover:!bg-[#6ee7b7]"
+                onClick={() => { void handleCognitoStart(undefined); }}
+                leftIcon={<UserPlus className="w-4 h-4" />}
+              >
+                Continue with Email
+              </Button>
+              <Button type="button" variant="secondary" className="w-full" onClick={() => { void handleCognitoStart('Google'); }}>
+                Continue with Google
+              </Button>
+              <Button type="button" variant="secondary" className="w-full" onClick={() => { void handleCognitoStart('SignInWithApple'); }}>
+                Continue with Apple
+              </Button>
+            </div>
+
+            <p className="mt-6 text-center text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+              Already have an account?{' '}
+              <Link to="/login" className="font-medium transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>
+                Sign in
+              </Link>
+            </p>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">

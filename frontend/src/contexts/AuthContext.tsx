@@ -7,6 +7,14 @@ import {
   type ReactNode,
 } from 'react';
 import type { UserProfile, LoginResponse } from '@resource-ai/shared';
+import {
+  AUTH_MODE,
+  type AuthMode,
+  type CognitoProvider,
+  buildCognitoLogoutUrl,
+  exchangeCognitoCodeForToken,
+  startCognitoLogin,
+} from '../auth/cognito';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -15,15 +23,35 @@ const TOKEN_KEY = 'resource_ai_token';
 export interface AuthContextValue {
   user: UserProfile | null;
   token: string | null;
+  authMode: AuthMode;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
+  loginWithProvider: (provider?: CognitoProvider, returnTo?: string) => Promise<void>;
+  completeCognitoCallback: (code: string, state: string | null) => Promise<string>;
   logout: () => void;
   updateProfile: (displayName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+async function fetchProfile(token: string): Promise<UserProfile> {
+  const response = await fetch(`${API_URL}/auth/profile`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Token expired or invalid');
+  }
+
+  return response.json() as Promise<UserProfile>;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -40,6 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearAuth();
+
+    if (AUTH_MODE === 'cognito') {
+      const cognitoLogout = buildCognitoLogoutUrl();
+      if (cognitoLogout) {
+        window.location.assign(cognitoLogout);
+        return;
+      }
+    }
+
     window.location.href = '/login';
   }, [clearAuth]);
 
@@ -63,22 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     setToken(storedToken);
-
-    fetch(`${API_URL}/auth/profile`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': API_KEY,
-        Authorization: `Bearer ${storedToken}`,
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('Token expired or invalid');
-        }
-        return res.json();
-      })
-      .then((profile: UserProfile) => {
+    fetchProfile(storedToken)
+      .then((profile) => {
         setUser(profile);
       })
       .catch(() => {
@@ -90,6 +113,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearAuth]);
 
   const login = useCallback(async (email: string, password: string) => {
+    if (AUTH_MODE === 'cognito') {
+      await startCognitoLogin('/');
+      return;
+    }
+
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -116,6 +144,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (email: string, password: string, displayName: string) => {
+      if (AUTH_MODE === 'cognito') {
+        await startCognitoLogin('/');
+        return;
+      }
+
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -139,6 +172,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     []
   );
+
+  const loginWithProvider = useCallback(
+    async (provider?: CognitoProvider, returnTo: string = '/') => {
+      if (AUTH_MODE !== 'cognito') {
+        throw new Error('Social sign-in is only available when VITE_AUTH_MODE=cognito.');
+      }
+      await startCognitoLogin(returnTo, provider);
+    },
+    []
+  );
+
+  const completeCognitoCallback = useCallback(async (code: string, state: string | null) => {
+    if (AUTH_MODE !== 'cognito') {
+      throw new Error('Cognito callback is not available in legacy auth mode.');
+    }
+
+    const { token: exchangedToken, returnTo } = await exchangeCognitoCodeForToken(code, state);
+    const profile = await fetchProfile(exchangedToken);
+
+    localStorage.setItem(TOKEN_KEY, exchangedToken);
+    setToken(exchangedToken);
+    setUser(profile);
+
+    return returnTo;
+  }, []);
 
   const updateProfile = useCallback(
     async (displayName: string) => {
@@ -177,10 +235,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextValue = {
     user,
     token,
+    authMode: AUTH_MODE,
     isAuthenticated,
     isLoading,
     login,
     register,
+    loginWithProvider,
+    completeCognitoCallback,
     logout,
     updateProfile,
   };

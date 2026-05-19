@@ -27,6 +27,8 @@ import {
   VoteType,
   COMMUNITY_POINTS,
 } from '@resource-ai/shared';
+import { UserStore } from '../auth/user-store';
+import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const COMMUNITY_TABLE_NAME = process.env.COMMUNITY_TABLE_NAME!;
 const USERS_TABLE_NAME = process.env.USERS_TABLE_NAME!;
@@ -36,6 +38,7 @@ const BUCKET_NAME = process.env.BUCKET_NAME!;
 const dynamoClient = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({});
+const userStore = new UserStore();
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -788,9 +791,7 @@ export const handler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const userId =
-      (event.requestContext.authorizer?.lambda?.userId as string | undefined) ??
-      (event.requestContext.authorizer?.userId as string | undefined);
+    const userId = await resolveAuthenticatedUserId(event, userStore);
 
     if (!userId) {
       return errorResponse(401, {

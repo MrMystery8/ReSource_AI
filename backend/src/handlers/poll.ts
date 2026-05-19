@@ -1,8 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { SessionStore } from '../session-store';
 import { PollSessionResponse, ErrorResponse } from '@resource-ai/shared';
+import { UserStore } from '../auth/user-store';
+import { getRoleFromEvent, resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const sessionStore = new SessionStore();
+const userStore = new UserStore();
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -40,8 +43,8 @@ export const handler = async (
     }
 
     // Extract userId and role from authorizer context
-    const userId = event.requestContext.authorizer?.userId as string | undefined;
-    const role = event.requestContext.authorizer?.role as string | undefined;
+    const userId = await resolveAuthenticatedUserId(event, userStore);
+    const role = getRoleFromEvent(event);
 
     const session = await sessionStore.getSession(sessionId);
 

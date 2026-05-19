@@ -6,6 +6,7 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Construct } from 'constructs';
@@ -21,9 +22,14 @@ export class ResourceAiStack extends cdk.Stack {
   public readonly api: apigateway.RestApi;
   public readonly apiKey: apigateway.IApiKey;
   public readonly distribution: cloudfront.Distribution;
+  public readonly authMode: 'legacy' | 'cognito';
 
   // Auth infrastructure
   public readonly tokenAuthorizer: apigateway.TokenAuthorizer;
+  public readonly cognitoUserPool?: cognito.UserPool;
+  public readonly cognitoUserPoolClient?: cognito.UserPoolClient;
+  public readonly cognitoUserPoolDomain?: cognito.UserPoolDomain;
+  public readonly cognitoAuthorizer?: apigateway.CognitoUserPoolsAuthorizer;
 
   // Lambda functions
   public readonly submitHandler: NodejsFunction;
@@ -49,6 +55,10 @@ export class ResourceAiStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    const requestedAuthMode = String(
+      this.node.tryGetContext('authMode') ?? process.env.RESOURCE_AI_AUTH_MODE ?? 'legacy'
+    ).toLowerCase();
+    this.authMode = requestedAuthMode === 'cognito' ? 'cognito' : 'legacy';
 
     // --- Task 2.1: DynamoDB Table and S3 Buckets ---
 
@@ -496,6 +506,117 @@ export class ResourceAiStack extends cdk.Stack {
       apiKeySourceType: apigateway.ApiKeySourceType.HEADER,
     });
 
+    if (this.authMode === 'cognito') {
+      const callbackUrls =
+        (this.node.tryGetContext('cognitoCallbackUrls') as string[] | undefined) ??
+        ['http://localhost:5173/auth/callback'];
+      const logoutUrls =
+        (this.node.tryGetContext('cognitoLogoutUrls') as string[] | undefined) ??
+        ['http://localhost:5173/login'];
+
+      this.cognitoUserPool = new cognito.UserPool(this, 'ResourceAiUserPool', {
+        userPoolName: 'resource-ai-user-pool',
+        selfSignUpEnabled: true,
+        signInAliases: { email: true },
+        autoVerify: { email: true },
+        standardAttributes: {
+          email: { required: true, mutable: true },
+          fullname: { required: false, mutable: true },
+        },
+        passwordPolicy: {
+          minLength: 8,
+          requireDigits: true,
+          requireLowercase: true,
+          requireUppercase: true,
+          requireSymbols: false,
+        },
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      });
+
+      const supportedIdentityProviders = [cognito.UserPoolClientIdentityProvider.COGNITO];
+
+      const googleClientId = this.node.tryGetContext('googleClientId') as string | undefined;
+      const googleClientSecret = this.node.tryGetContext('googleClientSecret') as string | undefined;
+      let googleProvider: cognito.UserPoolIdentityProviderGoogle | undefined;
+      if (googleClientId && googleClientSecret) {
+        googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdentityProvider', {
+          userPool: this.cognitoUserPool,
+          clientId: googleClientId,
+          clientSecretValue: cdk.SecretValue.unsafePlainText(googleClientSecret),
+          scopes: ['openid', 'email', 'profile'],
+          attributeMapping: {
+            email: cognito.ProviderAttribute.GOOGLE_EMAIL,
+            fullname: cognito.ProviderAttribute.GOOGLE_NAME,
+          },
+        });
+        supportedIdentityProviders.push(cognito.UserPoolClientIdentityProvider.GOOGLE);
+      }
+
+      const appleClientId = this.node.tryGetContext('appleClientId') as string | undefined;
+      const appleTeamId = this.node.tryGetContext('appleTeamId') as string | undefined;
+      const appleKeyId = this.node.tryGetContext('appleKeyId') as string | undefined;
+      const applePrivateKey = this.node.tryGetContext('applePrivateKey') as string | undefined;
+      let appleProvider: cognito.UserPoolIdentityProviderApple | undefined;
+      if (appleClientId && appleTeamId && appleKeyId && applePrivateKey) {
+        appleProvider = new cognito.UserPoolIdentityProviderApple(this, 'AppleIdentityProvider', {
+          userPool: this.cognitoUserPool,
+          clientId: appleClientId,
+          teamId: appleTeamId,
+          keyId: appleKeyId,
+          privateKey: applePrivateKey,
+          scopes: ['name', 'email'],
+          attributeMapping: {
+            email: cognito.ProviderAttribute.APPLE_EMAIL,
+            fullname: cognito.ProviderAttribute.APPLE_NAME,
+          },
+        });
+        supportedIdentityProviders.push(cognito.UserPoolClientIdentityProvider.APPLE);
+      }
+
+      this.cognitoUserPoolClient = this.cognitoUserPool.addClient('ResourceAiUserPoolClient', {
+        userPoolClientName: 'resource-ai-web-client',
+        authFlows: { userPassword: true, userSrp: true },
+        generateSecret: false,
+        oAuth: {
+          callbackUrls,
+          logoutUrls,
+          flows: {
+            authorizationCodeGrant: true,
+          },
+          scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL, cognito.OAuthScope.PROFILE],
+        },
+        supportedIdentityProviders,
+      });
+
+      if (googleProvider) {
+        this.cognitoUserPoolClient.node.addDependency(googleProvider);
+      }
+      if (appleProvider) {
+        this.cognitoUserPoolClient.node.addDependency(appleProvider);
+      }
+
+      const userPoolDomainPrefix =
+        (this.node.tryGetContext('cognitoDomainPrefix') as string | undefined) ??
+        `resource-ai-auth-${this.region.replace(/[^a-z0-9-]/g, '').slice(0, 20)}`;
+
+      this.cognitoUserPoolDomain = this.cognitoUserPool.addDomain('ResourceAiUserPoolDomain', {
+        cognitoDomain: { domainPrefix: userPoolDomainPrefix },
+      });
+
+      this.cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+        cognitoUserPools: [this.cognitoUserPool],
+      });
+
+      new cognito.CfnUserPoolGroup(this, 'ResourceAiUserGroup', {
+        userPoolId: this.cognitoUserPool.userPoolId,
+        groupName: 'user',
+      });
+      new cognito.CfnUserPoolGroup(this, 'ResourceAiManagerGroup', {
+        userPoolId: this.cognitoUserPool.userPoolId,
+        groupName: 'manager',
+      });
+    }
+
     // Gateway Responses: Add CORS headers to API Gateway error responses (4xx/5xx)
     // that bypass Lambda (e.g., authorizer denials, missing API keys, throttling).
     this.api.addGatewayResponse('Default4xx', {
@@ -535,11 +656,18 @@ export class ResourceAiStack extends cdk.Stack {
     const methodOptions: apigateway.MethodOptions = { apiKeyRequired: true };
 
     // Protected method options: API key + Lambda Authorizer (for authenticated endpoints)
-    const protectedMethodOptions: apigateway.MethodOptions = {
-      apiKeyRequired: true,
-      authorizer: this.tokenAuthorizer,
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-    };
+    const protectedMethodOptions: apigateway.MethodOptions =
+      this.authMode === 'cognito' && this.cognitoAuthorizer
+        ? {
+            apiKeyRequired: true,
+            authorizer: this.cognitoAuthorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+          }
+        : {
+            apiKeyRequired: true,
+            authorizer: this.tokenAuthorizer,
+            authorizationType: apigateway.AuthorizationType.CUSTOM,
+          };
 
     // POST /upload — Upload device evidence file (protected)
     const uploadResource = this.api.root.addResource('upload');
@@ -759,5 +887,27 @@ export class ResourceAiStack extends cdk.Stack {
       value: this.apiKey.keyId,
       description: 'API Key ID (retrieve value from AWS Console or CLI)',
     });
+
+    new cdk.CfnOutput(this, 'AuthMode', {
+      value: this.authMode,
+      description: 'Active authentication mode for this stack (legacy or cognito)',
+    });
+
+    if (this.authMode === 'cognito' && this.cognitoUserPool && this.cognitoUserPoolClient) {
+      new cdk.CfnOutput(this, 'CognitoUserPoolId', {
+        value: this.cognitoUserPool.userPoolId,
+        description: 'Cognito User Pool ID',
+      });
+      new cdk.CfnOutput(this, 'CognitoUserPoolClientId', {
+        value: this.cognitoUserPoolClient.userPoolClientId,
+        description: 'Cognito User Pool Client ID',
+      });
+      if (this.cognitoUserPoolDomain) {
+        new cdk.CfnOutput(this, 'CognitoHostedUiDomain', {
+          value: this.cognitoUserPoolDomain.baseUrl(),
+          description: 'Cognito hosted UI base URL',
+        });
+      }
+    }
   }
 }

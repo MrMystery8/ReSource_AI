@@ -4,11 +4,14 @@ import { validateCreateSessionRequest, ValidationError } from '../validator';
 import { sanitize, validateInputLength } from '../sanitizer';
 import { SessionStore } from '../session-store';
 import { ErrorResponse, TriageInputs } from '@resource-ai/shared';
+import { UserStore } from '../auth/user-store';
+import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const PIPELINE_FUNCTION_NAME = process.env.PIPELINE_FUNCTION_NAME!;
 
 const lambdaClient = new LambdaClient({});
 const sessionStore = new SessionStore();
+const userStore = new UserStore();
 
 /**
  * SubmitHandler - Creates a new triage session and triggers the pipeline asynchronously.
@@ -80,7 +83,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const sanitizedFailureSymptoms = sanitize(validated.failureSymptoms);
 
     // 4.5 Extract userId from authorizer context
-    const userId = event.requestContext.authorizer?.userId as string | undefined;
+    const userId = await resolveAuthenticatedUserId(event, userStore);
 
     // 5. Create session in DynamoDB
     const inputs: TriageInputs = {

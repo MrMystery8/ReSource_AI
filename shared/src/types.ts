@@ -149,13 +149,16 @@ export interface ConceptVisualOutput {
 // --- User & Auth Types ---
 
 export type UserRole = 'user' | 'manager';
+export type AuthProvider = 'legacy' | 'cognito' | 'google' | 'apple' | 'unknown';
 
 export interface User {
   userId: string;          // UUID v4
   email: string;           // Unique, lowercase, trimmed
-  passwordHash: string;    // bcrypt hash (cost 10)
+  passwordHash?: string;   // bcrypt hash (cost 10), legacy auth only
   displayName: string;     // 1-100 characters
   role: UserRole;
+  cognitoSub?: string;
+  authProvider?: AuthProvider;
   createdAt: string;       // ISO 8601
   updatedAt: string;       // ISO 8601
 }

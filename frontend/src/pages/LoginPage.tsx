@@ -9,7 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
 export function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, authMode, loginWithProvider } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,6 +50,86 @@ export function LoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  const handleCognitoLogin = async (provider?: 'Google' | 'SignInWithApple') => {
+    setError('');
+    try {
+      await loginWithProvider(provider, from);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start Cognito sign-in');
+    }
+  };
+
+  if (authMode === 'cognito') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-center min-h-[70vh]"
+      >
+        <Card surface="analysis" elevation="md" className="p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, duration: 0.3 }}>
+              <AuthPanelBadge />
+            </motion.div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: '#ffffff' }}>
+              Sign In
+            </h1>
+            <p className="mt-1 text-sm" style={{ color: 'rgba(255, 255, 255, 0.84)' }}>
+              Continue with Cognito managed authentication
+            </p>
+          </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-6 p-3 rounded-lg flex items-center gap-2"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
+              }}
+              role="alert"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0" style={{ color: 'var(--color-error)' }} />
+              <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>
+            </motion.div>
+          )}
+
+          <div className="space-y-3">
+            <Button
+              type="button"
+              variant="primary"
+              className="w-full !bg-[#34d399] !text-[#02130e] hover:!bg-[#6ee7b7]"
+              onClick={() => { void handleCognitoLogin(undefined); }}
+              leftIcon={<LogIn className="w-4 h-4" />}
+            >
+              Continue with Email
+            </Button>
+            <Button type="button" variant="secondary" className="w-full" onClick={() => { void handleCognitoLogin('Google'); }}>
+              Continue with Google
+            </Button>
+            <Button type="button" variant="secondary" className="w-full" onClick={() => { void handleCognitoLogin('SignInWithApple'); }}>
+              Continue with Apple
+            </Button>
+          </div>
+
+          <p className="text-center text-sm mt-6" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+            Need an account?{' '}
+            <Link
+              to="/register"
+              className="font-medium transition-colors"
+              style={{ color: 'var(--color-primary)' }}
+            >
+              Create one
+            </Link>
+          </p>
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

@@ -17,6 +17,7 @@ import {
 import { hashPassword, verifyPassword } from '../auth/password-service';
 import { generateToken } from '../auth/jwt-service';
 import { UserStore } from '../auth/user-store';
+import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const userStore = new UserStore();
 
@@ -187,6 +188,12 @@ async function handleLogin(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   }
 
   // Verify password
+  if (!user.passwordHash) {
+    return errorResponse(401, {
+      error: { code: 'AUTH_FAILURE', message: 'Invalid credentials' },
+    });
+  }
+
   const passwordValid = await verifyPassword(body.password, user.passwordHash);
   if (!passwordValid) {
     return errorResponse(401, {
@@ -206,7 +213,7 @@ async function handleLogin(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
 }
 
 async function handleGetProfile(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const userId = event.requestContext.authorizer?.userId;
+  const userId = await resolveAuthenticatedUserId(event, userStore);
   if (!userId) {
     return errorResponse(401, {
       error: { code: 'AUTH_FAILURE', message: 'Unauthorized' },
@@ -224,7 +231,7 @@ async function handleGetProfile(event: APIGatewayProxyEvent): Promise<APIGateway
 }
 
 async function handleUpdateProfile(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const userId = event.requestContext.authorizer?.userId;
+  const userId = await resolveAuthenticatedUserId(event, userStore);
   if (!userId) {
     return errorResponse(401, {
       error: { code: 'AUTH_FAILURE', message: 'Unauthorized' },
@@ -258,7 +265,7 @@ async function handleUpdateProfile(event: APIGatewayProxyEvent): Promise<APIGate
 }
 
 async function handleGetStats(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const userId = event.requestContext.authorizer?.userId;
+  const userId = await resolveAuthenticatedUserId(event, userStore);
   if (!userId) {
     return errorResponse(401, {
       error: { code: 'AUTH_FAILURE', message: 'Unauthorized' },
