@@ -123,9 +123,10 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
   const [reloadError, setReloadError] = useState<string | null>(null);
   const [reloadedIdeas, setReloadedIdeas] = useState<ProjectIdea[] | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const reloadInputs = sessionInputs ?? session?.inputs ?? null;
 
   const handleReload = useCallback(async () => {
-    if (!sessionInputs) {
+    if (!reloadInputs) {
       setReloadError('Session data not available for reload. Please submit a new analysis.');
       return;
     }
@@ -136,10 +137,10 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
     try {
       const apiClient = new ApiClient(API_URL, API_KEY, () => token);
       const newSessionId = await apiClient.reloadIdeas({
-        deviceIdentity: sessionInputs.deviceIdentity,
-        failureSymptoms: sessionInputs.failureSymptoms,
-        userContext: sessionInputs.userContext,
-        fileIds: sessionInputs.fileIds,
+        deviceIdentity: reloadInputs.deviceIdentity,
+        failureSymptoms: reloadInputs.failureSymptoms,
+        userContext: reloadInputs.userContext,
+        fileIds: reloadInputs.fileIds,
       });
 
       // Poll the new session until secondLifeIdeas stage is complete
@@ -179,7 +180,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
       );
       setIsReloading(false);
     }
-  }, [sessionInputs, token]);
+  }, [reloadInputs, token]);
 
   const handleIdeaClick = (idea: ProjectIdea) => {
     onIdeaClick?.(idea);
