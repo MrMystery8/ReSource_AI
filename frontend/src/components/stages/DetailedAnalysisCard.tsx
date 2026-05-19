@@ -26,7 +26,7 @@ function ComponentCard({ component, index }: { component: ComponentEntry; index:
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 + index * 0.05 }}
-      className="p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle hover:border-primary-500/30 transition-colors"
+      className="p-3 rounded-xl bg-gradient-to-br from-primary-500/10 to-primary-500/5 border border-primary-500/20 hover:border-primary-400/35 transition-colors"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-2">
@@ -118,11 +118,11 @@ export function DetailedAnalysisCard({ data }: Props) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="p-4 rounded-xl bg-surface-elevated/55 border border-border-subtle"
+          className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-primary-500/5 border border-emerald-500/20"
         >
           <div className="flex items-center gap-2 mb-2">
-            <Stethoscope className="w-4 h-4 text-text-muted" />
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">Failure Pattern Analysis</span>
+            <Stethoscope className="w-4 h-4 text-emerald-300" />
+            <span className="text-xs font-semibold text-emerald-300 uppercase tracking-wide">Failure Pattern Analysis</span>
           </div>
           <p className="text-sm text-text-secondary leading-relaxed">{data.failurePatternAnalysis}</p>
         </motion.div>

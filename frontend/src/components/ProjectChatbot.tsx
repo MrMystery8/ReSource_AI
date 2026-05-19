@@ -39,6 +39,140 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  const tokenPattern = /(\[[^\]]+\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g;
+  let lastIndex = 0;
+  let key = 0;
+
+  for (const match of text.matchAll(tokenPattern)) {
+    const token = match[0];
+    const start = match.index ?? 0;
+    if (start > lastIndex) {
+      nodes.push(text.slice(lastIndex, start));
+    }
+
+    if (token.startsWith('**') && token.endsWith('**')) {
+      nodes.push(<strong key={`md-${key++}`}>{token.slice(2, -2)}</strong>);
+    } else if (token.startsWith('*') && token.endsWith('*')) {
+      nodes.push(<em key={`md-${key++}`}>{token.slice(1, -1)}</em>);
+    } else if (token.startsWith('`') && token.endsWith('`')) {
+      nodes.push(
+        <code
+          key={`md-${key++}`}
+          className="px-1 py-0.5 rounded bg-black/25 text-primary-200 font-mono text-[0.85em]"
+        >
+          {token.slice(1, -1)}
+        </code>
+      );
+    } else if (token.startsWith('[') && token.includes('](') && token.endsWith(')')) {
+      const closeIndex = token.indexOf('](');
+      const label = token.slice(1, closeIndex);
+      const href = token.slice(closeIndex + 2, -1);
+      nodes.push(
+        <a
+          key={`md-${key++}`}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="underline decoration-primary-400/60 underline-offset-2 hover:text-primary-200"
+        >
+          {label}
+        </a>
+      );
+    } else {
+      nodes.push(token);
+    }
+
+    lastIndex = start + token.length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes;
+}
+
+function renderMessageContent(content: string): React.ReactNode {
+  const normalized = content.replace(/\r\n?/g, '\n');
+  const lines = normalized.split('\n');
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const fenceMatch = line.match(/^```(\w+)?\s*$/);
+    if (fenceMatch) {
+      const language = fenceMatch[1] ?? '';
+      const codeLines: string[] = [];
+      i += 1;
+      while (i < lines.length && !lines[i].match(/^```/)) {
+        codeLines.push(lines[i]);
+        i += 1;
+      }
+      elements.push(
+        <pre
+          key={`block-${i}`}
+          className="mt-2 overflow-x-auto rounded-lg border border-white/10 bg-black/35 px-3 py-2 text-xs"
+        >
+          {language ? <div className="mb-1 text-[10px] uppercase tracking-wide text-text-muted">{language}</div> : null}
+          <code className="font-mono text-primary-100 whitespace-pre">{codeLines.join('\n')}</code>
+        </pre>
+      );
+      i += 1;
+      continue;
+    }
+
+    if (line.match(/^\s*[-*]\s+/)) {
+      const items: string[] = [];
+      while (i < lines.length && lines[i].match(/^\s*[-*]\s+/)) {
+        items.push(lines[i].replace(/^\s*[-*]\s+/, ''));
+        i += 1;
+      }
+      elements.push(
+        <ul key={`ul-${i}`} className="list-disc pl-5 space-y-1 my-1">
+          {items.map((item, idx) => (
+            <li key={idx}>{renderInlineMarkdown(item)}</li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    if (line.match(/^\s*\d+\.\s+/)) {
+      const items: string[] = [];
+      while (i < lines.length && lines[i].match(/^\s*\d+\.\s+/)) {
+        items.push(lines[i].replace(/^\s*\d+\.\s+/, ''));
+        i += 1;
+      }
+      elements.push(
+        <ol key={`ol-${i}`} className="list-decimal pl-5 space-y-1 my-1">
+          {items.map((item, idx) => (
+            <li key={idx}>{renderInlineMarkdown(item)}</li>
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    if (line.trim().length === 0) {
+      elements.push(<div key={`sp-${i}`} className="h-2" />);
+      i += 1;
+      continue;
+    }
+
+    elements.push(
+      <p key={`p-${i}`} className="my-0.5">
+        {renderInlineMarkdown(line)}
+      </p>
+    );
+    i += 1;
+  }
+
+  return <>{elements}</>;
+}
+
 /**
  * Appends a new message to history, discarding the oldest when the cap is
  * reached (Requirement 5.6 / Property 7).
@@ -428,7 +562,7 @@ export function ProjectChatbot({ projectContext, isOpen, onToggle }: ProjectChat
                     {msg.id === errorMessageId && (
                       <AlertCircle className="w-3.5 h-3.5 inline-block mr-1.5 mb-0.5 text-rose-400" aria-hidden="true" />
                     )}
-                    {msg.content}
+                    {msg.role === 'assistant' ? renderMessageContent(msg.content) : msg.content}
 
                     {/* Retry button on error messages (Requirement 5.5) */}
                     {msg.id === errorMessageId && lastUserMessage && (

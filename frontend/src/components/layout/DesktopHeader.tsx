@@ -377,7 +377,7 @@ export function DesktopHeader(): JSX.Element {
           to="/"
           aria-label="ReSource AI — go to home"
           className={[
-            'flex items-center gap-2 shrink-0 rounded-lg px-1 py-1',
+            'flex items-center gap-2.5 shrink-0 rounded-lg px-1 py-1',
             'focus-visible:outline-none focus-visible:ring-2',
             'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
           ].join(' ')}
@@ -386,12 +386,12 @@ export function DesktopHeader(): JSX.Element {
             src={SITE_LOGO_URL}
             alt=""
             aria-hidden="true"
-            className="h-8 w-8 rounded-lg object-cover"
+            className="h-10 w-10 rounded-lg object-cover"
             loading="eager"
             decoding="async"
           />
           <span
-            className="text-base font-semibold tracking-tight"
+            className="text-lg font-semibold tracking-tight"
             style={{ color: 'var(--color-text-primary)' }}
           >
             ReSource AI

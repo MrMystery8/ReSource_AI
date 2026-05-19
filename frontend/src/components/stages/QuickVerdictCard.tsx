@@ -89,7 +89,7 @@ export function QuickVerdictCard({ data }: Props) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + i * 0.05 }}
-              className="px-3 py-1.5 rounded-lg bg-surface-elevated border border-border-subtle text-xs text-text-primary font-medium"
+              className="px-3 py-1.5 rounded-lg bg-primary-500/10 border border-primary-500/20 text-xs text-primary-200 font-medium shadow-sm shadow-primary-500/10"
             >
               {resource}
             </motion.span>

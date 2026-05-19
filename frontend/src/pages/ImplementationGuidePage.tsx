@@ -34,6 +34,15 @@ const BACK_BUTTON_STYLE: React.CSSProperties = {
   boxShadow: 'var(--shadow-sm)',
 };
 
+const GUIDE_PANEL_CLASS =
+  'p-6 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]';
+
+const GUIDE_PANEL_STYLE: React.CSSProperties = {
+  backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 92%, transparent)',
+  borderColor: 'color-mix(in srgb, var(--color-primary) 14%, var(--color-border-default))',
+  boxShadow: '0 8px 26px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.03)',
+};
+
 // ─── State shape passed via React Router location.state ───
 
 export interface GuidePageState {
@@ -468,9 +477,9 @@ export function ImplementationGuidePage() {
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
               style={{
-                backgroundColor: 'var(--color-surface-elevated)',
+                backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-elevated))',
                 color: 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border-default)',
+                border: '1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border-default))',
               }}
             >
               {effectiveState.userContext.expertiseLevel}
@@ -478,9 +487,9 @@ export function ImplementationGuidePage() {
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm"
               style={{
-                backgroundColor: 'var(--color-surface-elevated)',
+                backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-elevated))',
                 color: 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border-default)',
+                border: '1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border-default))',
               }}
             >
               <Clock className="w-3.5 h-3.5" />
@@ -488,8 +497,49 @@ export function ImplementationGuidePage() {
             </span>
           </div>
 
+          {/* Safety warnings */}
+          <Card
+            elevation="sm"
+            className={GUIDE_PANEL_CLASS}
+            style={GUIDE_PANEL_STYLE}
+            aria-labelledby="safety-heading"
+          >
+            <h2
+              id="safety-heading"
+              className="flex items-center gap-2 text-lg font-semibold mb-4"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              <ShieldAlert className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
+              Safety Warnings
+            </h2>
+            {guide.safetyWarnings.length === 1 &&
+            guide.safetyWarnings[0] === 'No specific safety concerns' ? (
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                No specific safety concerns for this project.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {guide.safetyWarnings.map((warning, index) => (
+                  <li
+                    key={index}
+                    className="flex items-start gap-2 text-sm"
+                    style={{ color: 'var(--color-warning)' }}
+                  >
+                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                    {warning}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
           {/* Materials list */}
-          <Card elevation="sm" className="p-6" aria-labelledby="materials-heading">
+          <Card
+            elevation="sm"
+            className={GUIDE_PANEL_CLASS}
+            style={GUIDE_PANEL_STYLE}
+            aria-labelledby="materials-heading"
+          >
             <h2
               id="materials-heading"
               className="flex items-center gap-2 text-lg font-semibold mb-4"
@@ -522,7 +572,12 @@ export function ImplementationGuidePage() {
           </Card>
 
           {/* Step-by-step instructions */}
-          <Card elevation="sm" className="p-6" aria-labelledby="steps-heading">
+          <Card
+            elevation="sm"
+            className={GUIDE_PANEL_CLASS}
+            style={GUIDE_PANEL_STYLE}
+            aria-labelledby="steps-heading"
+          >
             <h2
               id="steps-heading"
               className="flex items-center gap-2 text-lg font-semibold mb-4"
@@ -577,40 +632,14 @@ export function ImplementationGuidePage() {
             </ol>
           </Card>
 
-          {/* Safety warnings */}
-          <Card elevation="sm" className="p-6" aria-labelledby="safety-heading">
-            <h2
-              id="safety-heading"
-              className="flex items-center gap-2 text-lg font-semibold mb-4"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              <ShieldAlert className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
-              Safety Warnings
-            </h2>
-            {guide.safetyWarnings.length === 1 &&
-            guide.safetyWarnings[0] === 'No specific safety concerns' ? (
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                No specific safety concerns for this project.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {guide.safetyWarnings.map((warning, index) => (
-                  <li
-                    key={index}
-                    className="flex items-start gap-2 text-sm"
-                    style={{ color: 'var(--color-warning)' }}
-                  >
-                    <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-                    {warning}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
           {/* Project Submission section */}
           {projectId && (
-            <Card elevation="sm" className="p-6" aria-labelledby="submission-heading">
+            <Card
+              elevation="sm"
+              className={GUIDE_PANEL_CLASS}
+              style={GUIDE_PANEL_STYLE}
+              aria-labelledby="submission-heading"
+            >
               <h2
                 id="submission-heading"
                 className="flex items-center gap-2 text-lg font-semibold mb-4"
