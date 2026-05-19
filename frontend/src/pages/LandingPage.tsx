@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './LandingPage.css';
 
-const CHECKPOINTS = [0, 2, 4 + 9 / 30, 8 + 5 / 30] as const;
+const CHECKPOINTS = [0, 8, 10, 8 + 4 + 9 / 30, 8 + 8 + 5 / 30] as const;
 const LAST_CHECKPOINT_INDEX = CHECKPOINTS.length - 1;
 const TRANSITION_MS = 2000;
 const DEFAULT_LANDING_VIDEO_URL =
@@ -11,29 +11,44 @@ const LANDING_VIDEO_URL =
   import.meta.env.VITE_LANDING_VIDEO_URL ??
   DEFAULT_LANDING_VIDEO_URL;
 
-type CheckpointIndex = 0 | 1 | 2 | 3;
+type CheckpointIndex = 0 | 1 | 2 | 3 | 4;
 type Mode = 'paused' | 'transition';
 
 const CAPTIONS = [
   {
     kicker: 'Checkpoint 01',
-    title: 'A broken laptop is still full of value.',
-    body: 'We start at failure state, then isolate what can still be reused safely instead of treating the whole device as waste.',
+    titleLines: [
+      'Thirteen unused or broken devices per household.',
+      'Now multiply that by millions of homes.',
+    ],
+    subtext:
+      'WEEE Forum. (2022, October 13). International E-waste Day: Of ~16 billion mobile phones possessed worldwide, ~5.3 billion will become waste in 2022.',
   },
   {
     kicker: 'Checkpoint 02',
-    title: 'Inside the shell, the usable core appears.',
-    body: 'Recovered cells and boards become the power base for a practical build, with safety and feasibility checked first.',
+    titleLines: [
+      'An old device is not empty.',
+      'It still holds materials, parts, and possibility.',
+    ],
+    subtext:
+      'Inside are the pieces we often overlook: metals, circuits, wiring, screws, and components that may still have value.',
   },
   {
     kicker: 'Checkpoint 03',
-    title: 'From parts to prototype in one pass.',
-    body: 'The concept becomes a real assembly: structure, wiring, and function come together into a working form.',
+    titleLines: ['Inside the shell, the useful core appears.'],
+    subtext:
+      'The outer layer opens to reveal the parts and structure hidden beneath the surface.',
   },
   {
     kicker: 'Checkpoint 04',
-    title: 'Second life complete: a working desk fan.',
-    body: 'This is the outcome ReSource AI helps you reach, then document and reproduce on your own discarded hardware.',
+    titleLines: ['Parts begin to shift into purpose.'],
+    subtext: '',
+  },
+  {
+    kicker: 'Checkpoint 05',
+    titleLines: ['What was left behind now has a new purpose.'],
+    subtext:
+      'A second-life concept built from recovered components and guided by ReSource AI.',
   },
 ] as const;
 
@@ -237,12 +252,10 @@ export function LandingPage(): JSX.Element {
     setVideoTime(CHECKPOINTS[0]);
   };
 
-  const currentCaption = CAPTIONS[checkpoint];
   const showFinalActions = mode === 'paused' && checkpoint === LAST_CHECKPOINT_INDEX;
-  const captionZero = captionState(0, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
-  const captionOne = captionState(1, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
-  const captionTwo = captionState(2, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
-  const captionThree = captionState(3, mode, checkpoint, transitionFrom, transitionTo, transitionProgress);
+  const captionStyles = CAPTIONS.map((_, index) =>
+    captionState(index as CheckpointIndex, mode, checkpoint, transitionFrom, transitionTo, transitionProgress)
+  );
 
   return (
     <div
@@ -269,37 +282,34 @@ export function LandingPage(): JSX.Element {
         />
         <div className="chapter-shade" />
 
-        <article className="chapter-caption" style={{ opacity: captionZero.opacity, transform: `translateY(${captionZero.y}px)` }}>
-          <p className="chapter-kicker">{CAPTIONS[0].kicker}</p>
-          <h1>{CAPTIONS[0].title}</h1>
-          <p>{CAPTIONS[0].body}</p>
-        </article>
-
-        <article className="chapter-caption" style={{ opacity: captionOne.opacity, transform: `translateY(${captionOne.y}px)` }}>
-          <p className="chapter-kicker">{CAPTIONS[1].kicker}</p>
-          <h1>{CAPTIONS[1].title}</h1>
-          <p>{CAPTIONS[1].body}</p>
-        </article>
-
-        <article className="chapter-caption" style={{ opacity: captionTwo.opacity, transform: `translateY(${captionTwo.y}px)` }}>
-          <p className="chapter-kicker">{CAPTIONS[2].kicker}</p>
-          <h1>{CAPTIONS[2].title}</h1>
-          <p>{CAPTIONS[2].body}</p>
-        </article>
-
-        <article className="chapter-caption" style={{ opacity: captionThree.opacity, transform: `translateY(${captionThree.y}px)` }}>
-          <p className="chapter-kicker">{CAPTIONS[3].kicker}</p>
-          <h1>{CAPTIONS[3].title}</h1>
-          <p>{CAPTIONS[3].body}</p>
-          <div className={showFinalActions ? 'chapter-actions is-visible' : 'chapter-actions is-hidden'}>
-            <Link to="/register" className="chapter-btn chapter-btn-primary">
-              Get started
-            </Link>
-            <Link to="/login" className="chapter-btn chapter-btn-secondary">
-              I have an account
-            </Link>
-          </div>
-        </article>
+        {CAPTIONS.map((caption, index) => (
+          <article
+            key={caption.kicker}
+            className="chapter-caption"
+            style={{ opacity: captionStyles[index]?.opacity ?? 0, transform: `translateY(${captionStyles[index]?.y ?? 0}px)` }}
+          >
+            <p className="chapter-kicker">{caption.kicker}</p>
+            <h1>
+              {caption.titleLines.map((line, lineIndex) => (
+                <span key={`${caption.kicker}-${line}`}>
+                  {line}
+                  {lineIndex < caption.titleLines.length - 1 ? <br /> : null}
+                </span>
+              ))}
+            </h1>
+            {caption.subtext ? <p className="chapter-subtext">{caption.subtext}</p> : null}
+            {index === LAST_CHECKPOINT_INDEX ? (
+              <div className={showFinalActions ? 'chapter-actions is-visible' : 'chapter-actions is-hidden'}>
+                <Link to="/register" className="chapter-btn chapter-btn-primary">
+                  Get started
+                </Link>
+                <Link to="/login" className="chapter-btn chapter-btn-secondary">
+                  I have an account
+                </Link>
+              </div>
+            ) : null}
+          </article>
+        ))}
       </div>
     </div>
   );

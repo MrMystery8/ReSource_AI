@@ -91,13 +91,14 @@
   text-wrap: balance;
 }
 
-.chapter-caption p {
+.chapter-subtext {
   margin: 0.8rem 0 0;
   max-width: 34ch;
   color: rgba(255, 255, 255, 0.86);
-  font-size: clamp(0.98rem, 1.52vw, 1.08rem);
+  font-size: clamp(0.74rem, 1.08vw, 0.86rem);
   line-height: 1.5;
-  font-weight: 600;
+  font-weight: 500;
+  font-style: italic;
 }
 
 .chapter-actions {
@@ -159,7 +160,7 @@
 
 .chapter-caption .chapter-kicker,
 .chapter-caption h1,
-.chapter-caption p,
+.chapter-caption .chapter-subtext,
 .chapter-caption .chapter-actions {
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.42);
 }
