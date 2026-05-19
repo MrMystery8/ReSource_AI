@@ -40,7 +40,7 @@ const GUIDE_PANEL_CLASS =
 
 const GUIDE_PANEL_STYLE: React.CSSProperties = {
   backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 88%, transparent)',
-  borderColor: 'color-mix(in srgb, var(--color-primary) 14%, var(--color-border-default))',
+  borderColor: 'color-mix(in srgb, var(--color-primary) 28%, var(--color-border-default))',
   boxShadow: '0 12px 28px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.04)',
 };
 
@@ -509,12 +509,17 @@ export function ImplementationGuidePage() {
               <TintedPanel tone="warning" className="p-5 sm:p-6">
                 <h2
                   id="safety-heading"
-                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  className="flex items-center gap-2 text-lg font-semibold mb-3"
                   style={{ color: '#ffffff' }}
                 >
                   <ShieldAlert className="w-5 h-5" style={{ color: '#fbbf24' }} />
                   Safety Warnings
                 </h2>
+                <div
+                  className="mb-4 border-b"
+                  style={{ borderColor: 'rgba(251,191,36,0.35)' }}
+                  aria-hidden="true"
+                />
                 {guide.safetyWarnings.length === 1 &&
                 guide.safetyWarnings[0] === 'No specific safety concerns' ? (
                   <p className="text-sm" style={{ color: 'rgba(255,255,255,0.82)' }}>
@@ -546,10 +551,14 @@ export function ImplementationGuidePage() {
               style={GUIDE_PANEL_STYLE}
               aria-labelledby="materials-heading"
             >
-              <TintedPanel tone="primary" className="p-5 sm:p-6">
+              <TintedPanel
+                tone="primary"
+                className="p-5 sm:p-6"
+                style={{ borderColor: 'rgba(52,211,153,0.35)' }}
+              >
                 <h2
                   id="materials-heading"
-                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  className="flex items-center gap-2 text-lg font-semibold mb-3"
                   style={{ color: '#ffffff' }}
                 >
                   <Package className="w-5 h-5" style={{ color: '#34d399' }} />
@@ -561,6 +570,11 @@ export function ImplementationGuidePage() {
                     {guide.materials.length} item{guide.materials.length !== 1 ? 's' : ''}
                   </span>
                 </h2>
+                <div
+                  className="mb-4 border-b"
+                  style={{ borderColor: 'rgba(52,211,153,0.35)' }}
+                  aria-hidden="true"
+                />
                 <ul className="space-y-2">
                   {guide.materials.map((material, index) => (
                     <li
@@ -588,10 +602,17 @@ export function ImplementationGuidePage() {
               style={GUIDE_PANEL_STYLE}
               aria-labelledby="steps-heading"
             >
-              <TintedPanel tone="default" className="p-5 sm:p-6">
+              <TintedPanel
+                tone="primary"
+                className="p-5 sm:p-6"
+                style={{
+                  backgroundColor: 'rgba(8, 18, 14, 0.9)',
+                  borderColor: 'rgba(52,211,153,0.3)',
+                }}
+              >
                 <h2
                   id="steps-heading"
-                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                  className="flex items-center gap-2 text-lg font-semibold mb-3"
                   style={{ color: '#ffffff' }}
                 >
                   <ListOrdered className="w-5 h-5" style={{ color: '#34d399' }} />
@@ -603,6 +624,11 @@ export function ImplementationGuidePage() {
                     {guide.steps.length} step{guide.steps.length !== 1 ? 's' : ''}
                   </span>
                 </h2>
+                <div
+                  className="mb-4 border-b"
+                  style={{ borderColor: 'rgba(52,211,153,0.32)' }}
+                  aria-hidden="true"
+                />
                 <ol className="space-y-5">
                   {guide.steps.map((step) => (
                     <li key={step.stepNumber} className="flex gap-4">
@@ -654,14 +680,23 @@ export function ImplementationGuidePage() {
                 style={GUIDE_PANEL_STYLE}
                 aria-labelledby="submission-heading"
               >
-                <TintedPanel tone="primary" className="p-5 sm:p-6">
+                <TintedPanel
+                  tone="primary"
+                  className="p-5 sm:p-6"
+                  style={{ borderColor: 'rgba(52,211,153,0.35)' }}
+                >
                   <h2
                     id="submission-heading"
-                    className="flex items-center gap-2 text-lg font-semibold mb-4"
+                    className="flex items-center gap-2 text-lg font-semibold mb-3"
                     style={{ color: '#ffffff' }}
                   >
                     Submit Your Project
                   </h2>
+                  <div
+                    className="mb-4 border-b"
+                    style={{ borderColor: 'rgba(52,211,153,0.35)' }}
+                    aria-hidden="true"
+                  />
                   {/* Points animation overlay — positioned relative to this container */}
                   <div className="relative">
                     <PointsAnimation

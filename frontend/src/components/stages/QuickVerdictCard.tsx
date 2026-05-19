@@ -20,7 +20,13 @@ function getSalvageBg(score: number): string {
 
 export function QuickVerdictCard({ data }: Props) {
   return (
-    <div className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-md)] hover:border-[var(--color-primary)]/30 transition-colors">
+    <div
+      className="overflow-hidden rounded-xl bg-[var(--color-surface-card)] border shadow-[var(--shadow-md)] transition-colors"
+      style={{
+        borderColor: 'color-mix(in srgb, var(--color-primary) 24%, var(--color-border-default))',
+        boxShadow: '0 12px 28px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.03)',
+      }}
+    >
       <div className="p-6 pb-4 flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-text-primary mb-1">Quick ReSource Verdict</h3>
