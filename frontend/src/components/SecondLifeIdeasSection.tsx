@@ -56,29 +56,33 @@ export function SecondLifeIdeasSection({
       aria-label="Safe Second Life Ideas"
       className="mt-2"
     >
-      <Card elevation="md" className="p-6 md:p-7">
+      <Card surface="analysis" elevation="md" className="p-6 md:p-7">
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
-          className="mb-5 overflow-hidden rounded-2xl border border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border-default))] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-primary)_12%,var(--color-surface-card))_0%,var(--color-surface-card)_65%)] px-4 py-4 sm:px-5"
+          className="mb-5 overflow-hidden rounded-2xl border px-4 py-4 sm:px-5"
+          style={{
+            borderColor: 'rgba(52, 211, 153, 0.24)',
+            background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.12) 0%, rgba(7, 23, 18, 0.96) 58%, rgba(4, 12, 10, 0.98) 100%)',
+          }}
         >
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-500/10">
-              <Lightbulb className="h-5 w-5 text-emerald-400" />
+            <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border" style={{ borderColor: 'rgba(255,255,255,0.22)', backgroundColor: 'rgba(255,255,255,0.06)' }}>
+              <Lightbulb className="h-5 w-5" style={{ color: '#ffffff' }} />
             </div>
             <div className="min-w-0 space-y-1">
-              <span className="inline-flex rounded-full border border-[color-mix(in_srgb,var(--color-primary)_22%,var(--color-border-default))] bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
+              <span className="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: '#34d399', borderColor: 'rgba(52, 211, 153, 0.28)', backgroundColor: 'rgba(52, 211, 153, 0.08)' }}>
                 Next step
               </span>
-              <h3 className="text-lg font-semibold tracking-tight text-[var(--color-text-primary)] sm:text-xl">
+              <h3 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: '#ffffff' }}>
                 Tap a project to continue
               </h3>
-              <p className="max-w-2xl text-sm leading-relaxed text-[var(--color-text-secondary)]">
+              <p className="max-w-2xl text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.86)' }}>
                 Choose one idea below to open its guide and keep moving.
               </p>
             </div>
-            <div className="ml-auto hidden h-10 w-10 items-center justify-center rounded-full border border-[color-mix(in_srgb,var(--color-primary)_20%,var(--color-border-default))] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)] text-[var(--color-primary)] sm:flex">
+            <div className="ml-auto hidden h-10 w-10 items-center justify-center rounded-full border sm:flex" style={{ borderColor: 'rgba(52, 211, 153, 0.24)', backgroundColor: 'rgba(52, 211, 153, 0.08)', color: '#34d399' }}>
               <ArrowRight className="h-4 w-4" />
             </div>
           </div>
@@ -92,9 +96,9 @@ export function SecondLifeIdeasSection({
             aria-label="Reload Second Life Ideas"
             className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
             style={{
-              backgroundColor: 'var(--color-surface-elevated)',
-              color: 'var(--color-text-secondary)',
-              borderColor: 'var(--color-border-default)',
+              backgroundColor: 'rgba(7, 23, 18, 0.96)',
+              color: 'rgba(255,255,255,0.82)',
+              borderColor: 'rgba(255,255,255,0.2)',
             }}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isReloading ? 'animate-spin' : ''}`} />
@@ -102,7 +106,7 @@ export function SecondLifeIdeasSection({
           </button>
         </div>
 
-        <div className="mb-6 h-px w-full bg-[var(--color-border-subtle)]" />
+        <div className="mb-6 h-px w-full" style={{ backgroundColor: 'rgba(52, 211, 153, 0.18)' }} />
 
         {reloadError && (
           <motion.div
@@ -123,8 +127,8 @@ export function SecondLifeIdeasSection({
         )}
 
         {ideas.length === 0 ? (
-          <div className="rounded-2xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-card)] p-6 text-center">
-            <p className="text-sm text-[var(--color-text-secondary)]">
+          <div className="rounded-2xl border p-6 text-center" style={{ borderColor: 'rgba(52, 211, 153, 0.18)', backgroundColor: 'rgba(7, 23, 18, 0.9)' }}>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.9)' }}>
               No ideas are available right now. Try reloading or adjust the analysis inputs.
             </p>
           </div>

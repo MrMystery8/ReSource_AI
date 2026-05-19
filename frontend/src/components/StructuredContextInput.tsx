@@ -79,14 +79,14 @@ function PillChip({ label, hint, icon, isSelected, onClick, id }: PillChipProps)
       className="relative flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors duration-150 focus:outline-none focus-visible:ring-2 cursor-pointer select-none"
       style={{
         backgroundColor: isSelected
-          ? 'color-mix(in srgb, var(--color-primary) 15%, transparent)'
-          : 'var(--color-surface-elevated)',
+          ? 'rgba(52, 211, 153, 0.14)'
+          : 'rgba(7, 23, 18, 0.9)',
         borderColor: isSelected
-          ? 'color-mix(in srgb, var(--color-primary) 50%, transparent)'
-          : 'var(--color-border-default)',
-        color: isSelected ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+          ? 'rgba(52, 211, 153, 0.48)'
+          : 'rgba(255, 255, 255, 0.2)',
+        color: isSelected ? '#34d399' : 'rgba(255, 255, 255, 0.84)',
         boxShadow: isSelected
-          ? '0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent)'
+          ? '0 0 0 1px rgba(52, 211, 153, 0.22)'
           : 'none',
       }}
     >
@@ -100,14 +100,14 @@ function PillChip({ label, hint, icon, isSelected, onClick, id }: PillChipProps)
           transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] as const }}
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
-            backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, transparent)',
+            backgroundColor: 'rgba(52, 211, 153, 0.08)',
           }}
         />
       )}
       <span className="relative flex items-center gap-2">
         <span
           style={{
-            color: isSelected ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            color: isSelected ? '#34d399' : 'rgba(255, 255, 255, 0.62)',
           }}
         >
           {icon}
@@ -116,7 +116,7 @@ function PillChip({ label, hint, icon, isSelected, onClick, id }: PillChipProps)
         {hint && (
           <span
             className="hidden sm:inline text-xs font-normal"
-            style={{ color: isSelected ? 'color-mix(in srgb, var(--color-primary) 70%, transparent)' : 'var(--color-text-muted)' }}
+            style={{ color: isSelected ? 'rgba(52, 211, 153, 0.8)' : 'rgba(255,255,255,0.58)' }}
           >
             · {hint}
           </span>
@@ -141,8 +141,8 @@ function FieldSection({ label, icon, description, required, children }: FieldSec
     <div className="space-y-2.5">
       <div>
         <div className="flex items-center gap-2 mb-0.5">
-          <span style={{ color: 'var(--color-text-muted)' }}>{icon}</span>
-          <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+          <span style={{ color: 'rgba(255, 255, 255, 0.72)' }}>{icon}</span>
+          <span className="text-sm font-medium" style={{ color: '#ffffff' }}>
             {label}
           </span>
           {required && (
@@ -151,7 +151,7 @@ function FieldSection({ label, icon, description, required, children }: FieldSec
             </span>
           )}
         </div>
-        <p className="text-xs ml-6" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs ml-6" style={{ color: 'rgba(255, 255, 255, 0.66)' }}>
           {description}
         </p>
       </div>
@@ -175,7 +175,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Expertise level"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-2"
         >
           {EXPERTISE_OPTIONS.map((opt) => (
             <PillChip
@@ -201,7 +201,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Motivation"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-2 gap-2"
         >
           {MOTIVATION_OPTIONS.map((opt) => (
             <PillChip
@@ -226,7 +226,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Material availability"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-2"
         >
           {MATERIAL_OPTIONS.map((opt) => (
             <PillChip
@@ -252,7 +252,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Time commitment"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-2 gap-2"
         >
           {TIME_OPTIONS.map((opt) => (
             <PillChip

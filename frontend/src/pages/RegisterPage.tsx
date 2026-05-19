@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus, Eye, EyeOff, AlertCircle, X } from 'lucide-react';
+import { AuthPanelBadge } from '../components/auth/AuthPanelBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -55,6 +56,12 @@ export function RegisterPage() {
   const [toast, setToast] = useState<string | null>(null);
 
   const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const fieldLabelStyle = { color: '#ffffff' } as const;
+  const fieldInputStyle = {
+    color: '#ffffff',
+    backgroundColor: 'rgba(7, 23, 18, 0.96)',
+    borderColor: 'rgba(52, 211, 153, 0.34)',
+  } as const;
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -188,7 +195,7 @@ export function RegisterPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        <Card elevation="md" className="p-8 sm:p-10">
+        <Card surface="analysis" elevation="md" className="p-8 sm:p-10">
           <motion.form
             onSubmit={handleSubmit}
             noValidate
@@ -198,21 +205,14 @@ export function RegisterPage() {
           >
             {/* Header */}
             <motion.div variants={itemVariants} className="text-center mb-8">
-              <div
-                className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))',
-                }}
-              >
-                <UserPlus className="w-7 h-7 text-white" />
-              </div>
+              <AuthPanelBadge />
               <h1
                 className="text-2xl font-bold"
-                style={{ color: 'var(--color-text-primary)' }}
+                style={{ color: '#ffffff' }}
               >
                 Create Account
               </h1>
-              <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+              <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
                 Join ReSource AI and start your recycling journey
               </p>
             </motion.div>
@@ -256,6 +256,9 @@ export function RegisterPage() {
                 placeholder="Your display name"
                 maxLength={100}
                 error={touched.displayName ? errors.displayName : undefined}
+                labelStyle={fieldLabelStyle}
+                inputStyle={fieldInputStyle}
+                className="placeholder:text-white/40"
               />
             </motion.div>
 
@@ -270,6 +273,9 @@ export function RegisterPage() {
                 onBlur={handleBlur('email')}
                 placeholder="you@example.com"
                 error={touched.email ? errors.email : undefined}
+                labelStyle={fieldLabelStyle}
+                inputStyle={fieldInputStyle}
+                className="placeholder:text-white/40"
               />
             </motion.div>
 
@@ -279,7 +285,7 @@ export function RegisterPage() {
                 <label
                   htmlFor="register-password"
                   className="text-sm font-medium"
-                  style={{ color: 'var(--color-text-primary)' }}
+                  style={{ color: '#ffffff' }}
                 >
                   Password
                 </label>
@@ -299,12 +305,12 @@ export function RegisterPage() {
                     }
                     className="w-full rounded-lg px-3 py-2 pr-11 text-sm border transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
-                      backgroundColor: 'var(--color-surface-card)',
-                      color: 'var(--color-text-primary)',
+                      backgroundColor: 'rgba(7, 23, 18, 0.96)',
+                      color: '#ffffff',
                       borderColor:
                         touched.password && errors.password
                           ? 'var(--color-error)'
-                          : 'var(--color-border-default)',
+                          : 'rgba(52, 211, 153, 0.34)',
                     }}
                     onFocus={(e) => {
                       e.currentTarget.style.outline = '2px solid var(--color-primary)';
@@ -319,7 +325,7 @@ export function RegisterPage() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
-                    style={{ color: 'var(--color-text-muted)' }}
+                    style={{ color: 'rgba(255, 255, 255, 0.6)' }}
                     tabIndex={-1}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
@@ -347,7 +353,7 @@ export function RegisterPage() {
                 <label
                   htmlFor="register-confirmPassword"
                   className="text-sm font-medium"
-                  style={{ color: 'var(--color-text-primary)' }}
+                  style={{ color: '#ffffff' }}
                 >
                   Confirm Password
                 </label>
@@ -369,12 +375,12 @@ export function RegisterPage() {
                     }
                     className="w-full rounded-lg px-3 py-2 pr-11 text-sm border transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{
-                      backgroundColor: 'var(--color-surface-card)',
-                      color: 'var(--color-text-primary)',
+                      backgroundColor: 'rgba(7, 23, 18, 0.96)',
+                      color: '#ffffff',
                       borderColor:
                         touched.confirmPassword && errors.confirmPassword
                           ? 'var(--color-error)'
-                          : 'var(--color-border-default)',
+                          : 'rgba(52, 211, 153, 0.34)',
                     }}
                     onFocus={(e) => {
                       e.currentTarget.style.outline = '2px solid var(--color-primary)';
@@ -389,7 +395,7 @@ export function RegisterPage() {
                     type="button"
                     onClick={() => setShowConfirmPassword((v) => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
-                    style={{ color: 'var(--color-text-muted)' }}
+                    style={{ color: 'rgba(255, 255, 255, 0.6)' }}
                     tabIndex={-1}
                     aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
                   >
@@ -422,7 +428,7 @@ export function RegisterPage() {
                 variant="primary"
                 isLoading={isSubmitting}
                 disabled={isSubmitting || !isFormValid()}
-                className="w-full"
+                className="w-full !bg-[#34d399] !text-[#04110d] hover:!bg-[#6ee7b7]"
               >
                 Create Account
               </Button>
@@ -432,7 +438,7 @@ export function RegisterPage() {
             <motion.p
               variants={itemVariants}
               className="mt-6 text-center text-sm"
-              style={{ color: 'var(--color-text-secondary)' }}
+              style={{ color: 'rgba(255, 255, 255, 0.8)' }}
             >
               Already have an account?{' '}
               <Link

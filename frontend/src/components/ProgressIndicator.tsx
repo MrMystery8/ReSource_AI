@@ -8,7 +8,11 @@ export interface ProgressIndicatorProps {
 export function ProgressIndicator({ stageName }: ProgressIndicatorProps) {
   return (
     <div
-      className="p-5 rounded-xl bg-[var(--color-surface-card)] border border-[var(--color-border-default)] shadow-[var(--shadow-sm)]"
+      className="p-5 rounded-xl border shadow-[var(--shadow-sm)]"
+      style={{
+        backgroundColor: 'rgba(7, 23, 18, 0.92)',
+        borderColor: 'rgba(52, 211, 153, 0.24)',
+      }}
       role="status"
       aria-live="polite"
       aria-label={`Processing: ${stageName}`}
@@ -24,21 +28,21 @@ export function ProgressIndicator({ stageName }: ProgressIndicatorProps) {
         </motion.div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+          <p className="text-sm font-medium" style={{ color: '#ffffff' }}>
             Processing:{' '}
-            <span style={{ color: 'var(--color-text-secondary)' }}>{stageName}</span>
+            <span style={{ color: 'rgba(255, 255, 255, 0.86)' }}>{stageName}</span>
           </p>
 
           {/* Shimmer track — steady left-to-right sweep, no bouncing */}
           <div
             className="mt-2 h-1.5 rounded-full overflow-hidden"
-            style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
           >
             <motion.div
               className="h-full rounded-full"
               style={{
                 background:
-                  'linear-gradient(90deg, transparent 0%, var(--color-primary) 40%, var(--color-primary) 60%, transparent 100%)',
+                  'linear-gradient(90deg, transparent 0%, rgba(52, 211, 153, 1) 40%, rgba(110, 231, 183, 1) 60%, transparent 100%)',
                 width: '50%',
               }}
               animate={{ x: ['-100%', '300%'] }}

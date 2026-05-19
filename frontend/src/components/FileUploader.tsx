@@ -213,10 +213,10 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
         <motion.div
           className="relative rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer"
           style={{
-            borderColor: isDragging ? 'var(--color-primary)' : 'var(--color-border-default)',
+            borderColor: isDragging ? 'rgba(52, 211, 153, 0.78)' : 'rgba(52, 211, 153, 0.28)',
             backgroundColor: isDragging
-              ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)'
-              : 'var(--color-surface-elevated)',
+              ? 'rgba(52, 211, 153, 0.12)'
+              : 'rgba(7, 23, 18, 0.9)',
           }}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -236,25 +236,25 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
               className="w-10 h-10 rounded-full flex items-center justify-center mb-2"
               style={{
                 backgroundColor: isDragging
-                  ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
-                  : 'var(--color-surface-card)',
-                border: '1px solid var(--color-border-default)',
+                  ? 'rgba(52, 211, 153, 0.2)'
+                  : 'rgba(4, 12, 10, 0.94)',
+                border: '1px solid rgba(52, 211, 153, 0.3)',
               }}
               animate={isDragging ? { scale: [1, 1.1, 1] } : {}}
               transition={{ duration: 0.5, repeat: isDragging ? Infinity : 0 }}
             >
               <Upload
                 className="w-5 h-5"
-                style={{ color: isDragging ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                style={{ color: isDragging ? '#34d399' : 'rgba(255, 255, 255, 0.62)' }}
               />
             </motion.div>
-            <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
-              <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+            <p className="text-sm text-center" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
+              <span className="font-medium" style={{ color: '#34d399' }}>
                 Click to upload
               </span>{' '}
               or drag and drop
             </p>
-            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255, 255, 255, 0.64)' }}>
               Images, PDF, DOCX, CSV, JSON · Max 10 MB each
             </p>
           </div>

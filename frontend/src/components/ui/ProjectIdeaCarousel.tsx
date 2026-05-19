@@ -69,7 +69,7 @@ function ProjectIdeaCard({
       onClick={() => onIdeaClick(idea)}
       className={cn(
         'group relative w-full overflow-hidden rounded-[26px] border p-0 text-left shadow-[var(--shadow-md)] cursor-pointer appearance-none',
-        'bg-[var(--color-surface-card)] outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
+        'bg-black outline-none transition-[box-shadow,border-color,background-color] duration-200 will-change-transform',
         'hover:border-[color-mix(in_srgb,var(--color-primary)_32%,var(--color-border-default))]',
         'focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--color-surface)]'
       )}
@@ -78,8 +78,9 @@ function ProjectIdeaCard({
       transition={{ type: 'spring', stiffness: 245, damping: 22, mass: 0.55 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
-        borderColor: 'var(--color-border-default)',
+        borderColor: 'rgba(52, 211, 153, 0.34)',
         transformOrigin: 'center center',
+        boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.18), 0 16px 36px rgba(0, 0, 0, 0.4)',
       }}
     >
       <div
@@ -111,13 +112,13 @@ function ProjectIdeaCard({
                 >
                   {idea.skillLevel}
                 </span>
-                <h3 className="text-[0.98rem] font-bold leading-tight text-[var(--color-text-primary)] sm:text-[1.05rem]">
+                <h3 className="text-[0.98rem] font-bold leading-tight text-white sm:text-[1.05rem]">
                   {idea.title}
                 </h3>
               </div>
             </div>
 
-            <p className="max-w-[30ch] text-sm leading-relaxed text-[var(--color-text-secondary)]">
+            <p className="max-w-[30ch] text-sm leading-relaxed text-white/85">
               {idea.description}
             </p>
           </div>
@@ -135,7 +136,7 @@ function ProjectIdeaCard({
               <div>
                 <div className="mb-2 flex items-center gap-1.5">
                   <Wrench className="h-3.5 w-3.5" style={{ color: skillStyle.accent }} />
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
                     From device
                   </span>
                 </div>
@@ -143,7 +144,8 @@ function ProjectIdeaCard({
                   {idea.requiredComponents.slice(0, 3).map((component) => (
                     <span
                       key={component}
-                      className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] px-2 py-1 text-[11px] text-[var(--color-text-secondary)]"
+                        className="rounded-md border px-2 py-1 text-[11px] text-white/88"
+                        style={{ borderColor: 'rgba(52, 211, 153, 0.18)', backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
                     >
                       {component}
                     </span>
@@ -155,7 +157,7 @@ function ProjectIdeaCard({
                 <div>
                   <div className="mb-2 flex items-center gap-1.5">
                     <Package className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--color-text-muted)]">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">
                       Additional materials
                     </span>
                   </div>
@@ -163,7 +165,8 @@ function ProjectIdeaCard({
                     {idea.additionalMaterials.slice(0, 3).map((material) => (
                       <span
                         key={material}
-                        className="rounded-md border border-[var(--color-border-subtle)] bg-[color-mix(in_srgb,var(--color-surface-card)_78%,var(--color-surface-elevated))] px-2 py-1 text-[11px] text-[var(--color-text-muted)]"
+                        className="rounded-md border px-2 py-1 text-[11px] text-white/70"
+                        style={{ borderColor: 'rgba(255, 255, 255, 0.16)', backgroundColor: 'rgba(255, 255, 255, 0.04)' }}
                       >
                         {material}
                       </span>
@@ -173,7 +176,7 @@ function ProjectIdeaCard({
               )}
             </div>
 
-            <div className="mt-5 flex items-center justify-between border-t border-[var(--color-border-subtle)] pt-3 text-xs font-medium text-[var(--color-text-secondary)]">
+            <div className="mt-5 flex items-center justify-between border-t pt-3 text-xs font-medium text-white/85" style={{ borderColor: 'rgba(52, 211, 153, 0.14)' }}>
               <span className="transition-colors group-hover:text-[var(--color-text-primary)] group-focus-visible:text-[var(--color-text-primary)]">
                 Open guide
               </span>
@@ -234,7 +237,8 @@ export function ProjectIdeaCarousel({
             type="button"
             onClick={() => scroll('left')}
             aria-label="Scroll project ideas left"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-black text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            style={{ borderColor: 'rgba(52, 211, 153, 0.28)' }}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -243,7 +247,8 @@ export function ProjectIdeaCarousel({
             type="button"
             onClick={() => scroll('right')}
             aria-label="Scroll project ideas right"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border-default)] bg-[var(--color-surface-card)] text-[var(--color-text-primary)] shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 hover:border-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-black text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            style={{ borderColor: 'rgba(52, 211, 153, 0.28)' }}
           >
             <ChevronRight className="h-5 w-5" />
           </button>

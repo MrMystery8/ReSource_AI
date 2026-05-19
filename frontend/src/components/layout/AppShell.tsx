@@ -23,6 +23,7 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration';
 import { BackgroundGradientAnimation } from '../ui/background-gradient-animation';
 import { useTheme } from '../../contexts/ThemeContext';
+import { APP_GRADIENT_DARK, APP_GRADIENT_LIGHT } from '../analysisTheme';
 
 export interface AppShellProps {
   children: ReactNode;
@@ -37,30 +38,7 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
   useScrollRestoration();
   const { theme } = useTheme();
 
-  const backgroundProps =
-    theme === 'dark'
-      ? {
-          gradientBackgroundStart: 'rgb(8, 12, 11)',
-          gradientBackgroundEnd: 'rgb(15, 20, 18)',
-          firstColor: '52, 104, 90',
-          secondColor: '88, 93, 117',
-          thirdColor: '77, 111, 96',
-          fourthColor: '110, 94, 74',
-          fifthColor: '84, 100, 129',
-          pointerColor: '88, 102, 96',
-          blendingValue: 'screen',
-        }
-      : {
-          gradientBackgroundStart: 'rgb(248, 251, 248)',
-          gradientBackgroundEnd: 'rgb(241, 246, 243)',
-          firstColor: '108, 144, 128',
-          secondColor: '138, 129, 102',
-          thirdColor: '106, 124, 147',
-          fourthColor: '134, 118, 96',
-          fifthColor: '124, 149, 133',
-          pointerColor: '132, 145, 149',
-          blendingValue: 'soft-light',
-        };
+  const backgroundProps = theme === 'dark' ? APP_GRADIENT_DARK : APP_GRADIENT_LIGHT;
 
   return (
     <BackgroundGradientAnimation

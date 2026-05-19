@@ -5,24 +5,24 @@ type Tone = 'default' | 'primary' | 'success' | 'warning' | 'error';
 
 const TONE_STYLES: Record<Tone, CSSProperties> = {
   default: {
-    backgroundColor: 'color-mix(in srgb, var(--color-surface-elevated) 60%, transparent)',
-    borderColor: 'var(--color-border-subtle)',
+    backgroundColor: 'rgba(8, 18, 14, 0.9)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
   primary: {
-    backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, transparent)',
-    borderColor: 'color-mix(in srgb, var(--color-primary) 26%, transparent)',
+    backgroundColor: 'rgba(8, 18, 14, 0.9)',
+    borderColor: 'rgba(52, 211, 153, 0.26)',
   },
   success: {
-    backgroundColor: 'color-mix(in srgb, var(--color-success) 8%, transparent)',
-    borderColor: 'color-mix(in srgb, var(--color-success) 26%, transparent)',
+    backgroundColor: 'rgba(12, 34, 25, 0.88)',
+    borderColor: 'rgba(52, 211, 153, 0.28)',
   },
   warning: {
-    backgroundColor: 'color-mix(in srgb, var(--color-warning) 8%, transparent)',
-    borderColor: 'color-mix(in srgb, var(--color-warning) 26%, transparent)',
+    backgroundColor: 'rgba(36, 26, 8, 0.88)',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
   },
   error: {
-    backgroundColor: 'color-mix(in srgb, var(--color-error) 8%, transparent)',
-    borderColor: 'color-mix(in srgb, var(--color-error) 26%, transparent)',
+    backgroundColor: 'rgba(46, 14, 18, 0.88)',
+    borderColor: 'rgba(248, 113, 113, 0.34)',
   },
 };
 
@@ -77,7 +77,7 @@ export function StatusPill({
   return (
     <span
       className={`inline-flex items-center rounded-full border px-3 py-1 text-xs ${className}`}
-      style={TONE_STYLES[tone]}
+      style={{ ...TONE_STYLES[tone], color: '#f7fffb' }}
     >
       {children}
     </span>
@@ -99,13 +99,13 @@ export function NumberedSectionHeading({
     <div className="mb-4">
       <h2
         className="text-sm font-semibold uppercase tracking-wide flex items-center gap-2"
-        style={{ color: 'var(--color-text-muted)' }}
+        style={{ color: 'rgba(255, 255, 255, 0.78)' }}
       >
         <span
           className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
           style={{
             backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-            color: 'var(--color-primary)',
+            color: '#34d399',
           }}
         >
           {step}
@@ -113,7 +113,7 @@ export function NumberedSectionHeading({
         {title}
       </h2>
       {subtitle ? (
-        <p className="text-xs mt-1 ml-7" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs mt-1 ml-7" style={{ color: 'rgba(255, 255, 255, 0.72)' }}>
           {subtitle}
         </p>
       ) : null}

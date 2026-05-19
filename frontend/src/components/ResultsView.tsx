@@ -91,23 +91,23 @@ function ResultsHero({
           <div
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border sm:h-12 sm:w-12"
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--color-primary) 16%, transparent)',
-              borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              borderColor: 'rgba(255, 255, 255, 0.22)',
             }}
           >
-            <Cpu className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
+            <Cpu className="h-5 w-5 sm:h-6 sm:w-6" style={{ color: '#ffffff' }} aria-hidden />
           </div>
           <div className="min-w-0">
             <h1
               className="text-2xl font-semibold tracking-tight sm:text-3xl"
-              style={{ color: 'var(--color-text-primary)' }}
+              style={{ color: '#ffffff' }}
             >
               {RESULTS_CONTENT.heroTitle}
             </h1>
-            <p className="mt-1 text-sm leading-relaxed sm:text-base" style={{ color: 'var(--color-text-secondary)' }}>
+            <p className="mt-1 text-sm leading-relaxed sm:text-base" style={{ color: 'rgba(255, 255, 255, 0.88)' }}>
               {subtitle}
             </p>
-            <p className="mt-2 text-xs tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="mt-2 text-xs tabular-nums" style={{ color: 'rgba(255, 255, 255, 0.64)' }}>
               {completedStages}/{totalExpectedStages} core stages completed
             </p>
           </div>
@@ -198,15 +198,15 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
         <ResultsHero status="processing" completedStages={0} totalExpectedStages={5} />
 
         {/* Status Header Skeleton */}
-        <Card elevation="sm" className="p-5">
+        <Card surface="analysis" elevation="sm" className="p-5">
           <div className="flex items-center gap-3">
             <motion.div
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: 'var(--color-primary)' }}
+              style={{ backgroundColor: '#34d399' }}
               animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             />
-            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+            <span className="text-sm font-medium" style={{ color: '#ffffff' }}>
               {RESULTS_CONTENT.connectingTitle}
             </span>
           </div>
@@ -257,13 +257,13 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
 
       {/* Status Header */}
       <motion.div {...fadeInUp}>
-        <Card elevation="sm" className="p-5">
+        <Card surface="analysis" elevation="sm" className="p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {status === 'processing' && (
                 <motion.div
                   className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: 'var(--color-primary)' }}
+                  style={{ backgroundColor: '#34d399' }}
                   animate={{ scale: [1, 1.3, 1], opacity: [1, 0.5, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 />
@@ -274,7 +274,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
               {status === 'failed' && (
                 <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
               )}
-              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              <span className="text-sm font-medium" style={{ color: '#ffffff' }}>
                 {status === 'processing'
                   ? RESULTS_CONTENT.processingTitle
                   : status === 'complete'
@@ -284,11 +284,11 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
             </div>
             <div className="flex items-center gap-3">
               {status === 'processing' && currentStage && (
-                <StatusPill tone="primary" className="text-[11px] text-[var(--color-text-primary)]">
+                <StatusPill tone="primary" className="text-[11px]">
                   {STAGE_NAMES[currentStage] ?? currentStage}
                 </StatusPill>
               )}
-              <span className="text-xs tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-xs tabular-nums" style={{ color: 'rgba(255, 255, 255, 0.64)' }}>
                 {completedStages.length}/{totalExpectedStages} stages
               </span>
               {/* Tiny vision indicator — green dot = images analyzed, invisible otherwise */}
@@ -313,13 +313,13 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
           {status === 'processing' && (
             <div
               className="mt-3 h-1.5 rounded-full overflow-hidden"
-              style={{ backgroundColor: 'var(--color-surface-elevated)' }}
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
             >
               <motion.div
                 className="h-full rounded-full"
                 style={{
                   background:
-                    'linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 90%, white) 0%, var(--color-primary) 100%)',
+                    'linear-gradient(90deg, rgba(52, 211, 153, 0.84) 0%, rgba(110, 231, 183, 1) 100%)',
                 }}
                 animate={{ width: `${(completedStages.length / totalExpectedStages) * 100}%` }}
                 transition={{ duration: 0.5 }}
@@ -339,7 +339,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
       {/* Error Display */}
       {status === 'failed' && error && (
         <motion.div {...fadeInUp} role="alert">
-          <Card elevation="sm" className="p-5">
+          <Card surface="analysis" elevation="sm" className="p-5">
             <TintedPanel className="rounded-lg p-4" tone="error">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-error)' }} />
@@ -347,15 +347,15 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
                   <p className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>
                     Error in stage: {error.stage}
                   </p>
-                  <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
                     {error.message}
                   </p>
                   <button
                     className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                     style={{
-                      backgroundColor: 'var(--color-surface-elevated)',
-                      color: 'var(--color-text-secondary)',
-                      border: '1px solid var(--color-border-default)',
+                      backgroundColor: 'rgba(7, 23, 18, 0.96)',
+                      color: 'rgba(255, 255, 255, 0.82)',
+                      border: '1px solid rgba(255, 255, 255, 0.18)',
                     }}
                     onClick={() => window.location.reload()}
                   >
@@ -409,7 +409,7 @@ export function ResultsView({ session, userExpertise = 'Beginner', onIdeaClick, 
           ))}
           {pendingStages.length > 2 && (
             <motion.div {...fadeInUp} className="text-center py-2">
-              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              <span className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.64)' }}>
                 +{pendingStages.length - 2} more stages pending...
               </span>
             </motion.div>
@@ -438,11 +438,11 @@ function renderStage(key: string, data: unknown): React.ReactNode {
         return <ConceptImage data={data as { imageUrl: string }} />;
       default:
         return (
-          <Card elevation="md" className="p-6">
-            <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+          <Card surface="analysis" elevation="md" className="p-6">
+            <h3 className="text-lg font-semibold mb-3" style={{ color: '#ffffff' }}>
               {STAGE_NAMES[key] ?? key}
             </h3>
-            <pre className="text-xs whitespace-pre-wrap overflow-auto" style={{ color: 'var(--color-text-secondary)' }}>
+            <pre className="text-xs whitespace-pre-wrap overflow-auto" style={{ color: 'rgba(255, 255, 255, 0.84)' }}>
               {JSON.stringify(data, null, 2)}
             </pre>
           </Card>
@@ -451,7 +451,7 @@ function renderStage(key: string, data: unknown): React.ReactNode {
   } catch (err) {
     console.error(`[ResultsView] Error rendering stage "${key}":`, err, 'Data:', data);
     return (
-      <Card elevation="sm" className="p-6">
+      <Card surface="analysis" elevation="sm" className="p-6">
         <div
           className="rounded-lg p-4"
           style={{
@@ -464,7 +464,7 @@ function renderStage(key: string, data: unknown): React.ReactNode {
               <h3 className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>
                 Failed to render: {STAGE_NAMES[key] ?? key}
               </h3>
-              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+              <p className="text-xs mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
                 An error occurred while displaying this stage. Check the console for details.
               </p>
             </div>
