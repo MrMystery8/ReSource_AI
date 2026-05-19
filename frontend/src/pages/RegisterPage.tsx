@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Eye, EyeOff, AlertCircle, X } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, X } from 'lucide-react';
+import { AuthPanelBadge } from '../components/auth/AuthPanelBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -188,7 +189,7 @@ export function RegisterPage() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        <Card elevation="md" className="p-8 sm:p-10">
+        <Card surface="neon" elevation="md" className="p-8 sm:p-10">
           <motion.form
             onSubmit={handleSubmit}
             noValidate
@@ -198,14 +199,14 @@ export function RegisterPage() {
           >
             {/* Header */}
             <motion.div variants={itemVariants} className="text-center mb-8">
-              <div
-                className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-                style={{
-                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-hover))',
-                }}
+              <motion.div
+                variants={itemVariants}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.08, duration: 0.28 }}
               >
-                <UserPlus className="w-7 h-7 text-white" />
-              </div>
+                <AuthPanelBadge />
+              </motion.div>
               <h1
                 className="text-2xl font-bold"
                 style={{ color: 'var(--color-text-primary)' }}

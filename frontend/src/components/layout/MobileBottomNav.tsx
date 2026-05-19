@@ -32,6 +32,8 @@ const BASE_NAV_ITEMS: NavItem[] = [
 
 /** Admin item shown only to managers (replaces Profile slot). */
 const ADMIN_NAV_ITEM: NavItem = { path: '/admin', label: 'Admin', icon: Shield };
+const NAV_SURFACE = '#000000';
+const NAV_BORDER = 'rgba(255, 255, 255, 0.08)';
 
 export function MobileBottomNav(): JSX.Element {
   const { user } = useAuth();
@@ -48,8 +50,8 @@ export function MobileBottomNav(): JSX.Element {
       aria-label="Mobile navigation"
       className="md:hidden fixed bottom-0 left-0 right-0 z-40"
       style={{
-        backgroundColor: 'var(--color-surface-elevated)',
-        borderTop: '1px solid var(--color-border-default)',
+        backgroundColor: NAV_SURFACE,
+        borderTop: `1px solid ${NAV_BORDER}`,
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
@@ -67,7 +69,7 @@ export function MobileBottomNav(): JSX.Element {
               style={({ isActive }) => ({
                 color: isActive
                   ? 'var(--color-primary)'
-                  : 'var(--color-text-muted)',
+                  : 'rgba(255, 255, 255, 0.68)',
               })}
               aria-current={undefined /* NavLink handles this via className */}
             >

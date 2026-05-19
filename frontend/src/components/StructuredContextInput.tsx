@@ -28,6 +28,10 @@ export interface StructuredContextInputProps {
   onChange: (context: Partial<StructuredUserContext>) => void;
 }
 
+const EMERALD = '#34d399';
+const ACCENT_WHITE = '#ffffff';
+const BODY_WHITE = 'rgba(255,255,255,0.9)';
+
 // ── Option definitions with icons ─────────────────────────────────────────────
 
 const EXPERTISE_OPTIONS: { value: ExpertiseLevel; label: string; icon: React.ReactNode; hint: string }[] = [
@@ -76,18 +80,18 @@ function PillChip({ label, hint, icon, isSelected, onClick, id }: PillChipProps)
       aria-pressed={isSelected}
       onClick={onClick}
       whileTap={{ scale: 0.94 }}
-      className="relative flex items-center gap-2 px-3.5 py-2 rounded-full text-sm font-medium border transition-colors duration-150 focus:outline-none focus-visible:ring-2 cursor-pointer select-none"
+      className="relative flex h-full min-h-[50px] w-full items-center justify-center rounded-2xl px-3.5 py-2.5 text-center border transition-colors duration-150 focus:outline-none focus-visible:ring-2 cursor-pointer select-none"
       style={{
         backgroundColor: isSelected
-          ? 'color-mix(in srgb, var(--color-primary) 15%, transparent)'
-          : 'var(--color-surface-elevated)',
+          ? EMERALD
+          : 'rgba(8, 18, 14, 0.94)',
         borderColor: isSelected
-          ? 'color-mix(in srgb, var(--color-primary) 50%, transparent)'
-          : 'var(--color-border-default)',
-        color: isSelected ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+          ? EMERALD
+          : 'rgba(52, 211, 153, 0.34)',
+        color: isSelected ? '#000000' : BODY_WHITE,
         boxShadow: isSelected
-          ? '0 0 0 1px color-mix(in srgb, var(--color-primary) 25%, transparent)'
-          : 'none',
+          ? '0 0 0 1px rgba(52, 211, 153, 0.28), 0 0 18px rgba(52, 211, 153, 0.18)'
+          : '0 0 0 1px rgba(52, 211, 153, 0.1)',
       }}
     >
       {/* Selected dot indicator */}
@@ -100,27 +104,22 @@ function PillChip({ label, hint, icon, isSelected, onClick, id }: PillChipProps)
           transition={{ duration: 0.15, ease: [0, 0, 0.2, 1] as const }}
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
-            backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, transparent)',
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
           }}
         />
       )}
-      <span className="relative flex items-center gap-2">
+      <span className="relative flex min-w-0 items-center justify-center gap-2 text-center">
         <span
+          className="shrink-0"
           style={{
-            color: isSelected ? 'var(--color-primary)' : 'var(--color-text-muted)',
+            color: isSelected ? '#000000' : BODY_WHITE,
           }}
         >
           {icon}
         </span>
-        <span>{label}</span>
-        {hint && (
-          <span
-            className="hidden sm:inline text-xs font-normal"
-            style={{ color: isSelected ? 'color-mix(in srgb, var(--color-primary) 70%, transparent)' : 'var(--color-text-muted)' }}
-          >
-            · {hint}
-          </span>
-        )}
+        <span className="text-[0.9rem] font-semibold leading-tight text-center">
+          {label}
+        </span>
       </span>
     </motion.button>
   );
@@ -141,8 +140,8 @@ function FieldSection({ label, icon, description, required, children }: FieldSec
     <div className="space-y-2.5">
       <div>
         <div className="flex items-center gap-2 mb-0.5">
-          <span style={{ color: 'var(--color-text-muted)' }}>{icon}</span>
-          <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+          <span style={{ color: ACCENT_WHITE }}>{icon}</span>
+          <span className="text-sm font-medium" style={{ color: ACCENT_WHITE }}>
             {label}
           </span>
           {required && (
@@ -151,7 +150,13 @@ function FieldSection({ label, icon, description, required, children }: FieldSec
             </span>
           )}
         </div>
-        <p className="text-xs ml-6" style={{ color: 'var(--color-text-muted)' }}>
+        <p
+          className="text-xs ml-6"
+          style={{
+            color: EMERALD,
+            textShadow: '0 0 8px rgba(52, 211, 153, 0.18), 0 0 18px rgba(52, 211, 153, 0.08)',
+          }}
+        >
           {description}
         </p>
       </div>
@@ -175,7 +180,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Expertise level"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-1 gap-3 md:grid-cols-3"
         >
           {EXPERTISE_OPTIONS.map((opt) => (
             <PillChip
@@ -201,7 +206,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Motivation"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
         >
           {MOTIVATION_OPTIONS.map((opt) => (
             <PillChip
@@ -226,7 +231,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Material availability"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-1 gap-3 md:grid-cols-3"
         >
           {MATERIAL_OPTIONS.map((opt) => (
             <PillChip
@@ -252,7 +257,7 @@ export function StructuredContextInput({ value, onChange }: StructuredContextInp
         <div
           role="group"
           aria-label="Time commitment"
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
         >
           {TIME_OPTIONS.map((opt) => (
             <PillChip

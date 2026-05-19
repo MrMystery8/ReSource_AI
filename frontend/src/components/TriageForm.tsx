@@ -26,6 +26,11 @@ interface TextFieldConfig {
   description: string;
 }
 
+interface ProgressStep {
+  key: 'details' | 'context' | 'upload';
+  label: string;
+}
+
 const TEXT_FIELDS: TextFieldConfig[] = [
   {
     name: 'deviceIdentity',
@@ -57,6 +62,28 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0, 0, 0.2, 1] as const } },
 };
 
+const EMERALD = '#34d399';
+const ACCENT_WHITE = '#ffffff';
+const BODY_WHITE = 'rgba(255,255,255,0.9)';
+const MUTED_WHITE = 'rgba(255,255,255,0.35)';
+const PANEL_STYLE: React.CSSProperties = {
+  backgroundColor: '#000000',
+  borderColor: 'rgba(52, 211, 153, 0.58)',
+  borderWidth: '2px',
+  boxShadow: [
+    'inset 0 0 0 1px rgba(52, 211, 153, 0.10)',
+    '0 0 0 1px rgba(52, 211, 153, 0.22)',
+    '0 0 12px rgba(52, 211, 153, 0.18)',
+    '0 0 28px rgba(16, 185, 129, 0.10)',
+    '0 18px 54px rgba(0, 0, 0, 0.42)',
+  ].join(', '),
+};
+const PROGRESS_STEPS: readonly ProgressStep[] = [
+  { key: 'details', label: 'Details' },
+  { key: 'context', label: 'Context' },
+  { key: 'upload', label: 'Upload' },
+] as const;
+
 export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps) {
   const [deviceIdentity, setDeviceIdentity] = useState('');
   const [failureSymptoms, setFailureSymptoms] = useState('');
@@ -87,6 +114,10 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
     isFieldValid(failureSymptoms) &&
     isContextComplete(userContext);
 
+  const isDetailsComplete =
+    isFieldValid(deviceIdentity) &&
+    isFieldValid(failureSymptoms);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid && !disabled) {
@@ -98,12 +129,11 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
     }
   };
 
-  // Count completed sections for progress
-  const completedSections = [
-    isFieldValid(deviceIdentity),
-    isFieldValid(failureSymptoms),
-    isContextComplete(userContext),
-  ].filter(Boolean).length;
+  const activeStepIndex = !isDetailsComplete
+    ? 0
+    : !isContextComplete(userContext)
+      ? 1
+      : 2;
 
   return (
     <motion.div
@@ -116,49 +146,95 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
       <form onSubmit={handleSubmit} noValidate>
         {/* Page Header */}
         <motion.div variants={itemVariants} className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-4 mb-2">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              className="flex h-14 w-14 items-center justify-center rounded-2xl sm:h-16 sm:w-16"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                border: '2px solid rgba(255, 255, 255, 0.26)',
+                boxShadow: '0 0 18px rgba(255, 255, 255, 0.12), 0 0 36px rgba(255, 255, 255, 0.06)',
               }}
             >
-              <Zap className="w-5 h-5" style={{ color: 'var(--color-primary)' }} aria-hidden />
+              <Zap className="h-7 w-7 sm:h-8 sm:w-8" style={{ color: ACCENT_WHITE }} aria-hidden />
             </div>
             <div>
               <h1
-                className="text-2xl font-bold"
-                style={{ color: 'var(--color-text-primary)' }}
+                className="text-4xl font-bold tracking-tight sm:text-5xl"
+                style={{
+                  color: '#ffffff',
+                  textShadow: '0 0 12px rgba(255, 255, 255, 0.20)',
+                }}
               >
                 Device Triage
               </h1>
-              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              <p
+                className="text-base leading-relaxed sm:text-lg"
+                style={{
+                  color: EMERALD,
+                  textShadow: '0 0 10px rgba(52, 211, 153, 0.22), 0 0 24px rgba(52, 211, 153, 0.12)',
+                }}
+              >
                 Analyze salvage potential, safety risks, and second-life ideas
               </p>
             </div>
           </div>
 
-          {/* Progress indicator */}
-          <div className="flex items-center gap-2 mt-4">
-            {[0, 1, 2].map((step) => (
-              <div
-                key={step}
-                className="h-1 flex-1 rounded-full transition-colors duration-300"
-                style={{
-                  backgroundColor: step < completedSections
-                    ? 'var(--color-primary)'
-                    : 'var(--color-border-default)',
-                }}
-                role="presentation"
-              />
-            ))}
-            <span
-              className="text-xs font-medium ml-2 tabular-nums"
-              style={{ color: completedSections === 3 ? 'var(--color-success)' : 'var(--color-text-muted)' }}
-            >
-              {completedSections}/3
-            </span>
+        </motion.div>
+
+        {/* Stepped Progress Indicator */}
+        <motion.div variants={itemVariants} className="py-4">
+          <div className="flex items-start">
+            {PROGRESS_STEPS.map((step, index) => {
+              const isActive = index === activeStepIndex;
+              const isCompleted = index < activeStepIndex;
+              const isLast = index === PROGRESS_STEPS.length - 1;
+
+              return (
+                <React.Fragment key={step.key}>
+                  <div className="flex flex-col items-center min-w-[64px]">
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-all duration-300"
+                      style={{
+                        backgroundColor: isActive || isCompleted
+                          ? EMERALD
+                          : 'rgba(255,255,255,0.08)',
+                        border: isActive || isCompleted
+                          ? '1px solid transparent'
+                          : '1px solid rgba(255,255,255,0.25)',
+                        color: isActive || isCompleted
+                          ? '#052e16'
+                          : 'rgba(255,255,255,0.4)',
+                        boxShadow: isActive
+                          ? '0 0 8px rgba(52,211,153,0.5)'
+                          : isCompleted
+                            ? '0 0 6px rgba(52,211,153,0.26)'
+                            : 'none',
+                      }}
+                    >
+                      {index + 1}
+                    </div>
+                    <span
+                      className="mt-2 text-[11px] font-medium"
+                      style={{ color: isActive ? EMERALD : MUTED_WHITE }}
+                    >
+                      {step.label}
+                    </span>
+                  </div>
+
+                  {!isLast && (
+                    <div
+                      className="mt-[15px] h-[2px] flex-1 rounded-full transition-colors duration-300"
+                      style={{
+                        backgroundColor: isCompleted
+                          ? EMERALD
+                          : 'rgba(255,255,255,0.2)',
+                      }}
+                      role="presentation"
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </motion.div>
 
@@ -166,20 +242,17 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
         <motion.section variants={itemVariants} className="mb-6">
           <div
             className="rounded-xl border p-5"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              borderColor: 'var(--color-border-default)',
-            }}
+            style={PANEL_STYLE}
           >
             <h2
-              className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
-              style={{ color: 'var(--color-text-muted)' }}
+              className="mb-4 flex items-center gap-2 text-base font-semibold uppercase tracking-wide sm:text-lg"
+              style={{ color: EMERALD }}
             >
               <span
                 className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
                 style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                  color: 'var(--color-primary)',
+                  backgroundColor: EMERALD,
+                  color: '#000000',
                 }}
               >
                 1
@@ -202,11 +275,11 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
                     >
                       <span
                         className="transition-colors duration-200"
-                        style={{ color: isFocused ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                        style={{ color: ACCENT_WHITE }}
                       >
                         {field.icon}
                       </span>
-                      <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                      <span className="text-sm font-medium" style={{ color: ACCENT_WHITE }}>
                         {field.label}
                       </span>
                       <span
@@ -217,17 +290,25 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
                         *
                       </span>
                     </label>
-                    <p className="text-xs mb-2 ml-6" style={{ color: 'var(--color-text-muted)' }}>
+                    <p
+                      className="text-xs mb-2 ml-6"
+                      style={{
+                        color: EMERALD,
+                        textShadow: '0 0 8px rgba(52, 211, 153, 0.18), 0 0 18px rgba(52, 211, 153, 0.08)',
+                      }}
+                    >
                       {field.description}
                     </p>
                     <textarea
                       id={`triage-${field.name}`}
-                      className="w-full rounded-lg px-3 py-2.5 text-sm leading-relaxed resize-none border transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-[var(--color-text-muted)]"
+                      className="w-full rounded-lg px-3 py-2.5 text-sm leading-relaxed resize-none border transition-all duration-150 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-white/40"
                       style={{
-                        backgroundColor: 'var(--color-surface-elevated)',
-                        color: 'var(--color-text-primary)',
-                        borderColor: isFocused ? 'var(--color-primary)' : 'var(--color-border-default)',
-                        boxShadow: isFocused ? '0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent)' : 'none',
+                        backgroundColor: 'rgba(7, 23, 18, 0.96)',
+                        color: BODY_WHITE,
+                        borderColor: isFocused ? 'rgba(52, 211, 153, 0.76)' : 'rgba(52, 211, 153, 0.34)',
+                        boxShadow: isFocused
+                          ? '0 0 0 2px rgba(52, 211, 153, 0.22), 0 0 24px rgba(52, 211, 153, 0.14)'
+                          : '0 0 0 1px rgba(52, 211, 153, 0.22), 0 0 18px rgba(52, 211, 153, 0.14), 0 0 34px rgba(52, 211, 153, 0.08)',
                       }}
                       name={field.name}
                       value={value}
@@ -245,7 +326,7 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
                       <span
                         id={`${field.name}-counter`}
                         className="text-xs tabular-nums"
-                        style={{ color: charCount >= MAX_FIELD_LENGTH ? 'var(--color-error)' : 'var(--color-text-muted)' }}
+                        style={{ color: charCount >= MAX_FIELD_LENGTH ? 'var(--color-error)' : BODY_WHITE }}
                         aria-live="polite"
                       >
                         {charCount}/{MAX_FIELD_LENGTH}
@@ -262,20 +343,17 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
         <motion.section variants={itemVariants} className="mb-6">
           <div
             className="rounded-xl border p-5"
-            style={{
-              backgroundColor: 'var(--color-surface-card)',
-              borderColor: 'var(--color-border-default)',
-            }}
+            style={PANEL_STYLE}
           >
             <h2
-              className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
-              style={{ color: 'var(--color-text-muted)' }}
+              className="mb-4 flex items-center gap-2 text-base font-semibold uppercase tracking-wide sm:text-lg"
+              style={{ color: EMERALD }}
             >
               <span
                 className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
                 style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                  color: 'var(--color-primary)',
+                  backgroundColor: EMERALD,
+                  color: '#000000',
                 }}
               >
                 2
@@ -295,26 +373,23 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
           <motion.section variants={itemVariants} className="mb-8">
             <div
               className="rounded-xl border p-5"
-              style={{
-                backgroundColor: 'var(--color-surface-card)',
-                borderColor: 'var(--color-border-default)',
-              }}
+              style={PANEL_STYLE}
             >
               <h2
-                className="text-sm font-semibold uppercase tracking-wide mb-4 flex items-center gap-2"
-                style={{ color: 'var(--color-text-muted)' }}
+                className="mb-4 flex items-center gap-2 text-base font-semibold uppercase tracking-wide sm:text-lg"
+                style={{ color: EMERALD }}
               >
                 <span
                   className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                    color: 'var(--color-primary)',
+                    backgroundColor: EMERALD,
+                    color: '#000000',
                   }}
                 >
                   3
                 </span>
                 Evidence Photos
-                <span className="text-xs font-normal normal-case tracking-normal" style={{ color: 'var(--color-text-muted)' }}>
+                <span className="text-xs font-normal normal-case tracking-normal" style={{ color: BODY_WHITE }}>
                   (optional)
                 </span>
               </h2>
@@ -330,7 +405,7 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
             type="submit"
             variant="primary"
             size="lg"
-            className="w-full"
+            className="w-full !bg-[#34d399] !text-black shadow-[0_0_18px_rgba(52,211,153,0.35),0_0_44px_rgba(52,211,153,0.24)] hover:!bg-[#6ee7b7]"
             disabled={!isFormValid || disabled}
             isLoading={disabled}
             leftIcon={!disabled ? <Send className="w-4 h-4" /> : undefined}
@@ -341,7 +416,7 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
           {!isFormValid && !disabled && (
             <p
               className="text-xs text-center mt-2"
-              style={{ color: 'var(--color-text-muted)' }}
+              style={{ color: BODY_WHITE }}
             >
               Complete all required fields to submit
             </p>

@@ -205,6 +205,8 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
   // Separate images from documents for display
   const imageFiles = files.filter((f) => isImageFile(f.name));
   const docFiles = files.filter((f) => !isImageFile(f.name));
+  const emeraldBorder = 'rgba(52, 211, 153, 0.34)';
+  const blackPanel = 'rgba(8, 18, 14, 0.94)';
 
   return (
     <div className="space-y-3">
@@ -213,10 +215,13 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
         <motion.div
           className="relative rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer"
           style={{
-            borderColor: isDragging ? 'var(--color-primary)' : 'var(--color-border-default)',
+            borderColor: isDragging ? '#34d399' : emeraldBorder,
             backgroundColor: isDragging
-              ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)'
-              : 'var(--color-surface-elevated)',
+              ? 'rgba(8, 30, 22, 0.96)'
+              : blackPanel,
+            boxShadow: isDragging
+              ? '0 0 0 2px rgba(52, 211, 153, 0.18), 0 0 26px rgba(52, 211, 153, 0.14)'
+              : '0 0 0 1px rgba(52, 211, 153, 0.08)',
           }}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
@@ -236,25 +241,25 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
               className="w-10 h-10 rounded-full flex items-center justify-center mb-2"
               style={{
                 backgroundColor: isDragging
-                  ? 'color-mix(in srgb, var(--color-primary) 20%, transparent)'
-                  : 'var(--color-surface-card)',
-                border: '1px solid var(--color-border-default)',
+                  ? 'rgba(8, 30, 22, 0.96)'
+                  : '#000000',
+                border: `1px solid ${emeraldBorder}`,
               }}
               animate={isDragging ? { scale: [1, 1.1, 1] } : {}}
               transition={{ duration: 0.5, repeat: isDragging ? Infinity : 0 }}
             >
               <Upload
                 className="w-5 h-5"
-                style={{ color: isDragging ? 'var(--color-primary)' : 'var(--color-text-muted)' }}
+                style={{ color: '#34d399' }}
               />
             </motion.div>
-            <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
-              <span className="font-medium" style={{ color: 'var(--color-primary)' }}>
+            <p className="text-sm text-center" style={{ color: 'rgba(255,255,255,0.9)' }}>
+              <span className="font-medium" style={{ color: '#34d399' }}>
                 Click to upload
               </span>{' '}
               or drag and drop
             </p>
-            <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.9)' }}>
               Images, PDF, DOCX, CSV, JSON · Max 10 MB each
             </p>
           </div>
@@ -306,8 +311,8 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="relative aspect-square rounded-lg overflow-hidden border"
                   style={{
-                    borderColor: 'var(--color-border-default)',
-                    backgroundColor: 'var(--color-surface-elevated)',
+                    borderColor: emeraldBorder,
+                    backgroundColor: blackPanel,
                   }}
                 >
                   {file.previewUrl && (
@@ -378,12 +383,12 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
                 exit={{ opacity: 0, x: -10 }}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg border"
                 style={{
-                  backgroundColor: 'var(--color-surface-elevated)',
-                  borderColor: 'var(--color-border-default)',
+                  backgroundColor: blackPanel,
+                  borderColor: emeraldBorder,
                 }}
               >
                 <FileText className="w-4 h-4 shrink-0" style={{ color: 'var(--color-primary)' }} />
-                <span className="text-sm truncate flex-1" style={{ color: 'var(--color-text-primary)' }}>
+                <span className="text-sm truncate flex-1" style={{ color: 'rgba(255,255,255,0.9)' }}>
                   {file.name}
                 </span>
                 {file.status === 'uploading' && (
@@ -400,12 +405,12 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
                   onClick={() => removeFile(file.id)}
                   className="w-5 h-5 rounded-full flex items-center justify-center transition-colors shrink-0"
                   style={{
-                    backgroundColor: 'var(--color-surface-card)',
-                    border: '1px solid var(--color-border-default)',
+                    backgroundColor: '#000000',
+                    border: `1px solid ${emeraldBorder}`,
                   }}
                   aria-label={`Remove ${file.name}`}
                 >
-                  <X className="w-3 h-3" style={{ color: 'var(--color-text-muted)' }} />
+                  <X className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.9)' }} />
                 </button>
               </motion.div>
             ))}
@@ -415,7 +420,7 @@ export function FileUploader({ apiUrl, apiKey, authToken, sessionId, onFilesUplo
 
       {/* File count */}
       {totalFiles > 0 && (
-        <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.9)' }}>
           {successfulFileIds.length} of {MAX_FILES_PER_SESSION} files uploaded
         </p>
       )}

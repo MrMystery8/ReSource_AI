@@ -11,6 +11,14 @@ import type { UserProfile, LoginResponse } from '@resource-ai/shared';
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
 const TOKEN_KEY = 'resource_ai_token';
+const DEV_AUTH_BYPASS = import.meta.env.DEV;
+const DEV_USER: UserProfile = {
+  userId: 'local-dev-user',
+  email: 'local@resource-ai.dev',
+  displayName: 'Local Preview',
+  role: 'user',
+  createdAt: new Date(0).toISOString(),
+};
 
 export interface AuthContextValue {
   user: UserProfile | null;
@@ -26,13 +34,18 @@ export interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(DEV_AUTH_BYPASS ? DEV_USER : null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!DEV_AUTH_BYPASS);
 
-  const isAuthenticated = !!user && !!token;
+  const isAuthenticated = DEV_AUTH_BYPASS ? true : !!user && !!token;
 
   const clearAuth = useCallback(() => {
+    if (DEV_AUTH_BYPASS) {
+      setToken(null);
+      setUser(DEV_USER);
+      return;
+    }
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
@@ -40,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     clearAuth();
-    window.location.href = '/login';
+    window.location.href = DEV_AUTH_BYPASS ? '/' : '/login';
   }, [clearAuth]);
 
   // Listen for auth:expired events dispatched by the API layer on 401 responses
@@ -56,6 +69,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // On mount: validate existing token by calling GET /auth/profile
   useEffect(() => {
+    if (DEV_AUTH_BYPASS) {
+      setIsLoading(false);
+      setUser(DEV_USER);
+      setToken(null);
+      return;
+    }
+
     const storedToken = localStorage.getItem(TOKEN_KEY);
     if (!storedToken) {
       setIsLoading(false);

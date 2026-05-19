@@ -21,6 +21,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   label: string;
   error?: string;
   helperText?: string;
+  labelStyle?: React.CSSProperties;
+  inputStyle?: React.CSSProperties;
 }
 
 // ---------------------------------------------------------------------------
@@ -31,6 +33,8 @@ export function Input({
   label,
   error,
   helperText,
+  labelStyle,
+  inputStyle,
   id: idProp,
   className = '',
   ...rest
@@ -49,7 +53,7 @@ export function Input({
       <label
         htmlFor={inputId}
         className="text-sm font-medium"
-        style={{ color: 'var(--color-text-primary)' }}
+        style={{ color: 'var(--color-text-primary)', ...labelStyle }}
       >
         {label}
         {rest.required && (
@@ -90,6 +94,7 @@ export function Input({
           // Focus ring color applied via CSS custom property trick
           // (Tailwind ring color can't use CSS vars directly in v4 without @theme)
           // We use outline instead for full CSS-var support
+          ...inputStyle,
         } as React.CSSProperties}
         onFocus={(e) => {
           e.currentTarget.style.outline = `2px solid var(--color-primary)`;

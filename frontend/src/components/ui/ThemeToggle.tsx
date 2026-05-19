@@ -24,6 +24,8 @@ export function ThemeToggle(): JSX.Element {
 
   const isDark = theme === 'dark';
   const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+  const defaultBackground = 'color-mix(in srgb, var(--color-primary) 10%, transparent)';
+  const hoverBackground = 'color-mix(in srgb, var(--color-primary) 18%, transparent)';
 
   return (
     <button
@@ -34,16 +36,25 @@ export function ThemeToggle(): JSX.Element {
       className={[
         // Minimum 44×44px touch target
         'flex items-center justify-center w-11 h-11 rounded-lg',
-        'border border-[var(--color-border-default)]',
-        'text-[var(--color-text-secondary)]',
-        'hover:bg-[var(--color-surface-elevated)]',
-        'hover:text-[var(--color-text-primary)]',
         'active:scale-[0.97]',
         'transition-all duration-150 ease-out',
         'focus-visible:outline-none focus-visible:ring-2',
         'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
         'cursor-pointer',
       ].join(' ')}
+      style={{
+        color: 'var(--color-primary)',
+        backgroundColor: defaultBackground,
+        border: '1px solid color-mix(in srgb, var(--color-primary) 28%, transparent)',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.backgroundColor = hoverBackground;
+        (e.currentTarget as HTMLElement).style.color = 'var(--color-primary-hover)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.backgroundColor = defaultBackground;
+        (e.currentTarget as HTMLElement).style.color = 'var(--color-primary)';
+      }}
     >
       {isDark ? (
         <Sun size={18} aria-hidden="true" />

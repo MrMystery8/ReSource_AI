@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, AlertCircle } from 'lucide-react';
+import { AuthPanelBadge } from '../components/auth/AuthPanelBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -26,6 +27,17 @@ export function LoginPage() {
   }
 
   const isFormValid = email.trim().length > 0 && password.trim().length > 0;
+  const whiteFieldLabelStyle = {
+    color: '#ffffff',
+    textShadow: '0 0 8px rgba(255, 255, 255, 0.12)',
+  } as const;
+  const neonFieldInputStyle = {
+    color: '#ffffff',
+    backgroundColor: 'rgba(7, 23, 18, 0.96)',
+    borderColor: 'rgba(45, 212, 191, 0.42)',
+    boxShadow:
+      '0 0 0 1px rgba(45, 212, 191, 0.18), inset 0 0 18px rgba(20, 184, 166, 0.08), 0 0 26px rgba(20, 184, 166, 0.08)',
+  } as const;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -52,28 +64,26 @@ export function LoginPage() {
       transition={{ duration: 0.4 }}
       className="flex items-center justify-center min-h-[70vh]"
     >
-      <Card elevation="md" className="p-8 w-full max-w-md">
+      <Card surface="neon" elevation="md" className="p-8 w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="inline-flex items-center justify-center w-14 h-14 rounded-full mb-4"
-            style={{
-              backgroundColor: 'var(--color-surface-elevated)',
-              border: '1px solid var(--color-border-default)',
-            }}
+            transition={{ delay: 0.08, duration: 0.28 }}
           >
-            <LogIn className="w-7 h-7" style={{ color: 'var(--color-primary)' }} />
+            <AuthPanelBadge />
           </motion.div>
           <h1
             className="text-2xl font-bold"
-            style={{ color: 'var(--color-text-primary)' }}
+            style={{
+              color: '#ffffff',
+              textShadow: '0 0 10px rgba(255, 255, 255, 0.2), 0 0 26px rgba(255, 255, 255, 0.08)',
+            }}
           >
             Welcome Back
           </h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+          <p className="mt-1 text-sm" style={{ color: '#ffffff' }}>
             Sign in to continue your recycling journey
           </p>
         </div>
@@ -106,6 +116,9 @@ export function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             autoComplete="email"
+            labelStyle={whiteFieldLabelStyle}
+            inputStyle={neonFieldInputStyle}
+            className="placeholder:text-white/40"
           />
 
           {/* Password field */}
@@ -117,6 +130,9 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             autoComplete="current-password"
+            labelStyle={whiteFieldLabelStyle}
+            inputStyle={neonFieldInputStyle}
+            className="placeholder:text-white/40"
           />
 
           {/* Submit button */}
@@ -125,7 +141,7 @@ export function LoginPage() {
             variant="primary"
             isLoading={isSubmitting}
             disabled={!isFormValid}
-            className="w-full"
+            className="w-full !bg-[#34d399] !text-black shadow-[0_0_18px_rgba(52,211,153,0.35),0_0_44px_rgba(52,211,153,0.24)] hover:!bg-[#6ee7b7]"
             leftIcon={!isSubmitting ? <LogIn className="w-4 h-4" /> : undefined}
           >
             Sign In
@@ -133,7 +149,12 @@ export function LoginPage() {
         </form>
 
         {/* Register link */}
-        <p className="text-center text-sm mt-6" style={{ color: 'var(--color-text-secondary)' }}>
+        <p
+          className="text-center text-sm mt-6"
+          style={{
+            color: '#ffffff',
+          }}
+        >
           Don&apos;t have an account?{' '}
           <Link
             to="/register"

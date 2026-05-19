@@ -44,6 +44,8 @@ import type { UserLevel, UserStatsResponse } from '@resource-ai/shared';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
+const NAV_SURFACE = '#000000';
+const NAV_BORDER = 'rgba(255, 255, 255, 0.08)';
 
 type LucideIcon = React.ForwardRefExoticComponent<
   Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
@@ -365,8 +367,8 @@ export function DesktopHeader(): JSX.Element {
     <header
       className="hidden md:flex h-16 items-center backdrop-blur-md"
       style={{
-        backgroundColor: 'color-mix(in srgb, var(--color-surface-elevated) 85%, transparent)',
-        borderBottom: '1px solid var(--color-border-default)',
+        backgroundColor: NAV_SURFACE,
+        borderBottom: `1px solid ${NAV_BORDER}`,
       }}
     >
       <div className="w-full max-w-6xl mx-auto px-6 flex items-center justify-between gap-4">
@@ -389,7 +391,7 @@ export function DesktopHeader(): JSX.Element {
           </span>
           <span
             className="text-base font-semibold tracking-tight"
-            style={{ color: 'var(--color-text-primary)' }}
+            style={{ color: 'var(--color-primary)' }}
           >
             ReSource AI
           </span>
@@ -412,7 +414,7 @@ export function DesktopHeader(): JSX.Element {
                         'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1',
                         isActive
                           ? 'text-[var(--color-primary)] bg-[color-mix(in_srgb,var(--color-primary)_10%,transparent)]'
-                          : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-card)]',
+                          : 'text-white hover:text-white hover:bg-white/10',
                       ].join(' ')
                     }
                   >
@@ -448,17 +450,17 @@ export function DesktopHeader(): JSX.Element {
                   'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
                   'cursor-pointer',
                 ].join(' ')}
-                style={{ color: 'var(--color-text-secondary)' }}
+                style={{ color: '#ffffff' }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.backgroundColor =
-                    'var(--color-surface-card)';
+                    'rgba(255, 255, 255, 0.1)';
                   (e.currentTarget as HTMLElement).style.color =
-                    'var(--color-text-primary)';
+                    '#ffffff';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.backgroundColor = '';
                   (e.currentTarget as HTMLElement).style.color =
-                    'var(--color-text-secondary)';
+                    '#ffffff';
                 }}
               >
                 {/* Avatar with initials */}
@@ -509,16 +511,16 @@ export function DesktopHeader(): JSX.Element {
                   'focus-visible:outline-none focus-visible:ring-2',
                   'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
                 ].join(' ')}
-                style={{ color: 'var(--color-text-secondary)' }}
+                style={{ color: 'var(--color-primary)' }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.color =
-                    'var(--color-text-primary)';
+                    'var(--color-primary-hover)';
                   (e.currentTarget as HTMLElement).style.backgroundColor =
-                    'var(--color-surface-card)';
+                    'color-mix(in srgb, var(--color-primary) 10%, transparent)';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.color =
-                    'var(--color-text-secondary)';
+                    'var(--color-primary)';
                   (e.currentTarget as HTMLElement).style.backgroundColor = '';
                 }}
               >
@@ -527,19 +529,23 @@ export function DesktopHeader(): JSX.Element {
               <Link
                 to="/register"
                 className={[
-                  'px-3 py-2 rounded-lg text-sm font-medium text-white',
+                  'px-3 py-2 rounded-lg text-sm font-medium text-black',
                   'transition-colors duration-150',
                   'focus-visible:outline-none focus-visible:ring-2',
                   'focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2',
                 ].join(' ')}
-                style={{ backgroundColor: 'var(--color-primary)' }}
+                style={{
+                  backgroundColor: '#34d399',
+                  boxShadow:
+                    '0 0 18px rgba(52, 211, 153, 0.35), 0 0 44px rgba(52, 211, 153, 0.24)',
+                }}
                 onMouseEnter={(e) => {
                   (e.currentTarget as HTMLElement).style.backgroundColor =
-                    'var(--color-primary-hover)';
+                    '#6ee7b7';
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.backgroundColor =
-                    'var(--color-primary)';
+                    '#34d399';
                 }}
               >
                 Register
