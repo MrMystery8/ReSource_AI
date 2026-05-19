@@ -43,7 +43,7 @@ export function QuickVerdictCard({ data }: Props) {
 
       {/* Key Metrics Row */}
       <div className="px-6 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Salvage Score */}
+        {/* Recovery Potential */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -52,7 +52,7 @@ export function QuickVerdictCard({ data }: Props) {
         >
           <div className="flex items-center gap-2 mb-1">
             <Gauge className="w-4 h-4 text-text-muted" />
-            <span className="text-xs text-text-muted uppercase tracking-wide">Salvage Score</span>
+            <span className="text-xs text-text-muted uppercase tracking-wide">Recovery Potential</span>
           </div>
           <div className="flex items-baseline gap-1">
             <span className={`text-2xl font-bold ${getSalvageColor(data.salvageScore)}`}>
