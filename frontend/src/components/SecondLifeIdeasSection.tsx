@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { ProjectIdea, ExpertiseLevel } from '@resource-ai/shared';
 import { EXPERTISE_LEVEL_ORDER, IDEA_SKILL_TO_EXPERTISE } from '@resource-ai/shared';
-import { AlertCircle, ArrowRight, Lightbulb, RefreshCw } from 'lucide-react';
+import { AlertCircle, Lightbulb, RefreshCw } from 'lucide-react';
 import { ProjectIdeaCarousel } from './ui/ProjectIdeaCarousel';
 import { Card } from './ui/Card';
 
@@ -73,17 +73,17 @@ export function SecondLifeIdeasSection({
             </div>
             <div className="min-w-0 space-y-1">
               <span className="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]" style={{ color: '#34d399', borderColor: 'rgba(52, 211, 153, 0.28)', backgroundColor: 'rgba(52, 211, 153, 0.08)' }}>
-                Next step
+                Ideas
               </span>
               <h3 className="text-lg font-semibold tracking-tight sm:text-xl" style={{ color: '#ffffff' }}>
-                Tap a project to continue
+                Second Life Ideas
               </h3>
-              <p className="max-w-2xl text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.86)' }}>
+              <p className="max-w-2xl text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.68)' }}>
+                Choose project to continue.
+              </p>
+              <p className="max-w-2xl text-sm leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
                 Choose one idea below to open its guide and keep moving.
               </p>
-            </div>
-            <div className="ml-auto hidden h-10 w-10 items-center justify-center rounded-full border sm:flex" style={{ borderColor: 'rgba(52, 211, 153, 0.24)', backgroundColor: 'rgba(52, 211, 153, 0.08)', color: '#34d399' }}>
-              <ArrowRight className="h-4 w-4" />
             </div>
           </div>
         </motion.div>

@@ -9,6 +9,13 @@ export interface ProjectIdeaCarouselProps extends React.HTMLAttributes<HTMLDivEl
   onIdeaClick: (idea: ProjectIdea) => void;
 }
 
+interface ProjectIdeaCardProps {
+  idea: ProjectIdea;
+  onIdeaClick: (idea: ProjectIdea) => void;
+  cardHeight?: number;
+  registerRef?: (node: HTMLButtonElement | null) => void;
+}
+
 const SKILL_LEVEL_STYLES: Record<
   ProjectIdea['skillLevel'],
   {
@@ -57,14 +64,14 @@ const SKILL_LEVEL_STYLES: Record<
 function ProjectIdeaCard({
   idea,
   onIdeaClick,
-}: {
-  idea: ProjectIdea;
-  onIdeaClick: (idea: ProjectIdea) => void;
-}) {
+  cardHeight,
+  registerRef,
+}: ProjectIdeaCardProps) {
   const skillStyle = SKILL_LEVEL_STYLES[idea.skillLevel] ?? SKILL_LEVEL_STYLES.Beginner;
 
   return (
     <motion.button
+      ref={registerRef}
       type="button"
       onClick={() => onIdeaClick(idea)}
       className={cn(
@@ -81,15 +88,16 @@ function ProjectIdeaCard({
         borderColor: 'rgba(52, 211, 153, 0.34)',
         transformOrigin: 'center center',
         boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.18), 0 16px 36px rgba(0, 0, 0, 0.4)',
+        minHeight: cardHeight ? `${cardHeight}px` : undefined,
       }}
     >
       <div
-          className={cn(
-            'relative min-h-[400px] overflow-hidden',
-            'bg-gradient-to-b',
-            skillStyle.background
-          )}
-        >
+        className={cn(
+          'relative min-h-[400px] overflow-hidden',
+          'bg-gradient-to-b',
+          skillStyle.background
+        )}
+      >
         <div
           className="absolute inset-0"
           style={{
@@ -144,8 +152,8 @@ function ProjectIdeaCard({
                   {idea.requiredComponents.slice(0, 3).map((component) => (
                     <span
                       key={component}
-                        className="rounded-md border px-2 py-1 text-[11px] text-white/88"
-                        style={{ borderColor: 'rgba(52, 211, 153, 0.18)', backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
+                      className="rounded-md border px-2 py-1 text-[11px] text-white/88"
+                      style={{ borderColor: 'rgba(52, 211, 153, 0.18)', backgroundColor: 'rgba(255, 255, 255, 0.06)' }}
                     >
                       {component}
                     </span>
@@ -196,6 +204,82 @@ export function ProjectIdeaCarousel({
   ...props
 }: ProjectIdeaCarouselProps) {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const cardRefs = React.useRef<Array<HTMLButtonElement | null>>([]);
+  const [uniformCardHeight, setUniformCardHeight] = React.useState<number | undefined>(undefined);
+  const [scrollState, setScrollState] = React.useState({
+    canLeft: false,
+    canRight: false,
+    progress: 0,
+    viewRatio: 1,
+  });
+
+  const updateScrollState = React.useCallback(() => {
+    const current = scrollContainerRef.current;
+    if (!current) return;
+
+    const maxScroll = Math.max(current.scrollWidth - current.clientWidth, 0);
+    const progress = maxScroll === 0 ? 0 : current.scrollLeft / maxScroll;
+    const viewRatio = current.scrollWidth === 0 ? 1 : Math.min(current.clientWidth / current.scrollWidth, 1);
+
+    setScrollState({
+      canLeft: current.scrollLeft > 1,
+      canRight: current.scrollLeft < maxScroll - 1,
+      progress,
+      viewRatio,
+    });
+  }, []);
+
+  const syncCardHeights = React.useCallback(() => {
+    const heights = cardRefs.current
+      .filter((node): node is HTMLButtonElement => node != null)
+      .map((node) => node.offsetHeight);
+
+    if (heights.length === 0) {
+      setUniformCardHeight(undefined);
+      return;
+    }
+
+    const maxHeight = Math.max(...heights);
+    setUniformCardHeight((prev) => (prev === maxHeight ? prev : maxHeight));
+  }, []);
+
+  React.useEffect(() => {
+    syncCardHeights();
+  }, [items, syncCardHeights]);
+
+  React.useEffect(() => {
+    const current = scrollContainerRef.current;
+    if (!current) return;
+
+    updateScrollState();
+    const onScroll = () => updateScrollState();
+    current.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+
+    return () => {
+      current.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [updateScrollState]);
+
+  React.useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => {
+      syncCardHeights();
+      updateScrollState();
+    });
+
+    for (const node of cardRefs.current) {
+      if (node) {
+        observer.observe(node);
+      }
+    }
+
+    return () => observer.disconnect();
+  }, [items, syncCardHeights, updateScrollState]);
 
   const scroll = React.useCallback((direction: 'left' | 'right') => {
     const current = scrollContainerRef.current;
@@ -208,23 +292,30 @@ export function ProjectIdeaCarousel({
     });
   }, []);
 
+  const thumbWidthPercent = Math.max(scrollState.viewRatio * 100, 20);
+  const thumbLeftPercent = scrollState.progress * (100 - thumbWidthPercent);
+
   return (
     <div className={cn('w-full', className)} {...props}>
-      <div className="flex flex-col gap-4">
-        <div className="min-w-0 px-1 py-4">
-          <div className="overflow-visible py-2">
+      <div className="flex flex-col gap-2">
+        <div className="min-w-0 px-1 py-2">
+          <div className="overflow-visible py-1">
             <div
               ref={scrollContainerRef}
-              className="scrollbar-hide flex gap-5 overflow-x-auto px-1 pb-8 snap-x snap-mandatory"
+              className="scrollbar-hide flex gap-5 overflow-x-auto px-1 pb-3 snap-x snap-mandatory"
             >
               {items.map((idea, index) => (
                 <div
                   key={`${idea.title}-${idea.skillLevel}-${index}`}
-                  className="w-[min(84vw,320px)] flex-shrink-0 snap-start py-3"
+                  className="w-[min(84vw,320px)] flex-shrink-0 snap-start py-2"
                 >
                   <ProjectIdeaCard
                     idea={idea}
                     onIdeaClick={onIdeaClick}
+                    cardHeight={uniformCardHeight}
+                    registerRef={(node) => {
+                      cardRefs.current[index] = node;
+                    }}
                   />
                 </div>
               ))}
@@ -232,25 +323,42 @@ export function ProjectIdeaCarousel({
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3 md:justify-between">
+        <div className="flex items-center justify-center gap-2">
           <button
             type="button"
             onClick={() => scroll('left')}
             aria-label="Scroll project ideas left"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-black text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            disabled={!scrollState.canLeft}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-black text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
             style={{ borderColor: 'rgba(52, 211, 153, 0.28)' }}
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </button>
+
+          <div
+            className="relative h-1.5 w-28 overflow-hidden rounded-full"
+            aria-hidden="true"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.16)' }}
+          >
+            <div
+              className="absolute top-0 h-full rounded-full transition-[left,width] duration-150"
+              style={{
+                left: `${thumbLeftPercent}%`,
+                width: `${thumbWidthPercent}%`,
+                background: 'linear-gradient(90deg, rgba(52, 211, 153, 0.95), rgba(110, 231, 183, 0.95))',
+              }}
+            />
+          </div>
 
           <button
             type="button"
             onClick={() => scroll('right')}
             aria-label="Scroll project ideas right"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border bg-black text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
+            disabled={!scrollState.canRight}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border bg-black text-white shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-surface)]"
             style={{ borderColor: 'rgba(52, 211, 153, 0.28)' }}
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>

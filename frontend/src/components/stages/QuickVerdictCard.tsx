@@ -31,6 +31,16 @@ export function QuickVerdictCard({ data }: Props) {
         </div>
       </div>
 
+      {/* Safety Warning */}
+      {data.safetyWarning && (
+        <div className="mx-6 mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-amber-300/90 leading-relaxed">{data.safetyWarning}</p>
+          </div>
+        </div>
+      )}
+
       {/* Key Metrics Row */}
       <div className="px-6 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Salvage Score */}
@@ -86,16 +96,6 @@ export function QuickVerdictCard({ data }: Props) {
           ))}
         </div>
       </div>
-
-      {/* Safety Warning */}
-      {data.safetyWarning && (
-        <div className="mx-6 mb-4 p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-300/90 leading-relaxed">{data.safetyWarning}</p>
-          </div>
-        </div>
-      )}
 
       {/* Missing Info */}
       {data.missingInfoNotes && (

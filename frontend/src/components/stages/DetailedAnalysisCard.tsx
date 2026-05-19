@@ -125,17 +125,6 @@ export function DetailedAnalysisCard({ data }: Props) {
           </div>
           <p className="text-sm text-text-secondary leading-relaxed">{data.failurePatternAnalysis}</p>
         </motion.div>
-
-        {/* Diagnostic Verdict */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="p-4 rounded-xl bg-surface-elevated/50 border border-border-subtle"
-        >
-          <span className="text-xs font-semibold text-text-muted uppercase tracking-wide block mb-2">Diagnostic Verdict</span>
-          <p className="text-sm text-text-primary leading-relaxed">{data.diagnosticVerdict}</p>
-        </motion.div>
       </div>
     </div>
   );
