@@ -36,12 +36,12 @@ const BACK_BUTTON_STYLE: React.CSSProperties = {
 };
 
 const GUIDE_PANEL_CLASS =
-  'p-1 border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]';
+  'p-0 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]';
 
 const GUIDE_PANEL_STYLE: React.CSSProperties = {
   backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 88%, transparent)',
-  borderColor: 'color-mix(in srgb, var(--color-primary) 28%, var(--color-border-default))',
-  boxShadow: '0 12px 28px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.04)',
+  borderColor: 'transparent',
+  boxShadow: '0 12px 28px rgba(0,0,0,0.16)',
 };
 
 // ─── State shape passed via React Router location.state ───
