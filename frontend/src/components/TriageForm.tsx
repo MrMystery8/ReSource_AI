@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { MAX_FIELD_LENGTH } from '@resource-ai/shared';
 import type { StructuredUserContext } from '@resource-ai/shared';
-import { Cpu, AlertTriangle, Send, Zap } from 'lucide-react';
+import { Cpu, AlertTriangle, Send, Leaf } from 'lucide-react';
 import { StructuredContextInput } from './StructuredContextInput';
 import { Button } from './ui/Button';
 import { NumberedSectionHeading, TintedPanel } from './ui/analysis-primitives';
@@ -124,24 +124,17 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
       <form onSubmit={handleSubmit} noValidate>
         {/* Page Header */}
         <motion.div variants={itemVariants} className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--color-primary) 15%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)',
-              }}
+          <div className="mb-2">
+            <h1
+              className="text-3xl font-bold tracking-tight sm:text-4xl flex items-center gap-2"
+              style={{ color: '#ffffff' }}
             >
-              <Zap className="w-5 h-5" style={{ color: 'var(--color-primary)' }} aria-hidden />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: '#ffffff' }}>
-                {TRIAGE_CONTENT.title}
-              </h1>
-              <p className="text-sm sm:text-base" style={{ color: 'rgba(255, 255, 255, 0.86)' }}>
-                {TRIAGE_CONTENT.subtitle}
-              </p>
-            </div>
+              <Leaf className="w-6 h-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
+              {TRIAGE_CONTENT.title}
+            </h1>
+            <p className="text-sm sm:text-base mt-1" style={{ color: 'rgba(255, 255, 255, 0.86)' }}>
+              {TRIAGE_CONTENT.subtitle}
+            </p>
           </div>
 
           <div className="py-3">

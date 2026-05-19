@@ -258,9 +258,10 @@ export function ProfilePage() {
         {/* Page Title */}
         <div className="mb-2">
           <h1
-            className="text-3xl font-bold tracking-tight sm:text-4xl"
+            className="text-3xl font-bold tracking-tight sm:text-4xl flex items-center gap-2"
             style={{ color: 'var(--color-text-primary)' }}
           >
+            <User className="w-6 h-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
             Profile
           </h1>
           <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--color-text-secondary)' }}>

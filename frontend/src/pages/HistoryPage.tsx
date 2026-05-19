@@ -12,6 +12,7 @@ import {
   Inbox,
   FolderOpen,
   ClipboardList,
+  History,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
@@ -535,9 +536,10 @@ export function HistoryPage() {
       {/* Page header */}
       <div className="mb-6">
         <h1
-          className="text-3xl font-bold tracking-tight sm:text-4xl"
+          className="text-3xl font-bold tracking-tight sm:text-4xl flex items-center gap-2"
           style={{ color: 'var(--color-text-primary)' }}
         >
+          <History className="w-6 h-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
           History
         </h1>
         <p
