@@ -113,11 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearAuth]);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (AUTH_MODE === 'cognito') {
-      await startCognitoLogin('/');
-      return;
-    }
-
     const response = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: {
@@ -144,11 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (email: string, password: string, displayName: string) => {
-      if (AUTH_MODE === 'cognito') {
-        await startCognitoLogin('/');
-        return;
-      }
-
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -178,7 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (AUTH_MODE !== 'cognito') {
         throw new Error('Social sign-in is only available when VITE_AUTH_MODE=cognito.');
       }
-      await startCognitoLogin(returnTo, provider);
+      await startCognitoLogin(returnTo, { provider });
     },
     []
   );

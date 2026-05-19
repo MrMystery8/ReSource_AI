@@ -12,6 +12,31 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Construct } from 'constructs';
 import * as path from 'path';
 
+function parseStringArrayContext(value: unknown, fallback: string[]): string[] {
+  if (Array.isArray(value)) {
+    const list = value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+    return list.length > 0 ? list : fallback;
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const trimmed = value.trim();
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        const list = parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+        return list.length > 0 ? list : fallback;
+      }
+    } catch {
+      const split = trimmed.split(',').map((item) => item.trim()).filter(Boolean);
+      if (split.length > 0) {
+        return split;
+      }
+    }
+  }
+
+  return fallback;
+}
+
 export class ResourceAiStack extends cdk.Stack {
   // Expose resources for use by subsequent tasks
   public readonly sessionsTable: dynamodb.Table;
@@ -25,7 +50,7 @@ export class ResourceAiStack extends cdk.Stack {
   public readonly authMode: 'legacy' | 'cognito';
 
   // Auth infrastructure
-  public readonly tokenAuthorizer: apigateway.TokenAuthorizer;
+  public readonly tokenAuthorizer?: apigateway.TokenAuthorizer;
   public readonly cognitoUserPool?: cognito.UserPool;
   public readonly cognitoUserPoolClient?: cognito.UserPoolClient;
   public readonly cognitoUserPoolDomain?: cognito.UserPoolDomain;
@@ -217,6 +242,7 @@ export class ResourceAiStack extends cdk.Stack {
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
         BUCKET_NAME: this.fileStorageBucket.bucketName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -232,30 +258,33 @@ export class ResourceAiStack extends cdk.Stack {
       environment: {
         USERS_TABLE_NAME: this.usersTable.tableName,
         JWT_SECRET: this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production',
+        AUTH_MODE: this.authMode,
       },
     });
 
     // --- Task 4.4: Lambda Authorizer ---
 
-    const jwtSecret = this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production';
+    if (this.authMode === 'legacy') {
+      const jwtSecret = this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production';
 
-    const authorizerFunction = new NodejsFunction(this, 'AuthorizerFunction', {
-      functionName: 'resource-ai-authorizer',
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: path.join(handlersDir, 'authorizer.ts'),
-      memorySize: 128,
-      timeout: cdk.Duration.seconds(10),
-      bundling: nodejsBundling,
-      environment: {
-        JWT_SECRET: jwtSecret,
-      },
-    });
+      const authorizerFunction = new NodejsFunction(this, 'AuthorizerFunction', {
+        functionName: 'resource-ai-authorizer',
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: path.join(handlersDir, 'authorizer.ts'),
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(10),
+        bundling: nodejsBundling,
+        environment: {
+          JWT_SECRET: jwtSecret,
+        },
+      });
 
-    this.tokenAuthorizer = new apigateway.TokenAuthorizer(this, 'JwtAuthorizer', {
-      handler: authorizerFunction,
-      resultsCacheTtl: cdk.Duration.seconds(300),
-    });
+      this.tokenAuthorizer = new apigateway.TokenAuthorizer(this, 'JwtAuthorizer', {
+        handler: authorizerFunction,
+        resultsCacheTtl: cdk.Duration.seconds(300),
+      });
+    }
 
     // AdminHandler Lambda
     this.adminHandler = new NodejsFunction(this, 'AdminHandler', {
@@ -283,6 +312,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -357,6 +387,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -371,6 +402,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -385,6 +417,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -409,15 +442,18 @@ export class ResourceAiStack extends cdk.Stack {
 
     // SubmitHandler: DynamoDB write + Lambda invoke (async invocation of PipelineOrchestrator)
     this.sessionsTable.grantWriteData(this.submitHandler);
+    this.usersTable.grantReadData(this.submitHandler);
     this.pipelineOrchestrator.grantInvoke(this.submitHandler);
 
     // PollHandler: DynamoDB read + S3 getObject (for pre-signed URLs)
     this.sessionsTable.grantReadData(this.pollHandler);
+    this.usersTable.grantReadData(this.pollHandler);
     this.fileStorageBucket.grantRead(this.pollHandler);
 
     // UploadHandler: S3 putObject + DynamoDB read (to check file count per session)
     this.fileStorageBucket.grantPut(this.uploadHandler);
     this.sessionsTable.grantReadData(this.uploadHandler);
+    this.usersTable.grantReadData(this.uploadHandler);
 
     // PipelineOrchestrator: DynamoDB read/write + S3 read/write + Bedrock InvokeModel
     this.sessionsTable.grantReadWriteData(this.pipelineOrchestrator);
@@ -433,6 +469,7 @@ export class ResourceAiStack extends cdk.Stack {
 
     // SessionsHandler: DynamoDB read on sessions table
     this.sessionsTable.grantReadData(this.sessionsHandler);
+    this.usersTable.grantReadData(this.sessionsHandler);
 
     // LeaderboardHandler: DynamoDB read on users table
     this.usersTable.grantReadData(this.leaderboardHandler);
@@ -457,12 +494,15 @@ export class ResourceAiStack extends cdk.Stack {
 
     // ProjectsListHandler: DynamoDB read on projects table
     this.projectsTable.grantReadData(this.projectsListHandler);
+    this.usersTable.grantReadData(this.projectsListHandler);
 
     // ProjectUpdateHandler: DynamoDB read/write on projects table
     this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
+    this.usersTable.grantReadData(this.projectUpdateHandler);
 
     // ProjectGetHandler: DynamoDB read on projects table
     this.projectsTable.grantReadData(this.projectGetHandler);
+    this.usersTable.grantReadData(this.projectGetHandler);
 
     // CommunityHandler: DynamoDB read/write on community table + read projects + read/write users + S3 read
     this.communityTable.grantReadWriteData(this.communityHandler);
@@ -507,12 +547,24 @@ export class ResourceAiStack extends cdk.Stack {
     });
 
     if (this.authMode === 'cognito') {
-      const callbackUrls =
-        (this.node.tryGetContext('cognitoCallbackUrls') as string[] | undefined) ??
-        ['http://localhost:5173/auth/callback'];
-      const logoutUrls =
-        (this.node.tryGetContext('cognitoLogoutUrls') as string[] | undefined) ??
-        ['http://localhost:5173/login'];
+      const callbackUrls = parseStringArrayContext(
+        this.node.tryGetContext('cognitoCallbackUrls'),
+        ['http://localhost:5173/auth/callback']
+      );
+      const logoutUrls = parseStringArrayContext(
+        this.node.tryGetContext('cognitoLogoutUrls'),
+        ['http://localhost:5173/login']
+      );
+
+      const cognitoPreSignUpHandler = new NodejsFunction(this, 'CognitoPreSignUpHandler', {
+        functionName: 'resource-ai-cognito-pre-signup-handler',
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: path.join(handlersDir, 'cognito-pre-signup.ts'),
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(10),
+        bundling: nodejsBundling,
+      });
 
       this.cognitoUserPool = new cognito.UserPool(this, 'ResourceAiUserPool', {
         userPoolName: 'resource-ai-user-pool',
@@ -530,6 +582,9 @@ export class ResourceAiStack extends cdk.Stack {
           requireUppercase: true,
           requireSymbols: false,
         },
+        lambdaTriggers: {
+          preSignUp: cognitoPreSignUpHandler,
+        },
         removalPolicy: cdk.RemovalPolicy.DESTROY,
       });
 
@@ -543,10 +598,9 @@ export class ResourceAiStack extends cdk.Stack {
           userPool: this.cognitoUserPool,
           clientId: googleClientId,
           clientSecretValue: cdk.SecretValue.unsafePlainText(googleClientSecret),
-          scopes: ['openid', 'email', 'profile'],
+          scopes: ['openid', 'email'],
           attributeMapping: {
             email: cognito.ProviderAttribute.GOOGLE_EMAIL,
-            fullname: cognito.ProviderAttribute.GOOGLE_NAME,
           },
         });
         supportedIdentityProviders.push(cognito.UserPoolClientIdentityProvider.GOOGLE);
@@ -594,6 +648,7 @@ export class ResourceAiStack extends cdk.Stack {
       if (appleProvider) {
         this.cognitoUserPoolClient.node.addDependency(appleProvider);
       }
+      this.authHandler.addEnvironment('COGNITO_APP_CLIENT_ID', this.cognitoUserPoolClient.userPoolClientId);
 
       const userPoolDomainPrefix =
         (this.node.tryGetContext('cognitoDomainPrefix') as string | undefined) ??
@@ -665,7 +720,7 @@ export class ResourceAiStack extends cdk.Stack {
           }
         : {
             apiKeyRequired: true,
-            authorizer: this.tokenAuthorizer,
+            authorizer: this.tokenAuthorizer!,
             authorizationType: apigateway.AuthorizationType.CUSTOM,
           };
 

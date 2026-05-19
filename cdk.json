@@ -10,8 +10,17 @@
     ]
   },
   "context": {
+    "authMode": "cognito",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
-    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"]
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
+    "cognitoCallbackUrls": [
+      "http://localhost:5173/auth/callback",
+      "https://du1pydjgrqi6x.cloudfront.net/auth/callback"
+    ],
+    "cognitoLogoutUrls": [
+      "http://localhost:5173/login",
+      "https://du1pydjgrqi6x.cloudfront.net/login"
+    ]
   }
 }

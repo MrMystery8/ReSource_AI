@@ -1,6 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  CognitoIdentityProviderClient,
+  InitiateAuthCommand,
+  SignUpCommand,
+  type AuthenticationResultType,
+} from '@aws-sdk/client-cognito-identity-provider';
+import {
   User,
   UserProfile,
   RegisterRequest,
@@ -20,6 +26,9 @@ import { UserStore } from '../auth/user-store';
 import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const userStore = new UserStore();
+const AUTH_MODE = (process.env.AUTH_MODE ?? 'legacy').toLowerCase();
+const COGNITO_APP_CLIENT_ID = process.env.COGNITO_APP_CLIENT_ID;
+const cognitoClient = new CognitoIdentityProviderClient({});
 
 const HEADERS = {
   'Content-Type': 'application/json',
@@ -53,6 +62,67 @@ function validateDisplayName(displayName: unknown): string | null {
     return 'Display name must be at most 100 characters';
   }
   return null;
+}
+
+function isCognitoAuthMode(): boolean {
+  return AUTH_MODE === 'cognito';
+}
+
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    throw new Error('Invalid JWT format');
+  }
+  const payloadPart = parts[1];
+  const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+  const normalized = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+  const json = Buffer.from(normalized, 'base64').toString('utf8');
+  return JSON.parse(json) as Record<string, unknown>;
+}
+
+function userProfileFromCognitoIdToken(idToken: string): UserProfile {
+  const claims = decodeJwtPayload(idToken);
+  const sub = typeof claims.sub === 'string' ? claims.sub : '';
+  const email = typeof claims.email === 'string' ? claims.email : '';
+  const displayNameRaw =
+    (typeof claims.name === 'string' && claims.name) ||
+    (typeof claims['cognito:username'] === 'string' && claims['cognito:username']) ||
+    email ||
+    'User';
+
+  return {
+    userId: sub || email || uuidv4(),
+    email: email || `${sub || 'user'}@users.local`,
+    displayName: displayNameRaw,
+    role: 'user',
+    createdAt: new Date().toISOString(),
+  };
+}
+
+async function initiateCognitoPasswordAuth(
+  email: string,
+  password: string
+): Promise<AuthenticationResultType> {
+  if (!COGNITO_APP_CLIENT_ID) {
+    throw new Error('COGNITO_APP_CLIENT_ID is not configured');
+  }
+
+  const result = await cognitoClient.send(
+    new InitiateAuthCommand({
+      AuthFlow: 'USER_PASSWORD_AUTH',
+      ClientId: COGNITO_APP_CLIENT_ID,
+      AuthParameters: {
+        USERNAME: email,
+        PASSWORD: password,
+      },
+    })
+  );
+
+  if (!result.AuthenticationResult) {
+    throw new Error(result.ChallengeName ? `Challenge required: ${result.ChallengeName}` : 'Authentication failed');
+  }
+
+  return result.AuthenticationResult;
 }
 
 // --- Response helpers ---
@@ -118,6 +188,68 @@ async function handleRegister(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     });
   }
 
+  // Cognito mode: register in Cognito and return Cognito token
+  if (isCognitoAuthMode()) {
+    if (!COGNITO_APP_CLIENT_ID) {
+      return errorResponse(500, {
+        error: { code: 'INTERNAL_ERROR', message: 'Cognito app client is not configured' },
+      });
+    }
+
+    const normalizedEmail = body.email.trim().toLowerCase();
+
+    try {
+      await cognitoClient.send(
+        new SignUpCommand({
+          ClientId: COGNITO_APP_CLIENT_ID,
+          Username: normalizedEmail,
+          Password: body.password,
+          UserAttributes: [
+            { Name: 'email', Value: normalizedEmail },
+            { Name: 'name', Value: body.displayName.trim() },
+          ],
+        })
+      );
+
+      const authResult = await initiateCognitoPasswordAuth(normalizedEmail, body.password);
+      const idToken = authResult.IdToken;
+      if (!idToken) {
+        return errorResponse(500, {
+          error: { code: 'INTERNAL_ERROR', message: 'Cognito did not return an ID token' },
+        });
+      }
+
+      const response: LoginResponse = {
+        token: idToken,
+        user: userProfileFromCognitoIdToken(idToken),
+      };
+      return successResponse(201, response);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to register with Cognito';
+
+      if (message.includes('UsernameExistsException')) {
+        return errorResponse(409, {
+          error: { code: 'CONFLICT', message: 'Email already registered' },
+        });
+      }
+
+      if (message.includes('UserNotConfirmedException')) {
+        return errorResponse(400, {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Account created. Please confirm your email, then sign in.',
+          },
+        });
+      }
+
+      return errorResponse(400, {
+        error: { code: 'VALIDATION_ERROR', message },
+      });
+    }
+  }
+
+  // Legacy mode: local user registration
   // Check email uniqueness
   const normalizedEmail = body.email.trim().toLowerCase();
   const existingUser = await userStore.getUserByEmail(normalizedEmail);
@@ -179,6 +311,32 @@ async function handleLogin(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
     });
   }
 
+  // Cognito mode: authenticate with Cognito and return Cognito token
+  if (isCognitoAuthMode()) {
+    const normalizedEmail = body.email.trim().toLowerCase();
+    try {
+      const authResult = await initiateCognitoPasswordAuth(normalizedEmail, body.password);
+      const idToken = authResult.IdToken;
+      if (!idToken) {
+        return errorResponse(500, {
+          error: { code: 'INTERNAL_ERROR', message: 'Cognito did not return an ID token' },
+        });
+      }
+
+      const response: LoginResponse = {
+        token: idToken,
+        user: userProfileFromCognitoIdToken(idToken),
+      };
+      return successResponse(200, response);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid credentials';
+      return errorResponse(401, {
+        error: { code: 'AUTH_FAILURE', message: message.includes('Challenge required') ? message : 'Invalid credentials' },
+      });
+    }
+  }
+
+  // Legacy mode: local user/password
   // Get user by email
   const user = await userStore.getUserByEmail(body.email.trim().toLowerCase());
   if (!user) {

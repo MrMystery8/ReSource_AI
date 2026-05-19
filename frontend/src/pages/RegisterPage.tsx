@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Eye, EyeOff, AlertCircle, X } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, X } from 'lucide-react';
 import { AuthPanelBadge } from '../components/auth/AuthPanelBadge';
+import { GoogleLogo } from '../components/icons/GoogleLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -196,82 +197,6 @@ export function RegisterPage() {
     };
   }, []);
 
-  if (authMode === 'cognito') {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">
-        <motion.div
-          className="w-full max-w-md"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-        >
-          <Card surface="analysis" elevation="md" className="p-8 sm:p-10">
-            <div className="text-center mb-8">
-              <AuthPanelBadge />
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: '#ffffff' }}>
-                Create Account
-              </h1>
-              <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
-                Use Cognito managed authentication to create your account
-              </p>
-            </div>
-
-            {toast && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 flex items-center gap-2 px-4 py-3 rounded-lg text-sm"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--color-error) 10%, transparent)',
-                  border: '1px solid color-mix(in srgb, var(--color-error) 30%, transparent)',
-                  color: 'var(--color-error)',
-                }}
-                role="alert"
-              >
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span className="flex-1">{toast}</span>
-                <button
-                  type="button"
-                  onClick={() => setToast(null)}
-                  className="shrink-0 transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--color-error)' }}
-                  aria-label="Dismiss error"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </motion.div>
-            )}
-
-            <div className="space-y-3">
-              <Button
-                type="button"
-                variant="primary"
-                className="w-full !bg-[#34d399] !text-[#04110d] hover:!bg-[#6ee7b7]"
-                onClick={() => { void handleCognitoStart(undefined); }}
-                leftIcon={<UserPlus className="w-4 h-4" />}
-              >
-                Continue with Email
-              </Button>
-              <Button type="button" variant="secondary" className="w-full" onClick={() => { void handleCognitoStart('Google'); }}>
-                Continue with Google
-              </Button>
-              <Button type="button" variant="secondary" className="w-full" onClick={() => { void handleCognitoStart('SignInWithApple'); }}>
-                Continue with Apple
-              </Button>
-            </div>
-
-            <p className="mt-6 text-center text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-              Already have an account?{' '}
-              <Link to="/login" className="font-medium transition-opacity hover:opacity-80" style={{ color: 'var(--color-primary)' }}>
-                Sign in
-              </Link>
-            </p>
-          </Card>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-4 py-8">
       <motion.div
@@ -298,7 +223,9 @@ export function RegisterPage() {
                 Create Account
               </h1>
               <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
-                Join ReSource AI and start your recycling journey
+                {authMode === 'cognito'
+                  ? 'Create an email account, or use a provider below'
+                  : 'Join ReSource AI and start your recycling journey'}
               </p>
             </motion.div>
 
@@ -518,6 +445,26 @@ export function RegisterPage() {
                 Create Account
               </Button>
             </motion.div>
+
+            {authMode === 'cognito' && (
+              <motion.div variants={itemVariants} className="mt-4 pt-4 border-t border-white/10">
+                <p className="text-center text-xs mb-3" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+                  Or continue with
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1 !min-h-[46px] !py-2 !text-sm"
+                    leftIcon={<GoogleLogo className="w-4 h-4" />}
+                    onClick={() => { void handleCognitoStart('Google'); }}
+                  >
+                    Google
+                  </Button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Link to Login */}
             <motion.p

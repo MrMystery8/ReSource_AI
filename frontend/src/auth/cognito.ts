@@ -1,17 +1,68 @@
 export type AuthMode = 'legacy' | 'cognito';
 export type CognitoProvider = 'Google' | 'SignInWithApple';
+export interface StartCognitoLoginOptions {
+  provider?: CognitoProvider;
+  loginHint?: string;
+  screenHint?: 'signup';
+}
 
 const authModeEnv = (import.meta.env.VITE_AUTH_MODE ?? 'legacy').toLowerCase();
 export const AUTH_MODE: AuthMode = authModeEnv === 'cognito' ? 'cognito' : 'legacy';
 
 const COGNITO_DOMAIN = (import.meta.env.VITE_COGNITO_DOMAIN ?? '').replace(/\/$/, '');
 const COGNITO_CLIENT_ID = import.meta.env.VITE_COGNITO_APP_CLIENT_ID ?? '';
-const COGNITO_REDIRECT_SIGN_IN = import.meta.env.VITE_COGNITO_REDIRECT_SIGN_IN ?? '';
-const COGNITO_REDIRECT_SIGN_OUT = import.meta.env.VITE_COGNITO_REDIRECT_SIGN_OUT ?? '';
+const COGNITO_REDIRECT_SIGN_IN_ENV = import.meta.env.VITE_COGNITO_REDIRECT_SIGN_IN ?? '';
+const COGNITO_REDIRECT_SIGN_OUT_ENV = import.meta.env.VITE_COGNITO_REDIRECT_SIGN_OUT ?? '';
 
 const PKCE_VERIFIER_KEY = 'resource_ai_cognito_pkce_verifier';
 const PKCE_STATE_KEY = 'resource_ai_cognito_state';
 const RETURN_TO_KEY = 'resource_ai_cognito_return_to';
+
+function getBrowserOrigin(): string | null {
+  if (typeof window === 'undefined' || !window.location?.origin) return null;
+  return window.location.origin;
+}
+
+function isLocalhostUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname === 'localhost' ||
+      parsed.hostname === '127.0.0.1' ||
+      parsed.hostname === '::1'
+    );
+  } catch {
+    return false;
+  }
+}
+
+function resolveSignInRedirectUri(): string {
+  const origin = getBrowserOrigin();
+  if (!origin) return COGNITO_REDIRECT_SIGN_IN_ENV;
+
+  const dynamic = `${origin}/auth/callback`;
+  if (!COGNITO_REDIRECT_SIGN_IN_ENV) return dynamic;
+
+  if (isLocalhostUrl(COGNITO_REDIRECT_SIGN_IN_ENV) && !isLocalhostUrl(origin)) {
+    return dynamic;
+  }
+
+  return COGNITO_REDIRECT_SIGN_IN_ENV;
+}
+
+function resolveSignOutRedirectUri(): string {
+  const origin = getBrowserOrigin();
+  if (!origin) return COGNITO_REDIRECT_SIGN_OUT_ENV;
+
+  const dynamic = `${origin}/login`;
+  if (!COGNITO_REDIRECT_SIGN_OUT_ENV) return dynamic;
+
+  if (isLocalhostUrl(COGNITO_REDIRECT_SIGN_OUT_ENV) && !isLocalhostUrl(origin)) {
+    return dynamic;
+  }
+
+  return COGNITO_REDIRECT_SIGN_OUT_ENV;
+}
 
 function randomString(length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
@@ -36,7 +87,7 @@ async function generatePkceChallenge(verifier: string): Promise<string> {
 }
 
 function assertCognitoConfigured(): void {
-  if (!COGNITO_DOMAIN || !COGNITO_CLIENT_ID || !COGNITO_REDIRECT_SIGN_IN) {
+  if (!COGNITO_DOMAIN || !COGNITO_CLIENT_ID || !resolveSignInRedirectUri()) {
     throw new Error(
       'Cognito is enabled but missing configuration. Set VITE_COGNITO_DOMAIN, VITE_COGNITO_APP_CLIENT_ID, and VITE_COGNITO_REDIRECT_SIGN_IN.'
     );
@@ -44,14 +95,15 @@ function assertCognitoConfigured(): void {
 }
 
 export function isCognitoConfigured(): boolean {
-  return Boolean(COGNITO_DOMAIN && COGNITO_CLIENT_ID && COGNITO_REDIRECT_SIGN_IN);
+  return Boolean(COGNITO_DOMAIN && COGNITO_CLIENT_ID && resolveSignInRedirectUri());
 }
 
 export async function startCognitoLogin(
   returnTo: string,
-  provider?: CognitoProvider
+  options?: StartCognitoLoginOptions
 ): Promise<void> {
   assertCognitoConfigured();
+  const redirectSignIn = resolveSignInRedirectUri();
 
   const verifier = randomString(96);
   const state = randomString(32);
@@ -65,14 +117,25 @@ export async function startCognitoLogin(
     client_id: COGNITO_CLIENT_ID,
     response_type: 'code',
     scope: 'openid email profile',
-    redirect_uri: COGNITO_REDIRECT_SIGN_IN,
+    redirect_uri: redirectSignIn,
     code_challenge_method: 'S256',
     code_challenge: challenge,
     state,
   });
 
-  if (provider) {
-    params.set('identity_provider', provider);
+  if (options?.provider) {
+    params.set('identity_provider', options.provider);
+  }
+
+  if (options?.loginHint) {
+    const trimmed = options.loginHint.trim();
+    if (trimmed) {
+      params.set('login_hint', trimmed);
+    }
+  }
+
+  if (options?.screenHint) {
+    params.set('screen_hint', options.screenHint);
   }
 
   window.location.assign(`${COGNITO_DOMAIN}/oauth2/authorize?${params.toString()}`);
@@ -83,6 +146,7 @@ export async function exchangeCognitoCodeForToken(
   state: string | null
 ): Promise<{ token: string; returnTo: string }> {
   assertCognitoConfigured();
+  const redirectSignIn = resolveSignInRedirectUri();
 
   const storedVerifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
   const storedState = sessionStorage.getItem(PKCE_STATE_KEY);
@@ -100,7 +164,7 @@ export async function exchangeCognitoCodeForToken(
     grant_type: 'authorization_code',
     client_id: COGNITO_CLIENT_ID,
     code,
-    redirect_uri: COGNITO_REDIRECT_SIGN_IN,
+    redirect_uri: redirectSignIn,
     code_verifier: storedVerifier,
   });
 
@@ -131,13 +195,14 @@ export async function exchangeCognitoCodeForToken(
 }
 
 export function buildCognitoLogoutUrl(): string | null {
-  if (!COGNITO_DOMAIN || !COGNITO_CLIENT_ID || !COGNITO_REDIRECT_SIGN_OUT) {
+  const redirectSignOut = resolveSignOutRedirectUri();
+  if (!COGNITO_DOMAIN || !COGNITO_CLIENT_ID || !redirectSignOut) {
     return null;
   }
 
   const params = new URLSearchParams({
     client_id: COGNITO_CLIENT_ID,
-    logout_uri: COGNITO_REDIRECT_SIGN_OUT,
+    logout_uri: redirectSignOut,
   });
   return `${COGNITO_DOMAIN}/logout?${params.toString()}`;
 }
