@@ -64,6 +64,11 @@ function ProjectIdeaCard({
   onIdeaClick: (idea: ProjectIdea) => void;
 }) {
   const skillStyle = SKILL_LEVEL_STYLES[idea.skillLevel] ?? SKILL_LEVEL_STYLES.Beginner;
+  const isRedTier = idea.skillLevel === 'Advanced' || idea.skillLevel === 'Professional';
+  const outlineColor = isRedTier ? 'rgba(244, 63, 94, 0.38)' : 'rgba(52, 211, 153, 0.34)';
+  const outlineShadow = isRedTier
+    ? '0 0 0 1px rgba(244, 63, 94, 0.22), 0 16px 36px rgba(0, 0, 0, 0.4)'
+    : '0 0 0 1px rgba(52, 211, 153, 0.18), 0 16px 36px rgba(0, 0, 0, 0.4)';
 
   return (
     <motion.button
@@ -80,10 +85,10 @@ function ProjectIdeaCard({
       transition={{ type: 'spring', stiffness: 245, damping: 22, mass: 0.55 }}
       aria-label={`Open implementation guide for ${idea.title}`}
       style={{
-        borderColor: 'rgba(52, 211, 153, 0.34)',
+        borderColor: outlineColor,
         backgroundColor: 'var(--color-surface-card)',
         transformOrigin: 'center center',
-        boxShadow: '0 0 0 1px rgba(52, 211, 153, 0.18), 0 16px 36px rgba(0, 0, 0, 0.4)',
+        boxShadow: outlineShadow,
       }}
     >
       <div
