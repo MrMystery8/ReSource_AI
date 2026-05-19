@@ -818,7 +818,7 @@ export function AdminPage() {
           <Shield className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
           Admin Panel
         </h1>
-        <p className="mt-1 text-sm sm:text-base" style={{ color: 'var(--color-text-secondary)' }}>
+        <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--color-text-secondary)' }}>
           Manage users and oversee system sessions
         </p>
       </div>

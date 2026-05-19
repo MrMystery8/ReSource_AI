@@ -127,12 +127,12 @@ export function TriageForm({ onSubmit, fileUploader, disabled }: TriageFormProps
           <div className="mb-2">
             <h1
               className="text-3xl font-bold tracking-tight sm:text-4xl flex items-center gap-2"
-              style={{ color: '#ffffff' }}
+              style={{ color: 'var(--color-text-primary)' }}
             >
               <Leaf className="w-6 h-6" style={{ color: 'var(--color-primary)' }} aria-hidden />
               {TRIAGE_CONTENT.title}
             </h1>
-            <p className="text-sm sm:text-base mt-1" style={{ color: 'rgba(255, 255, 255, 0.86)' }}>
+            <p className="text-sm sm:text-base mt-1" style={{ color: 'var(--color-text-secondary)' }}>
               {TRIAGE_CONTENT.subtitle}
             </p>
           </div>
