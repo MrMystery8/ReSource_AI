@@ -35,7 +35,7 @@ export const MIN_EVIDENCE_CHAR_THRESHOLD = 50;
 
 // --- Session Configuration ---
 
-export const SESSION_TTL_HOURS = 24;
+export const SESSION_TTL_HOURS = 24 * 365; // 1 year
 export const PRESIGNED_URL_EXPIRY_SECONDS = 3_600; // 1 hour
 
 // --- Allowed File Types ---

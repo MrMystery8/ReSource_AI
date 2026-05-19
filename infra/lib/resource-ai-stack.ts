@@ -123,7 +123,7 @@ export class ResourceAiStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
-      lifecycleRules: [{ expiration: cdk.Duration.hours(24) }],
+      lifecycleRules: [{ expiration: cdk.Duration.days(365) }],
       cors: [{
         allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST],
         allowedOrigins: ['*'],
