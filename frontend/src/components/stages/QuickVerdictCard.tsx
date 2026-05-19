@@ -54,7 +54,10 @@ export function QuickVerdictCard({ data }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className={`rounded-xl p-4 bg-gradient-to-br ${getSalvageBg(data.salvageScore)} border border-border-subtle`}
+          className={`rounded-xl p-4 bg-gradient-to-br ${getSalvageBg(data.salvageScore)} border`}
+          style={{
+            borderColor: 'color-mix(in srgb, #fbbf24 34%, var(--color-border-default))',
+          }}
         >
           <div className="flex items-center gap-2 mb-1">
             <Gauge className="w-4 h-4 text-text-muted" />
@@ -73,7 +76,10 @@ export function QuickVerdictCard({ data }: Props) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="rounded-xl p-4 bg-gradient-to-br from-primary-500/10 to-primary-500/5 border border-border-subtle sm:col-span-2"
+          className="rounded-xl p-4 bg-gradient-to-br from-primary-500/10 to-primary-500/5 border sm:col-span-2"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--color-primary) 34%, var(--color-border-default))',
+          }}
         >
           <div className="flex items-center gap-2 mb-1">
             <Lightbulb className="w-4 h-4 text-primary-400" />
@@ -105,7 +111,12 @@ export function QuickVerdictCard({ data }: Props) {
 
       {/* Missing Info */}
       {data.missingInfoNotes && (
-        <div className="mx-6 mb-6 p-3 rounded-lg bg-surface-elevated/50 border border-border-subtle">
+        <div
+          className="mx-6 mb-6 p-3 rounded-lg bg-surface-elevated/50 border"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--color-primary) 24%, var(--color-border-default))',
+          }}
+        >
           <div className="flex items-start gap-2">
             <Info className="w-4 h-4 text-text-muted shrink-0 mt-0.5" />
             <p className="text-xs text-text-muted leading-relaxed">{data.missingInfoNotes}</p>
