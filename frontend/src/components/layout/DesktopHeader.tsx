@@ -74,10 +74,20 @@ const LEVEL_BADGE_STYLES: Record<UserLevel, { color: string; bg: string; border:
     bg: 'color-mix(in srgb, var(--color-success) 12%, transparent)',
     border: 'color-mix(in srgb, var(--color-success) 30%, transparent)',
   },
-  Salvager: {
+  'Eco-Sorter': {
+    color: '#2dd4bf',
+    bg: 'color-mix(in srgb, #2dd4bf 12%, transparent)',
+    border: 'color-mix(in srgb, #2dd4bf 30%, transparent)',
+  },
+  'Resource Salvager': {
     color: '#60a5fa',
     bg: 'color-mix(in srgb, #60a5fa 12%, transparent)',
     border: 'color-mix(in srgb, #60a5fa 30%, transparent)',
+  },
+  'Triage Specialist': {
+    color: '#818cf8',
+    bg: 'color-mix(in srgb, #818cf8 12%, transparent)',
+    border: 'color-mix(in srgb, #818cf8 30%, transparent)',
   },
   'E-Waste Champion': {
     color: '#a78bfa',
@@ -88,6 +98,11 @@ const LEVEL_BADGE_STYLES: Record<UserLevel, { color: string; bg: string; border:
     color: 'var(--color-warning)',
     bg: 'color-mix(in srgb, var(--color-warning) 12%, transparent)',
     border: 'color-mix(in srgb, var(--color-warning) 30%, transparent)',
+  },
+  'Eco-Legend': {
+    color: '#f43f5e',
+    bg: 'color-mix(in srgb, #f43f5e 12%, transparent)',
+    border: 'color-mix(in srgb, #f43f5e 30%, transparent)',
   },
 };
 

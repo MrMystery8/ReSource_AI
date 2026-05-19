@@ -106,7 +106,7 @@ describe('GET /auth/stats', () => {
     expect(body.totalSessions).toBe(0);
     expect(body.lastTriageDate).toBeNull();
     expect(body.pointsToNextLevel).toBe(500);
-    expect(body.nextLevel).toBe('Salvager');
+    expect(body.nextLevel).toBe('Eco-Sorter');
     expect(body.badges).toHaveLength(BADGE_DEFINITIONS.length);
     // All badges should be unearned (earnedAt = null)
     body.badges.forEach((badge: any) => {
@@ -124,7 +124,7 @@ describe('GET /auth/stats', () => {
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-06-01T00:00:00.000Z',
       points: 750,
-      level: 'Salvager',
+      level: 'Eco-Sorter',
       streak: 3,
       badges: ['first-triage', 'regular-recycler'],
       totalSessions: 7,
@@ -138,13 +138,13 @@ describe('GET /auth/stats', () => {
     const body = JSON.parse(result.body);
 
     expect(body.points).toBe(750);
-    expect(body.level).toBe('Salvager');
+    expect(body.level).toBe('Eco-Sorter');
     expect(body.streak).toBe(3);
     expect(body.totalSessions).toBe(7);
     expect(body.lastTriageDate).toBe('2024-06-01T00:00:00.000Z');
-    // Next level is E-Waste Champion at 1500 points
+    // Next level is Resource Salvager at 1500 points
     expect(body.pointsToNextLevel).toBe(750); // 1500 - 750
-    expect(body.nextLevel).toBe('E-Waste Champion');
+    expect(body.nextLevel).toBe('Resource Salvager');
 
     // Check badges
     expect(body.badges).toHaveLength(BADGE_DEFINITIONS.length);
@@ -165,8 +165,8 @@ describe('GET /auth/stats', () => {
       role: 'user',
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-06-01T00:00:00.000Z',
-      points: 5000,
-      level: 'Green Guardian',
+      points: 25000,
+      level: 'Eco-Legend',
       streak: 10,
       badges: ['first-triage', 'regular-recycler', 'streak-master', 'green-champion'],
       totalSessions: 50,
@@ -179,8 +179,8 @@ describe('GET /auth/stats', () => {
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
 
-    expect(body.points).toBe(5000);
-    expect(body.level).toBe('Green Guardian');
+    expect(body.points).toBe(25000);
+    expect(body.level).toBe('Eco-Legend');
     expect(body.pointsToNextLevel).toBe(0);
     expect(body.nextLevel).toBeNull();
   });

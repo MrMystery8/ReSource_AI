@@ -99,7 +99,7 @@ describe('LeaderboardHandler', () => {
     expect(body.entries[0].rank).toBe(1);
     expect(body.entries[0].displayName).toBe('User 24');
     expect(body.entries[0].points).toBe(2400);
-    expect(body.entries[0].level).toBe('E-Waste Champion');
+    expect(body.entries[0].level).toBe('Resource Salvager');
     expect(body.entries[0].badgeCount).toBe(2);
 
     // Entries should be sorted by points descending
@@ -247,26 +247,26 @@ describe('LeaderboardHandler', () => {
 
   it('calculates correct levels based on points', async () => {
     const users = [
-      { userId: 'user-1', displayName: 'Guardian', points: 4000, badges: [] },
-      { userId: 'user-2', displayName: 'Champion', points: 1500, badges: [] },
-      { userId: 'user-3', displayName: 'Salvager', points: 500, badges: [] },
+      { userId: 'user-1', displayName: 'Guardian', points: 12000, badges: [] },
+      { userId: 'user-2', displayName: 'Champion', points: 7000, badges: [] },
+      { userId: 'user-3', displayName: 'Salvager', points: 1500, badges: [] },
       { userId: 'user-123', displayName: 'Recycler', points: 100, badges: [] },
     ];
-
+ 
     mockSend.mockResolvedValueOnce({
       Items: users,
       LastEvaluatedKey: undefined,
     });
-
+ 
     const event = createEvent();
     const result = await handler(event);
-
+ 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
-
+ 
     expect(body.entries[0].level).toBe('Green Guardian');
     expect(body.entries[1].level).toBe('E-Waste Champion');
-    expect(body.entries[2].level).toBe('Salvager');
+    expect(body.entries[2].level).toBe('Resource Salvager');
     expect(body.entries[3].level).toBe('Recycler');
   });
 });

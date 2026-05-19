@@ -1,5 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { calculateLevel } from '../gamification/gamification-service';
 import {
   DynamoDBDocumentClient,
   PutCommand,
@@ -91,18 +92,81 @@ async function getUserDisplayName(userId: string): Promise<string> {
 
 async function awardPoints(userId: string, points: number): Promise<void> {
   if (points === 0) return;
+  const userResult = await docClient.send(
+    new GetCommand({
+      TableName: USERS_TABLE_NAME,
+      Key: { userId },
+      ProjectionExpression: 'points',
+    })
+  );
+  const currentPoints = userResult.Item?.points ?? 0;
+  const newPoints = currentPoints + points;
+  const newLevel = calculateLevel(newPoints);
+
   await docClient.send(
     new UpdateCommand({
       TableName: USERS_TABLE_NAME,
       Key: { userId },
-      UpdateExpression: 'SET #points = if_not_exists(#points, :zero) + :pts, #updatedAt = :now',
+      UpdateExpression: 'SET #points = :points, #level = :level, #updatedAt = :now',
       ExpressionAttributeNames: {
         '#points': 'points',
+        '#level': 'level',
         '#updatedAt': 'updatedAt',
       },
       ExpressionAttributeValues: {
-        ':pts': points,
-        ':zero': 0,
+        ':points': newPoints,
+        ':level': newLevel,
+        ':now': new Date().toISOString(),
+      },
+    })
+  );
+}
+
+async function updateAuthorPointsAndVoteBadges(
+  authorId: string,
+  pointsDelta: number,
+  upvoteDelta: number
+): Promise<void> {
+  const userResult = await docClient.send(
+    new GetCommand({
+      TableName: USERS_TABLE_NAME,
+      Key: { userId: authorId },
+      ProjectionExpression: 'points, badges, totalUpvotesReceived',
+    })
+  );
+
+  const userRecord = userResult.Item ?? {};
+  const currentPoints = userRecord.points ?? 0;
+  const newPoints = currentPoints + pointsDelta;
+  const currentBadges: string[] = userRecord.badges ?? [];
+  const totalUpvotesReceived = (userRecord.totalUpvotesReceived ?? 0) + upvoteDelta;
+
+  const newBadges: string[] = [];
+  if (!currentBadges.includes('upvote-magnet') && totalUpvotesReceived >= 50) {
+    newBadges.push('upvote-magnet');
+  }
+
+  const allBadges = [...currentBadges, ...newBadges];
+  const newLevel = calculateLevel(newPoints);
+
+  await docClient.send(
+    new UpdateCommand({
+      TableName: USERS_TABLE_NAME,
+      Key: { userId: authorId },
+      UpdateExpression: `SET #points = :points, #level = :level, #badges = :badges, 
+        #totalUpvotesReceived = :totalUpvotesReceived, #updatedAt = :now`,
+      ExpressionAttributeNames: {
+        '#points': 'points',
+        '#level': 'level',
+        '#badges': 'badges',
+        '#totalUpvotesReceived': 'totalUpvotesReceived',
+        '#updatedAt': 'updatedAt',
+      },
+      ExpressionAttributeValues: {
+        ':points': newPoints,
+        ':level': newLevel,
+        ':badges': allBadges,
+        ':totalUpvotesReceived': totalUpvotesReceived,
         ':now': new Date().toISOString(),
       },
     })
@@ -156,6 +220,9 @@ async function checkAndAwardBadges(userId: string): Promise<string[]> {
   }
   if (!currentBadges.includes('helpful-neighbor') && commentsGiven >= 20) {
     newBadges.push('helpful-neighbor');
+  }
+  if (!currentBadges.includes('active-discussant') && commentsGiven >= 50) {
+    newBadges.push('active-discussant');
   }
 
   if (newBadges.length > 0) {
@@ -573,9 +640,9 @@ async function handleVote(
     })
   );
 
-  // Award/deduct points from post author
-  if (pointsDelta !== 0) {
-    await awardPoints(postAuthorId, pointsDelta);
+  // Award/deduct points and upvotes from post author
+  if (pointsDelta !== 0 || upvoteDelta !== 0) {
+    await updateAuthorPointsAndVoteBadges(postAuthorId, pointsDelta, upvoteDelta);
   }
 
   // Check post-level badges for the author

@@ -25,6 +25,8 @@ export interface UserStats {
   totalSessions: number;
   lastTriageDate: string | null;
   greenOutcomes: number;
+  yellowOrangeOutcomes: number;
+  redOutcomes: number;
   totalSalvageableParts: number;
 }
 
@@ -122,36 +124,49 @@ export function checkBadges(
   currentBadges: string[],
   stats: UserStats,
   session: TriageSession
-): string[] {
+ ): string[] {
   const newBadges: string[] = [];
-
+ 
   const riskLevel = getSessionRiskLevel(session);
-
+ 
   // Check each badge criterion
   if (!currentBadges.includes('first-triage') && stats.totalSessions >= 1) {
     newBadges.push('first-triage');
   }
-
+ 
   if (!currentBadges.includes('regular-recycler') && stats.totalSessions >= 5) {
     newBadges.push('regular-recycler');
   }
-
+ 
   if (!currentBadges.includes('hazard-spotter') && riskLevel === 'Red') {
     newBadges.push('hazard-spotter');
   }
-
+ 
   if (!currentBadges.includes('parts-hunter') && stats.totalSalvageableParts >= 10) {
     newBadges.push('parts-hunter');
   }
-
+ 
   if (!currentBadges.includes('streak-master') && stats.streak >= 4) {
     newBadges.push('streak-master');
   }
-
+ 
   if (!currentBadges.includes('green-champion') && stats.greenOutcomes >= 5) {
     newBadges.push('green-champion');
   }
 
+  // New Badges
+  if (!currentBadges.includes('safety-sentinel') && stats.yellowOrangeOutcomes >= 5) {
+    newBadges.push('safety-sentinel');
+  }
+
+  if (!currentBadges.includes('triage-titan') && stats.totalSessions >= 20) {
+    newBadges.push('triage-titan');
+  }
+
+  if (!currentBadges.includes('hazard-hero') && stats.redOutcomes >= 5) {
+    newBadges.push('hazard-hero');
+  }
+ 
   return newBadges;
 }
 
@@ -202,28 +217,38 @@ export async function processSessionCompletion(
     totalSessions: userRecord.totalSessions ?? 0,
     lastTriageDate: userRecord.lastTriageDate ?? null,
     greenOutcomes: userRecord.greenOutcomes ?? 0,
+    yellowOrangeOutcomes: userRecord.yellowOrangeOutcomes ?? 0,
+    redOutcomes: userRecord.redOutcomes ?? 0,
     totalSalvageableParts: userRecord.totalSalvageableParts ?? 0,
   };
-
+ 
   // 2. Calculate points for this session
   const pointsResult = awardSessionPoints(session);
-
+ 
   // 3. Update streak based on lastTriageDate
   const newStreak = updateStreak(currentStats.streak, currentStats.lastTriageDate);
-
+ 
   // 4. Increment totalSessions
   const newTotalSessions = currentStats.totalSessions + 1;
-
+ 
   // 5. Update greenOutcomes if this session was Green
   const riskLevel = getSessionRiskLevel(session);
   const newGreenOutcomes = riskLevel === 'Green'
     ? currentStats.greenOutcomes + 1
     : currentStats.greenOutcomes;
 
+  const newYellowOrangeOutcomes = (riskLevel === 'Yellow' || riskLevel === 'Orange')
+    ? currentStats.yellowOrangeOutcomes + 1
+    : currentStats.yellowOrangeOutcomes;
+
+  const newRedOutcomes = riskLevel === 'Red'
+    ? currentStats.redOutcomes + 1
+    : currentStats.redOutcomes;
+ 
   // 6. Update totalSalvageableParts from detailedAnalysis componentProfile
   const sessionSalvageableParts = countSalvageableParts(session);
   const newTotalSalvageableParts = currentStats.totalSalvageableParts + sessionSalvageableParts;
-
+ 
   // 7. Build updated stats for badge checking
   const updatedStats: UserStats = {
     points: currentStats.points + pointsResult.total,
@@ -232,16 +257,18 @@ export async function processSessionCompletion(
     totalSessions: newTotalSessions,
     lastTriageDate: new Date().toISOString(),
     greenOutcomes: newGreenOutcomes,
+    yellowOrangeOutcomes: newYellowOrangeOutcomes,
+    redOutcomes: newRedOutcomes,
     totalSalvageableParts: newTotalSalvageableParts,
   };
-
+ 
   // Check all badge criteria against updated stats
   const newBadges = checkBadges(currentStats.badges, updatedStats, session);
   const allBadges = [...currentStats.badges, ...newBadges];
-
+ 
   // 8. Calculate new level from new total points
   const newLevel = calculateLevel(updatedStats.points);
-
+ 
   // 9. Write all updates back to DynamoDB
   await docClient.send(
     new UpdateCommand({
@@ -250,6 +277,7 @@ export async function processSessionCompletion(
       UpdateExpression: `SET #points = :points, #level = :level, #streak = :streak, 
         #badges = :badges, #lastTriageDate = :lastTriageDate, 
         #totalSessions = :totalSessions, #greenOutcomes = :greenOutcomes, 
+        #yellowOrangeOutcomes = :yellowOrangeOutcomes, #redOutcomes = :redOutcomes, 
         #totalSalvageableParts = :totalSalvageableParts, #updatedAt = :updatedAt`,
       ExpressionAttributeNames: {
         '#points': 'points',
@@ -259,6 +287,8 @@ export async function processSessionCompletion(
         '#lastTriageDate': 'lastTriageDate',
         '#totalSessions': 'totalSessions',
         '#greenOutcomes': 'greenOutcomes',
+        '#yellowOrangeOutcomes': 'yellowOrangeOutcomes',
+        '#redOutcomes': 'redOutcomes',
         '#totalSalvageableParts': 'totalSalvageableParts',
         '#updatedAt': 'updatedAt',
       },
@@ -270,6 +300,8 @@ export async function processSessionCompletion(
         ':lastTriageDate': updatedStats.lastTriageDate,
         ':totalSessions': newTotalSessions,
         ':greenOutcomes': newGreenOutcomes,
+        ':yellowOrangeOutcomes': newYellowOrangeOutcomes,
+        ':redOutcomes': newRedOutcomes,
         ':totalSalvageableParts': newTotalSalvageableParts,
         ':updatedAt': new Date().toISOString(),
       },

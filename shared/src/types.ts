@@ -242,7 +242,14 @@ export interface ErrorResponse {
 
 // --- Gamification Types ---
 
-export type UserLevel = 'Recycler' | 'Salvager' | 'E-Waste Champion' | 'Green Guardian';
+export type UserLevel =
+  | 'Recycler'
+  | 'Eco-Sorter'
+  | 'Resource Salvager'
+  | 'Triage Specialist'
+  | 'E-Waste Champion'
+  | 'Green Guardian'
+  | 'Eco-Legend';
 
 export interface UserStatsResponse {
   points: number;

@@ -11,16 +11,22 @@ export interface ProgressBarProps {
 
 const LEVEL_GRADIENT: Record<UserLevel, string> = {
   Recycler: 'from-emerald-500 to-emerald-300',
-  Salvager: 'from-blue-500 to-blue-300',
+  'Eco-Sorter': 'from-teal-500 to-teal-300',
+  'Resource Salvager': 'from-blue-500 to-blue-300',
+  'Triage Specialist': 'from-indigo-500 to-indigo-300',
   'E-Waste Champion': 'from-purple-500 to-purple-300',
   'Green Guardian': 'from-amber-500 to-amber-300',
+  'Eco-Legend': 'from-rose-500 to-rose-300',
 };
 
 const LEVEL_BG: Record<UserLevel, string> = {
   Recycler: 'bg-emerald-500/20',
-  Salvager: 'bg-blue-500/20',
+  'Eco-Sorter': 'bg-teal-500/20',
+  'Resource Salvager': 'bg-blue-500/20',
+  'Triage Specialist': 'bg-indigo-500/20',
   'E-Waste Champion': 'bg-purple-500/20',
   'Green Guardian': 'bg-amber-500/20',
+  'Eco-Legend': 'bg-rose-500/20',
 };
 
 export function ProgressBar({ points, level, nextLevel, pointsToNextLevel }: ProgressBarProps) {

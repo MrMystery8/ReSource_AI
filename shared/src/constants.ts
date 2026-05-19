@@ -91,9 +91,12 @@ export const RISK_LEVEL_ORDER = ['Green', 'Yellow', 'Orange', 'Red'] as const;
 
 export const LEVEL_THRESHOLDS = [
   { level: 'Recycler' as const, minPoints: 0, maxPoints: 499 },
-  { level: 'Salvager' as const, minPoints: 500, maxPoints: 1499 },
-  { level: 'E-Waste Champion' as const, minPoints: 1500, maxPoints: 3999 },
-  { level: 'Green Guardian' as const, minPoints: 4000, maxPoints: Infinity },
+  { level: 'Eco-Sorter' as const, minPoints: 500, maxPoints: 1499 },
+  { level: 'Resource Salvager' as const, minPoints: 1500, maxPoints: 3499 },
+  { level: 'Triage Specialist' as const, minPoints: 3500, maxPoints: 6999 },
+  { level: 'E-Waste Champion' as const, minPoints: 7000, maxPoints: 11999 },
+  { level: 'Green Guardian' as const, minPoints: 12000, maxPoints: 19999 },
+  { level: 'Eco-Legend' as const, minPoints: 20000, maxPoints: Infinity },
 ] as const;
 
 export const POINTS_CONFIG = {
@@ -115,6 +118,18 @@ export const BADGE_DEFINITIONS = [
   { id: 'conversation-spark', name: 'Conversation Spark', description: 'Receive 5 comments on a post', icon: '💬' },
   { id: 'community-pillar', name: 'Community Pillar', description: 'Share 10 projects to the community', icon: '🏛️' },
   { id: 'helpful-neighbor', name: 'Helpful Neighbor', description: 'Leave 20 comments on others\' posts', icon: '🤝' },
+  // New Triage & Safety Badges
+  { id: 'safety-sentinel', name: 'Safety Sentinel', description: 'Triage 5 Yellow/Orange-risk devices safely', icon: '🛡️' },
+  { id: 'triage-titan', name: 'Triage Titan', description: 'Complete 20 triage sessions', icon: '📊' },
+  { id: 'hazard-hero', name: 'Hazard Hero', description: 'Triage 5 Red-risk devices safely', icon: '🚨' },
+  // New Project Craftsmanship Badges
+  { id: 'first-project', name: 'First Project', description: 'Complete your first second-life project', icon: '🛠️' },
+  { id: 'grade-a-artisan', name: 'Grade A Artisan', description: 'Get an A grade on a submitted project', icon: '🏆' },
+  { id: 'recycling-architect', name: 'Recycling Architect', description: 'Complete 5 second-life projects', icon: '🏗️' },
+  { id: 'master-craftsman', name: 'Master Craftsman', description: 'Complete 10 second-life projects', icon: '👑' },
+  // New Community Engagement Badges
+  { id: 'upvote-magnet', name: 'Upvote Magnet', description: 'Receive 50 upvotes across shared projects', icon: '🧲' },
+  { id: 'active-discussant', name: 'Active Discussant', description: 'Leave 50 comments on others\' posts', icon: '🗣️' },
 ] as const;
 
 // --- Community Gamification Constants ---

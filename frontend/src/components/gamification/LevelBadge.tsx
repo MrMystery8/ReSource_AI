@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Leaf, Droplets, Award, Crown } from 'lucide-react';
+import { Leaf, Droplets, Award, Shield, Crown, Flame, Sparkles } from 'lucide-react';
 import type { UserLevel } from '@resource-ai/shared';
 
 export interface LevelBadgeProps {
@@ -19,26 +19,47 @@ const LEVEL_CONFIG: Record<
     border: 'border-emerald-500/30',
     icon: Leaf,
   },
-  Salvager: {
+  'Eco-Sorter': {
+    color: 'text-teal-400',
+    glow: 'shadow-teal-400/40',
+    bg: 'bg-teal-500/10',
+    border: 'border-teal-500/30',
+    icon: Droplets,
+  },
+  'Resource Salvager': {
     color: 'text-blue-400',
     glow: 'shadow-blue-400/40',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/30',
-    icon: Droplets,
+    icon: Award,
+  },
+  'Triage Specialist': {
+    color: 'text-indigo-400',
+    glow: 'shadow-indigo-400/40',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/30',
+    icon: Shield,
   },
   'E-Waste Champion': {
     color: 'text-purple-400',
     glow: 'shadow-purple-400/40',
     bg: 'bg-purple-500/10',
     border: 'border-purple-500/30',
-    icon: Award,
+    icon: Crown,
   },
   'Green Guardian': {
     color: 'text-amber-400',
     glow: 'shadow-amber-400/40',
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/30',
-    icon: Crown,
+    icon: Flame,
+  },
+  'Eco-Legend': {
+    color: 'text-rose-400',
+    glow: 'shadow-rose-400/40',
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/30',
+    icon: Sparkles,
   },
 };
 

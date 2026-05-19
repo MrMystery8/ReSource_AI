@@ -50,6 +50,8 @@ function makeStats(overrides: Partial<UserStats> = {}): UserStats {
     totalSessions: 1,
     lastTriageDate: null,
     greenOutcomes: 0,
+    yellowOrangeOutcomes: 0,
+    redOutcomes: 0,
     totalSalvageableParts: 0,
     ...overrides,
   };
@@ -248,6 +250,27 @@ describe('checkBadges', () => {
     expect(result).toContain('green-champion');
   });
 
+  it('awards safety-sentinel badge when yellowOrangeOutcomes >= 5', () => {
+    const stats = makeStats({ yellowOrangeOutcomes: 5 });
+    const session = makeSession();
+    const result = checkBadges([], stats, session);
+    expect(result).toContain('safety-sentinel');
+  });
+
+  it('awards triage-titan badge when totalSessions >= 20', () => {
+    const stats = makeStats({ totalSessions: 20 });
+    const session = makeSession();
+    const result = checkBadges([], stats, session);
+    expect(result).toContain('triage-titan');
+  });
+
+  it('awards hazard-hero badge when redOutcomes >= 5', () => {
+    const stats = makeStats({ redOutcomes: 5 });
+    const session = makeSession();
+    const result = checkBadges([], stats, session);
+    expect(result).toContain('hazard-hero');
+  });
+
   it('does not re-award badges already earned', () => {
     const stats = makeStats({ totalSessions: 10, streak: 5, greenOutcomes: 6 });
     const session = makeSession();
@@ -278,27 +301,51 @@ describe('calculateLevel', () => {
     expect(calculateLevel(499)).toBe('Recycler');
   });
 
-  it('returns Salvager for 500 points', () => {
-    expect(calculateLevel(500)).toBe('Salvager');
+  it('returns Eco-Sorter for 500 points', () => {
+    expect(calculateLevel(500)).toBe('Eco-Sorter');
   });
 
-  it('returns Salvager for 1499 points', () => {
-    expect(calculateLevel(1499)).toBe('Salvager');
+  it('returns Eco-Sorter for 1499 points', () => {
+    expect(calculateLevel(1499)).toBe('Eco-Sorter');
   });
 
-  it('returns E-Waste Champion for 1500 points', () => {
-    expect(calculateLevel(1500)).toBe('E-Waste Champion');
+  it('returns Resource Salvager for 1500 points', () => {
+    expect(calculateLevel(1500)).toBe('Resource Salvager');
   });
 
-  it('returns E-Waste Champion for 3999 points', () => {
-    expect(calculateLevel(3999)).toBe('E-Waste Champion');
+  it('returns Resource Salvager for 3499 points', () => {
+    expect(calculateLevel(3499)).toBe('Resource Salvager');
   });
 
-  it('returns Green Guardian for 4000 points', () => {
-    expect(calculateLevel(4000)).toBe('Green Guardian');
+  it('returns Triage Specialist for 3500 points', () => {
+    expect(calculateLevel(3500)).toBe('Triage Specialist');
   });
 
-  it('returns Green Guardian for very high points', () => {
-    expect(calculateLevel(100000)).toBe('Green Guardian');
+  it('returns Triage Specialist for 6999 points', () => {
+    expect(calculateLevel(6999)).toBe('Triage Specialist');
+  });
+
+  it('returns E-Waste Champion for 7000 points', () => {
+    expect(calculateLevel(7000)).toBe('E-Waste Champion');
+  });
+
+  it('returns E-Waste Champion for 11999 points', () => {
+    expect(calculateLevel(11999)).toBe('E-Waste Champion');
+  });
+
+  it('returns Green Guardian for 12000 points', () => {
+    expect(calculateLevel(12000)).toBe('Green Guardian');
+  });
+
+  it('returns Green Guardian for 19999 points', () => {
+    expect(calculateLevel(19999)).toBe('Green Guardian');
+  });
+
+  it('returns Eco-Legend for 20000 points', () => {
+    expect(calculateLevel(20000)).toBe('Eco-Legend');
+  });
+
+  it('returns Eco-Legend for very high points', () => {
+    expect(calculateLevel(100000)).toBe('Eco-Legend');
   });
 });

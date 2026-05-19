@@ -23,6 +23,17 @@ import {
   MessageCircle,
   Landmark,
   Handshake,
+  ShieldAlert,
+  TrendingUp,
+  AlertTriangle,
+  Hammer,
+  Award,
+  Compass,
+  Crown,
+  Magnet,
+  MessagesSquare,
+  Lock,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { ApiClient } from '../services/api';
@@ -30,6 +41,7 @@ import { BADGE_DEFINITIONS, LEVEL_THRESHOLDS } from '@resource-ai/shared';
 import type { UserStatsResponse, UserLevel } from '@resource-ai/shared';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
+import { LevelBadge } from '../components/gamification/LevelBadge';
 
 const API_URL = import.meta.env.VITE_API_URL ?? '';
 const API_KEY = import.meta.env.VITE_API_KEY ?? '';
@@ -51,6 +63,18 @@ const BADGE_ICON_MAP: Record<string, React.ComponentType<{ className?: string; s
   'conversation-spark': MessageCircle,
   'community-pillar':  Landmark,
   'helpful-neighbor':  Handshake,
+  // New Triage & Safety Badges
+  'safety-sentinel':   ShieldAlert,
+  'triage-titan':      TrendingUp,
+  'hazard-hero':       AlertTriangle,
+  // New Project Craftsmanship Badges
+  'first-project':     Hammer,
+  'grade-a-artisan':   Award,
+  'recycling-architect': Compass,
+  'master-craftsman':  Crown,
+  // New Community Engagement Badges
+  'upvote-magnet':     Magnet,
+  'active-discussant':  MessagesSquare,
 };
 
 // Level color mapping — uses semantic token-compatible classes
@@ -60,10 +84,20 @@ const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
     border: 'border-emerald-200 dark:border-emerald-800',
   },
-  Salvager: {
+  'Eco-Sorter': {
+    text: 'text-teal-600 dark:text-teal-400',
+    bg: 'bg-teal-50 dark:bg-teal-950/40',
+    border: 'border-teal-200 dark:border-teal-800',
+  },
+  'Resource Salvager': {
     text: 'text-blue-600 dark:text-blue-400',
     bg: 'bg-blue-50 dark:bg-blue-950/40',
     border: 'border-blue-200 dark:border-blue-800',
+  },
+  'Triage Specialist': {
+    text: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-50 dark:bg-indigo-950/40',
+    border: 'border-indigo-200 dark:border-indigo-800',
   },
   'E-Waste Champion': {
     text: 'text-purple-600 dark:text-purple-400',
@@ -75,14 +109,22 @@ const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string
     bg: 'bg-amber-50 dark:bg-amber-950/40',
     border: 'border-amber-200 dark:border-amber-800',
   },
+  'Eco-Legend': {
+    text: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-50 dark:bg-rose-950/40',
+    border: 'border-rose-200 dark:border-rose-800',
+  },
 };
 
 // Progress bar gradient per level
 const LEVEL_PROGRESS_GRADIENT: Record<UserLevel, string> = {
   Recycler:          'from-emerald-500 to-emerald-400',
-  Salvager:          'from-blue-500 to-blue-400',
+  'Eco-Sorter':      'from-teal-500 to-teal-400',
+  'Resource Salvager': 'from-blue-500 to-blue-400',
+  'Triage Specialist': 'from-indigo-500 to-indigo-400',
   'E-Waste Champion': 'from-purple-500 to-purple-400',
   'Green Guardian':  'from-amber-500 to-amber-400',
+  'Eco-Legend':      'from-rose-500 to-rose-400',
 };
 
 // ---------------------------------------------------------------------------
@@ -161,6 +203,9 @@ export function ProfilePage() {
 
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  // Ladder Modal State
+  const [showLadder, setShowLadder] = useState(false);
 
   // Fetch gamification stats
   const fetchStats = useCallback(async () => {
@@ -499,34 +544,73 @@ export function ProfilePage() {
             ) : (
               <div className="space-y-6">
                 {/* Level + Progress Bar */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-sm font-semibold px-3 py-1 rounded-full border ${levelColors.bg} ${levelColors.border} ${levelColors.text}`}
-                      >
-                        {currentLevel}
-                      </span>
-                    </div>
-                    {stats?.nextLevel && (
-                      <span className="text-xs tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
-                        {stats.pointsToNextLevel} pts to {stats.nextLevel}
-                      </span>
-                    )}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                      Level Progression
+                    </p>
+                    <button
+                      onClick={() => setShowLadder(true)}
+                      className="text-xs font-medium flex items-center gap-1 transition-opacity hover:opacity-80"
+                      style={{ color: 'var(--color-primary)' }}
+                    >
+                      <Info className="w-3.5 h-3.5" />
+                      View Level Ladder
+                    </button>
                   </div>
-                  <div
-                    className="w-full h-3 rounded-full overflow-hidden border"
-                    style={{
-                      backgroundColor: 'var(--color-surface-elevated)',
-                      borderColor: 'var(--color-border-default)',
-                    }}
-                  >
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercent}%` }}
-                      transition={{ duration: 0.8, ease: 'easeOut' }}
-                      className={`h-full rounded-full bg-gradient-to-r ${progressGradient}`}
-                    />
+                  
+                  <div className="flex items-center gap-4">
+                    {/* Current Level Badge */}
+                    <div className="shrink-0">
+                      <LevelBadge level={currentLevel} size="md" showLabel={true} />
+                    </div>
+
+                    {/* Progress Bar Connector */}
+                    <div className="flex-1 relative">
+                      <div
+                        onClick={() => setShowLadder(true)}
+                        className="w-full h-4 rounded-full overflow-hidden border cursor-pointer relative group transition-all hover:shadow-md"
+                        style={{
+                          backgroundColor: 'var(--color-surface-elevated)',
+                          borderColor: 'var(--color-border-default)',
+                        }}
+                      >
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${progressPercent}%` }}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                          className={`h-full rounded-full bg-gradient-to-r ${progressGradient}`}
+                        />
+                        {/* Interactive Tooltip Overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 dark:bg-white/5">
+                          <span className="text-[10px] font-bold tracking-wider uppercase text-white dark:text-gray-200 drop-shadow-sm">
+                            Progress: {progressPercent}% ({stats?.points ?? 0} pts)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Next Level Badge (Faded out, click to open ladder) */}
+                    <div className="shrink-0">
+                      {stats?.nextLevel ? (
+                        <div 
+                          onClick={() => setShowLadder(true)}
+                          className="cursor-pointer transition-all hover:scale-105 active:scale-95 group relative"
+                        >
+                          <div className="opacity-40 group-hover:opacity-85 transition-opacity filter grayscale group-hover:grayscale-0">
+                            <LevelBadge level={stats.nextLevel} size="md" showLabel={true} />
+                          </div>
+                          {/* Floating interactive hint */}
+                          <div className="absolute -top-7 left-1/2 -translate-x-1/2 scale-75 opacity-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 bg-gray-900 text-white text-[9px] px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-10 font-medium">
+                            {stats.pointsToNextLevel} pts away! Click to view
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="opacity-100 scale-100">
+                          <LevelBadge level="Eco-Legend" size="md" showLabel={true} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -679,6 +763,217 @@ export function ProfilePage() {
           </Card>
         </motion.div>
       </motion.div>
+
+      {/* Level Ladder Modal */}
+      <AnimatePresence>
+        {showLadder && stats && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLadder(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-xl rounded-2xl border shadow-2xl overflow-hidden max-h-[85vh] flex flex-col z-10"
+              style={{
+                backgroundColor: 'var(--color-surface-card)',
+                borderColor: 'var(--color-border-default)',
+              }}
+            >
+              {/* Header */}
+              <div 
+                className="p-5 border-b flex items-center justify-between"
+                style={{ borderColor: 'var(--color-border-default)' }}
+              >
+                <div>
+                  <h3 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+                    <Trophy className="w-5 h-5 text-amber-500" />
+                    Level Progression Ladder
+                  </h3>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
+                    Earn points through triages and project submissions to rank up!
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowLadder(false)}
+                  className="p-1.5 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Ladder Content (Scrollable list) */}
+              <div className="p-6 overflow-y-auto space-y-6 flex-1">
+                {/* Overview banner */}
+                <div 
+                  className="p-4 rounded-xl border flex items-center justify-between"
+                  style={{ 
+                    backgroundColor: 'var(--color-surface-elevated)',
+                    borderColor: 'var(--color-border-default)',
+                  }}
+                >
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+                      Your Current Standing
+                    </p>
+                    <p className="text-xl font-black mt-1" style={{ color: 'var(--color-primary)' }}>
+                      {stats.points.toLocaleString()} <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>Total Points</span>
+                    </p>
+                  </div>
+                  <LevelBadge level={currentLevel} size="md" />
+                </div>
+
+                {/* Vertical Ladder Steps */}
+                <div className="relative pl-8 space-y-8">
+                  {/* Vertical connecting line */}
+                  <div 
+                    className="absolute left-4 top-4 bottom-4 w-1 -translate-x-1/2 rounded-full"
+                    style={{ backgroundColor: 'var(--color-border-default)' }}
+                  />
+
+                  {LEVEL_THRESHOLDS.map((threshold, idx) => {
+                    const isCurrent = threshold.level === currentLevel;
+                    const isPassed = stats.points >= threshold.minPoints && !isCurrent;
+                    const isLocked = stats.points < threshold.minPoints;
+                    
+                    // Determine connection highlight
+                    const isNextToEarn = stats.nextLevel === threshold.level;
+
+                    return (
+                      <div key={threshold.level} className="relative flex items-start gap-4 group">
+                        {/* Timeline Step Indicator Circle */}
+                        <div 
+                          className={`absolute left-0 top-3 w-8 h-8 rounded-full border-2 flex items-center justify-center -translate-x-1/2 z-10 transition-all ${
+                            isCurrent 
+                              ? 'text-white shadow-lg ring-4 scale-110'
+                              : isPassed
+                              ? 'text-white'
+                              : 'text-muted'
+                          }`}
+                          style={{
+                            backgroundColor: isCurrent 
+                              ? 'var(--color-primary)'
+                              : isPassed
+                              ? 'var(--color-success)'
+                              : 'var(--color-surface-elevated)',
+                            borderColor: isCurrent 
+                              ? 'var(--color-primary)'
+                              : isPassed
+                              ? 'var(--color-success)'
+                              : 'var(--color-border-default)',
+                            color: isCurrent || isPassed ? '#ffffff' : 'var(--color-text-muted)',
+                            boxShadow: isCurrent 
+                              ? '0 0 12px color-mix(in srgb, var(--color-primary) 50%, transparent)' 
+                              : 'none',
+                          }}
+                        >
+                          {isPassed ? (
+                            <Check className="w-4 h-4 font-black" />
+                          ) : isCurrent ? (
+                            <Star className="w-4 h-4 fill-white" />
+                          ) : (
+                            <Lock className="w-3.5 h-3.5" />
+                          )}
+                        </div>
+
+                        {/* Step Card Content */}
+                        <div 
+                          className={`flex-1 rounded-xl p-4 border transition-all ${
+                            isCurrent 
+                              ? 'shadow-md' 
+                              : isNextToEarn
+                              ? 'border-dashed'
+                              : ''
+                          }`}
+                          style={{
+                            backgroundColor: isCurrent 
+                              ? 'color-mix(in srgb, var(--color-primary) 5%, var(--color-surface-elevated))'
+                              : 'var(--color-surface-elevated)',
+                            borderColor: isCurrent 
+                              ? 'var(--color-primary)'
+                              : 'var(--color-border-default)',
+                            boxShadow: isCurrent 
+                              ? '0 4px 12px color-mix(in srgb, var(--color-primary) 8%, transparent)'
+                              : 'none',
+                          }}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <LevelBadge level={threshold.level} size="sm" showLabel={true} />
+                              {isCurrent && (
+                                <span 
+                                  className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full" 
+                                  style={{ 
+                                    color: 'var(--color-primary)', 
+                                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 12%, transparent)' 
+                                  }}
+                                >
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--color-text-secondary)' }}>
+                              {threshold.minPoints.toLocaleString()}{threshold.maxPoints === Infinity ? '+' : ` - ${threshold.maxPoints.toLocaleString()}`} pts
+                            </span>
+                          </div>
+
+                          {/* Progress text for current level */}
+                          {isCurrent && threshold.maxPoints !== Infinity && (
+                            <div className="mt-3">
+                              <div className="flex justify-between text-[11px] mb-1 font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                                <span>Level Progress</span>
+                                <span>{stats.points.toLocaleString()} / {threshold.maxPoints.toLocaleString()} pts</span>
+                              </div>
+                              <div 
+                                className="w-full h-1.5 rounded-full overflow-hidden" 
+                                style={{ backgroundColor: 'var(--color-border-default)' }}
+                              >
+                                <div 
+                                  className="h-full rounded-full"
+                                  style={{ 
+                                    width: `${progressPercent}%`,
+                                    backgroundColor: 'var(--color-primary)',
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div 
+                className="p-5 border-t bg-gray-50/50 dark:bg-gray-950/20 text-center"
+                style={{ borderColor: 'var(--color-border-default)' }}
+              >
+                <button
+                  onClick={() => setShowLadder(false)}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:brightness-105 active:scale-98"
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                  }}
+                >
+                  Got it, close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

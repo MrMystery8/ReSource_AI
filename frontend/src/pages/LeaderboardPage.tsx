@@ -54,10 +54,20 @@ const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string
     bg: 'bg-emerald-500/10',
     border: 'border-emerald-500/30',
   },
-  Salvager: {
+  'Eco-Sorter': {
+    text: 'text-teal-400',
+    bg: 'bg-teal-500/10',
+    border: 'border-teal-500/30',
+  },
+  'Resource Salvager': {
     text: 'text-blue-400',
     bg: 'bg-blue-500/10',
     border: 'border-blue-500/30',
+  },
+  'Triage Specialist': {
+    text: 'text-indigo-400',
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/30',
   },
   'E-Waste Champion': {
     text: 'text-purple-400',
@@ -68,6 +78,11 @@ const LEVEL_COLORS: Record<UserLevel, { text: string; bg: string; border: string
     text: 'text-amber-400',
     bg: 'bg-amber-500/10',
     border: 'border-amber-500/30',
+  },
+  'Eco-Legend': {
+    text: 'text-rose-400',
+    bg: 'bg-rose-500/10',
+    border: 'border-rose-500/30',
   },
 };
 

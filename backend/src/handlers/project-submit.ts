@@ -1,10 +1,11 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, HeadObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { ErrorResponse } from '@resource-ai/shared';
 import { BedrockClient } from '../bedrock-client';
 import { gradeToPoints } from '../grading/grade-points';
+import { calculateLevel } from '../gamification/gamification-service';
 
 const PROJECTS_TABLE_NAME = process.env.PROJECTS_TABLE_NAME!;
 const USERS_TABLE_NAME = process.env.USERS_TABLE_NAME!;
@@ -48,6 +49,7 @@ interface SubmitProjectResponse {
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
   points: number;
   feedback: string;
+  newBadges: string[];
 }
 
 // --- Validation helpers ---
@@ -318,23 +320,70 @@ async function updateProjectSubmission(
   );
 }
 
-async function awardPointsToUser(userId: string, points: number): Promise<void> {
+async function awardPointsAndProjectBadges(
+  userId: string,
+  points: number,
+  grade: 'A' | 'B' | 'C' | 'D' | 'F'
+): Promise<string[]> {
+  const userResult = await docClient.send(
+    new GetCommand({
+      TableName: USERS_TABLE_NAME,
+      Key: { userId },
+      ProjectionExpression: 'badges, completedProjectsCount, gradeAProjectsCount, points',
+    })
+  );
+
+  const userRecord = userResult.Item ?? {};
+  const currentBadges: string[] = userRecord.badges ?? [];
+  const completedProjectsCount = (userRecord.completedProjectsCount ?? 0) + 1;
+  const gradeAProjectsCount = (userRecord.gradeAProjectsCount ?? 0) + (grade === 'A' ? 1 : 0);
+  const currentPoints = userRecord.points ?? 0;
+  const newPoints = currentPoints + points;
+
+  const newBadges: string[] = [];
+  if (!currentBadges.includes('first-project') && completedProjectsCount >= 1) {
+    newBadges.push('first-project');
+  }
+  if (!currentBadges.includes('recycling-architect') && completedProjectsCount >= 5) {
+    newBadges.push('recycling-architect');
+  }
+  if (!currentBadges.includes('master-craftsman') && completedProjectsCount >= 10) {
+    newBadges.push('master-craftsman');
+  }
+  if (!currentBadges.includes('grade-a-artisan') && gradeAProjectsCount >= 1) {
+    newBadges.push('grade-a-artisan');
+  }
+
+  const allBadges = [...currentBadges, ...newBadges];
+  const newLevel = calculateLevel(newPoints);
+
   await docClient.send(
     new UpdateCommand({
       TableName: USERS_TABLE_NAME,
       Key: { userId },
-      UpdateExpression: `SET #points = if_not_exists(#points, :zero) + :points, #updatedAt = :updatedAt`,
+      UpdateExpression: `SET #points = :points, #level = :level, #badges = :badges, 
+        #completedProjectsCount = :completedProjectsCount, #gradeAProjectsCount = :gradeAProjectsCount, 
+        #updatedAt = :updatedAt`,
       ExpressionAttributeNames: {
         '#points': 'points',
+        '#level': 'level',
+        '#badges': 'badges',
+        '#completedProjectsCount': 'completedProjectsCount',
+        '#gradeAProjectsCount': 'gradeAProjectsCount',
         '#updatedAt': 'updatedAt',
       },
       ExpressionAttributeValues: {
-        ':points': points,
-        ':zero': 0,
+        ':points': newPoints,
+        ':level': newLevel,
+        ':badges': allBadges,
+        ':completedProjectsCount': completedProjectsCount,
+        ':gradeAProjectsCount': gradeAProjectsCount,
         ':updatedAt': new Date().toISOString(),
       },
     })
   );
+
+  return newBadges;
 }
 
 // --- Response helpers ---
@@ -517,16 +566,16 @@ export const handler = async (
       });
     }
 
-    // 10. Award points to user via DynamoDB UpdateCommand (add to user's total)
+    // 10. Award points and check/award project badges to user via DynamoDB
+    let newBadges: string[] = [];
     try {
-      await awardPointsToUser(userId, points);
+      newBadges = await awardPointsAndProjectBadges(userId, points, grade);
     } catch (err) {
-      // Log but don't fail the request — the grade was saved successfully
-      console.error('Failed to award points to user:', err);
+      console.error('Failed to award points and project badges to user:', err);
     }
 
     // 11. Return SubmitProjectResponse
-    const response: SubmitProjectResponse = { grade, points, feedback };
+    const response: SubmitProjectResponse = { grade, points, feedback, newBadges };
 
     console.log('Project submission graded successfully', {
       projectId: req.projectId,
