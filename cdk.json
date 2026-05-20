@@ -11,6 +11,7 @@
   },
   "context": {
     "authMode": "cognito",
+    "cognitoDomainPrefix": "resource-ai-auth-dev1",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": ["aws", "aws-cn"],
