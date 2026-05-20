@@ -6,10 +6,37 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import { Construct } from 'constructs';
 import * as path from 'path';
+
+function parseStringArrayContext(value: unknown, fallback: string[]): string[] {
+  if (Array.isArray(value)) {
+    const list = value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+    return list.length > 0 ? list : fallback;
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const trimmed = value.trim();
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        const list = parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+        return list.length > 0 ? list : fallback;
+      }
+    } catch {
+      const split = trimmed.split(',').map((item) => item.trim()).filter(Boolean);
+      if (split.length > 0) {
+        return split;
+      }
+    }
+  }
+
+  return fallback;
+}
 
 export class ResourceAiStack extends cdk.Stack {
   // Expose resources for use by subsequent tasks
@@ -21,9 +48,14 @@ export class ResourceAiStack extends cdk.Stack {
   public readonly api: apigateway.RestApi;
   public readonly apiKey: apigateway.IApiKey;
   public readonly distribution: cloudfront.Distribution;
+  public readonly authMode: 'legacy' | 'cognito';
 
   // Auth infrastructure
-  public readonly tokenAuthorizer: apigateway.TokenAuthorizer;
+  public readonly tokenAuthorizer?: apigateway.TokenAuthorizer;
+  public readonly cognitoUserPool?: cognito.UserPool;
+  public readonly cognitoUserPoolClient?: cognito.UserPoolClient;
+  public readonly cognitoUserPoolDomain?: cognito.UserPoolDomain;
+  public readonly cognitoAuthorizer?: apigateway.CognitoUserPoolsAuthorizer;
 
   // Lambda functions
   public readonly submitHandler: NodejsFunction;
@@ -49,6 +81,10 @@ export class ResourceAiStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    const requestedAuthMode = String(
+      this.node.tryGetContext('authMode') ?? process.env.RESOURCE_AI_AUTH_MODE ?? 'legacy'
+    ).toLowerCase();
+    this.authMode = requestedAuthMode === 'cognito' ? 'cognito' : 'legacy';
 
     // --- Task 2.1: DynamoDB Table and S3 Buckets ---
 
@@ -207,6 +243,7 @@ export class ResourceAiStack extends cdk.Stack {
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
         BUCKET_NAME: this.fileStorageBucket.bucketName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -221,31 +258,35 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         USERS_TABLE_NAME: this.usersTable.tableName,
+        BUCKET_NAME: this.fileStorageBucket.bucketName,
         JWT_SECRET: this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production',
+        AUTH_MODE: this.authMode,
       },
     });
 
     // --- Task 4.4: Lambda Authorizer ---
 
-    const jwtSecret = this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production';
+    if (this.authMode === 'legacy') {
+      const jwtSecret = this.node.tryGetContext('jwtSecret') || 'dev-jwt-secret-change-in-production';
 
-    const authorizerFunction = new NodejsFunction(this, 'AuthorizerFunction', {
-      functionName: 'resource-ai-authorizer',
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'handler',
-      entry: path.join(handlersDir, 'authorizer.ts'),
-      memorySize: 128,
-      timeout: cdk.Duration.seconds(10),
-      bundling: nodejsBundling,
-      environment: {
-        JWT_SECRET: jwtSecret,
-      },
-    });
+      const authorizerFunction = new NodejsFunction(this, 'AuthorizerFunction', {
+        functionName: 'resource-ai-authorizer',
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: path.join(handlersDir, 'authorizer.ts'),
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(10),
+        bundling: nodejsBundling,
+        environment: {
+          JWT_SECRET: jwtSecret,
+        },
+      });
 
-    this.tokenAuthorizer = new apigateway.TokenAuthorizer(this, 'JwtAuthorizer', {
-      handler: authorizerFunction,
-      resultsCacheTtl: cdk.Duration.seconds(300),
-    });
+      this.tokenAuthorizer = new apigateway.TokenAuthorizer(this, 'JwtAuthorizer', {
+        handler: authorizerFunction,
+        resultsCacheTtl: cdk.Duration.seconds(300),
+      });
+    }
 
     // AdminHandler Lambda
     this.adminHandler = new NodejsFunction(this, 'AdminHandler', {
@@ -273,6 +314,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         TABLE_NAME: this.sessionsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -347,6 +389,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -361,6 +404,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -375,6 +419,7 @@ export class ResourceAiStack extends cdk.Stack {
       bundling: nodejsBundling,
       environment: {
         PROJECTS_TABLE_NAME: this.projectsTable.tableName,
+        USERS_TABLE_NAME: this.usersTable.tableName,
       },
     });
 
@@ -399,15 +444,18 @@ export class ResourceAiStack extends cdk.Stack {
 
     // SubmitHandler: DynamoDB write + Lambda invoke (async invocation of PipelineOrchestrator)
     this.sessionsTable.grantWriteData(this.submitHandler);
+    this.usersTable.grantReadData(this.submitHandler);
     this.pipelineOrchestrator.grantInvoke(this.submitHandler);
 
     // PollHandler: DynamoDB read + S3 getObject (for pre-signed URLs)
     this.sessionsTable.grantReadData(this.pollHandler);
+    this.usersTable.grantReadData(this.pollHandler);
     this.fileStorageBucket.grantRead(this.pollHandler);
 
     // UploadHandler: S3 putObject + DynamoDB read (to check file count per session)
     this.fileStorageBucket.grantPut(this.uploadHandler);
     this.sessionsTable.grantReadData(this.uploadHandler);
+    this.usersTable.grantReadData(this.uploadHandler);
 
     // PipelineOrchestrator: DynamoDB read/write + S3 read/write + Bedrock InvokeModel
     this.sessionsTable.grantReadWriteData(this.pipelineOrchestrator);
@@ -420,9 +468,11 @@ export class ResourceAiStack extends cdk.Stack {
     // AuthHandler: DynamoDB read/write on users table + read on sessions table (for stats/session count)
     this.usersTable.grantReadWriteData(this.authHandler);
     this.sessionsTable.grantReadData(this.authHandler);
+    this.fileStorageBucket.grantReadWrite(this.authHandler);
 
     // SessionsHandler: DynamoDB read on sessions table
     this.sessionsTable.grantReadData(this.sessionsHandler);
+    this.usersTable.grantReadData(this.sessionsHandler);
 
     // LeaderboardHandler: DynamoDB read on users table
     this.usersTable.grantReadData(this.leaderboardHandler);
@@ -447,12 +497,15 @@ export class ResourceAiStack extends cdk.Stack {
 
     // ProjectsListHandler: DynamoDB read on projects table
     this.projectsTable.grantReadData(this.projectsListHandler);
+    this.usersTable.grantReadData(this.projectsListHandler);
 
     // ProjectUpdateHandler: DynamoDB read/write on projects table
     this.projectsTable.grantReadWriteData(this.projectUpdateHandler);
+    this.usersTable.grantReadData(this.projectUpdateHandler);
 
     // ProjectGetHandler: DynamoDB read on projects table
     this.projectsTable.grantReadData(this.projectGetHandler);
+    this.usersTable.grantReadData(this.projectGetHandler);
 
     // CommunityHandler: DynamoDB read/write on community table + read projects + read/write users + S3 read
     this.communityTable.grantReadWriteData(this.communityHandler);
@@ -496,6 +549,134 @@ export class ResourceAiStack extends cdk.Stack {
       apiKeySourceType: apigateway.ApiKeySourceType.HEADER,
     });
 
+    if (this.authMode === 'cognito') {
+      const callbackUrls = parseStringArrayContext(
+        this.node.tryGetContext('cognitoCallbackUrls'),
+        ['http://localhost:5173/auth/callback']
+      );
+      const logoutUrls = parseStringArrayContext(
+        this.node.tryGetContext('cognitoLogoutUrls'),
+        ['http://localhost:5173/login']
+      );
+
+      const cognitoPreSignUpHandler = new NodejsFunction(this, 'CognitoPreSignUpHandler', {
+        functionName: 'resource-ai-cognito-pre-signup-handler',
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: path.join(handlersDir, 'cognito-pre-signup.ts'),
+        memorySize: 128,
+        timeout: cdk.Duration.seconds(10),
+        bundling: nodejsBundling,
+      });
+
+      this.cognitoUserPool = new cognito.UserPool(this, 'ResourceAiUserPool', {
+        userPoolName: 'resource-ai-user-pool',
+        selfSignUpEnabled: true,
+        signInAliases: { email: true },
+        autoVerify: { email: true },
+        standardAttributes: {
+          email: { required: true, mutable: true },
+          fullname: { required: false, mutable: true },
+        },
+        passwordPolicy: {
+          minLength: 8,
+          requireDigits: true,
+          requireLowercase: true,
+          requireUppercase: true,
+          requireSymbols: false,
+        },
+        lambdaTriggers: {
+          preSignUp: cognitoPreSignUpHandler,
+        },
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      });
+
+      const supportedIdentityProviders = [cognito.UserPoolClientIdentityProvider.COGNITO];
+
+      const googleClientId = this.node.tryGetContext('googleClientId') as string | undefined;
+      const googleClientSecret = this.node.tryGetContext('googleClientSecret') as string | undefined;
+      let googleProvider: cognito.UserPoolIdentityProviderGoogle | undefined;
+      if (googleClientId && googleClientSecret) {
+        googleProvider = new cognito.UserPoolIdentityProviderGoogle(this, 'GoogleIdentityProvider', {
+          userPool: this.cognitoUserPool,
+          clientId: googleClientId,
+          clientSecretValue: cdk.SecretValue.unsafePlainText(googleClientSecret),
+          scopes: ['openid', 'email', 'profile'],
+          attributeMapping: {
+            email: cognito.ProviderAttribute.GOOGLE_EMAIL,
+            fullname: cognito.ProviderAttribute.GOOGLE_NAME,
+            profilePicture: cognito.ProviderAttribute.GOOGLE_PICTURE,
+          },
+        });
+        supportedIdentityProviders.push(cognito.UserPoolClientIdentityProvider.GOOGLE);
+      }
+
+      const appleClientId = this.node.tryGetContext('appleClientId') as string | undefined;
+      const appleTeamId = this.node.tryGetContext('appleTeamId') as string | undefined;
+      const appleKeyId = this.node.tryGetContext('appleKeyId') as string | undefined;
+      const applePrivateKey = this.node.tryGetContext('applePrivateKey') as string | undefined;
+      let appleProvider: cognito.UserPoolIdentityProviderApple | undefined;
+      if (appleClientId && appleTeamId && appleKeyId && applePrivateKey) {
+        appleProvider = new cognito.UserPoolIdentityProviderApple(this, 'AppleIdentityProvider', {
+          userPool: this.cognitoUserPool,
+          clientId: appleClientId,
+          teamId: appleTeamId,
+          keyId: appleKeyId,
+          privateKey: applePrivateKey,
+          scopes: ['name', 'email'],
+          attributeMapping: {
+            email: cognito.ProviderAttribute.APPLE_EMAIL,
+            fullname: cognito.ProviderAttribute.APPLE_NAME,
+          },
+        });
+        supportedIdentityProviders.push(cognito.UserPoolClientIdentityProvider.APPLE);
+      }
+
+      this.cognitoUserPoolClient = this.cognitoUserPool.addClient('ResourceAiUserPoolClient', {
+        userPoolClientName: 'resource-ai-web-client',
+        authFlows: { userPassword: true, userSrp: true },
+        generateSecret: false,
+        oAuth: {
+          callbackUrls,
+          logoutUrls,
+          flows: {
+            authorizationCodeGrant: true,
+          },
+          scopes: [cognito.OAuthScope.OPENID, cognito.OAuthScope.EMAIL, cognito.OAuthScope.PROFILE],
+        },
+        supportedIdentityProviders,
+      });
+
+      if (googleProvider) {
+        this.cognitoUserPoolClient.node.addDependency(googleProvider);
+      }
+      if (appleProvider) {
+        this.cognitoUserPoolClient.node.addDependency(appleProvider);
+      }
+      this.authHandler.addEnvironment('COGNITO_APP_CLIENT_ID', this.cognitoUserPoolClient.userPoolClientId);
+
+      const userPoolDomainPrefix =
+        (this.node.tryGetContext('cognitoDomainPrefix') as string | undefined) ??
+        `resource-ai-auth-${this.region.replace(/[^a-z0-9-]/g, '').slice(0, 20)}`;
+
+      this.cognitoUserPoolDomain = this.cognitoUserPool.addDomain('ResourceAiUserPoolDomain', {
+        cognitoDomain: { domainPrefix: userPoolDomainPrefix },
+      });
+
+      this.cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+        cognitoUserPools: [this.cognitoUserPool],
+      });
+
+      new cognito.CfnUserPoolGroup(this, 'ResourceAiUserGroup', {
+        userPoolId: this.cognitoUserPool.userPoolId,
+        groupName: 'user',
+      });
+      new cognito.CfnUserPoolGroup(this, 'ResourceAiManagerGroup', {
+        userPoolId: this.cognitoUserPool.userPoolId,
+        groupName: 'manager',
+      });
+    }
+
     // Gateway Responses: Add CORS headers to API Gateway error responses (4xx/5xx)
     // that bypass Lambda (e.g., authorizer denials, missing API keys, throttling).
     this.api.addGatewayResponse('Default4xx', {
@@ -535,11 +716,18 @@ export class ResourceAiStack extends cdk.Stack {
     const methodOptions: apigateway.MethodOptions = { apiKeyRequired: true };
 
     // Protected method options: API key + Lambda Authorizer (for authenticated endpoints)
-    const protectedMethodOptions: apigateway.MethodOptions = {
-      apiKeyRequired: true,
-      authorizer: this.tokenAuthorizer,
-      authorizationType: apigateway.AuthorizationType.CUSTOM,
-    };
+    const protectedMethodOptions: apigateway.MethodOptions =
+      this.authMode === 'cognito' && this.cognitoAuthorizer
+        ? {
+            apiKeyRequired: true,
+            authorizer: this.cognitoAuthorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+          }
+        : {
+            apiKeyRequired: true,
+            authorizer: this.tokenAuthorizer!,
+            authorizationType: apigateway.AuthorizationType.CUSTOM,
+          };
 
     // POST /upload — Upload device evidence file (protected)
     const uploadResource = this.api.root.addResource('upload');
@@ -587,6 +775,8 @@ export class ResourceAiStack extends cdk.Stack {
     const authProfileResource = authResource.addResource('profile');
     authProfileResource.addMethod('GET', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
     authProfileResource.addMethod('PUT', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
+    const authProfileAvatarUploadResource = authProfileResource.addResource('avatar-upload');
+    authProfileAvatarUploadResource.addMethod('POST', new apigateway.LambdaIntegration(this.authHandler), protectedMethodOptions);
 
     // GET /auth/stats — Protected (API key + authorizer)
     const authStatsResource = authResource.addResource('stats');
@@ -758,6 +948,437 @@ export class ResourceAiStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ApiKeyId', {
       value: this.apiKey.keyId,
       description: 'API Key ID (retrieve value from AWS Console or CLI)',
+    });
+
+    new cdk.CfnOutput(this, 'AuthMode', {
+      value: this.authMode,
+      description: 'Active authentication mode for this stack (legacy or cognito)',
+    });
+
+    if (this.authMode === 'cognito' && this.cognitoUserPool && this.cognitoUserPoolClient) {
+      new cdk.CfnOutput(this, 'CognitoUserPoolId', {
+        value: this.cognitoUserPool.userPoolId,
+        description: 'Cognito User Pool ID',
+      });
+      new cdk.CfnOutput(this, 'CognitoUserPoolClientId', {
+        value: this.cognitoUserPoolClient.userPoolClientId,
+        description: 'Cognito User Pool Client ID',
+      });
+      if (this.cognitoUserPoolDomain) {
+        new cdk.CfnOutput(this, 'CognitoHostedUiDomain', {
+          value: this.cognitoUserPoolDomain.baseUrl(),
+          description: 'Cognito hosted UI base URL',
+        });
+      }
+    }
+
+    // --- CloudWatch Dashboard ---
+    this.buildDashboard();
+  }
+
+  private buildDashboard(): void {
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    const fn = (f: NodejsFunction) => f.functionName!;
+
+    const lambdaInvocations = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Invocations',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+        label,
+      });
+
+    const lambdaErrors = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Errors',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+        label,
+        color: '#d62728',
+      });
+
+    const lambdaDuration = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Duration',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'p99',
+        period: cdk.Duration.minutes(5),
+        label,
+      });
+
+    const lambdaThrottles = (f: NodejsFunction, label: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/Lambda',
+        metricName: 'Throttles',
+        dimensionsMap: { FunctionName: fn(f) },
+        statistic: 'Sum',
+        period: cdk.Duration.minutes(5),
+        label,
+        color: '#ff7f0e',
+      });
+
+    const apiMetric = (metricName: string, stat: string, label: string, color?: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/ApiGateway',
+        metricName,
+        dimensionsMap: { ApiName: 'ReSource AI API', Stage: 'prod' },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+        label,
+        ...(color ? { color } : {}),
+      });
+
+    const dynamoMetric = (tableName: string, metricName: string, stat: string, label: string, color?: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/DynamoDB',
+        metricName,
+        dimensionsMap: { TableName: tableName },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+        label,
+        ...(color ? { color } : {}),
+      });
+
+    const cfMetric = (metricName: string, stat: string, label: string, color?: string) =>
+      new cloudwatch.Metric({
+        namespace: 'AWS/CloudFront',
+        metricName,
+        dimensionsMap: { DistributionId: this.distribution.distributionId, Region: 'Global' },
+        statistic: stat,
+        period: cdk.Duration.minutes(5),
+        label,
+        ...(color ? { color } : {}),
+      });
+
+    // ── Section header helper ─────────────────────────────────────────────────
+
+    const header = (title: string): cloudwatch.TextWidget =>
+      new cloudwatch.TextWidget({
+        markdown: `## ${title}`,
+        width: 24,
+        height: 1,
+      });
+
+    // ── Row 0: Title ──────────────────────────────────────────────────────────
+
+    const titleWidget = new cloudwatch.TextWidget({
+      markdown: [
+        '# 🌿 ReSource AI — Operations Dashboard',
+        `**Region:** ${this.region} &nbsp;|&nbsp; **Auth mode:** ${this.authMode} &nbsp;|&nbsp; **API:** [prod](https://console.aws.amazon.com/apigateway)`,
+        '',
+        'Refresh: 1 min &nbsp;|&nbsp; All Lambda durations are **p99** &nbsp;|&nbsp; Errors shown in red, throttles in orange',
+      ].join('\n'),
+      width: 24,
+      height: 2,
+    });
+
+    // ── Row 1: API Gateway overview ───────────────────────────────────────────
+
+    const apiRequestsWidget = new cloudwatch.GraphWidget({
+      title: 'API — Requests / 5 min',
+      left: [apiMetric('Count', 'Sum', 'Requests', '#1f77b4')],
+      width: 8,
+      height: 6,
+    });
+
+    const apiLatencyWidget = new cloudwatch.GraphWidget({
+      title: 'API — Latency p99 (ms)',
+      left: [
+        apiMetric('Latency', 'p99', 'p99 Latency', '#2ca02c'),
+        apiMetric('IntegrationLatency', 'p99', 'Integration p99', '#9467bd'),
+      ],
+      width: 8,
+      height: 6,
+    });
+
+    const api4xxWidget = new cloudwatch.GraphWidget({
+      title: 'API — 4xx / 5xx Errors',
+      left: [
+        apiMetric('4XXError', 'Sum', '4xx', '#ff7f0e'),
+        apiMetric('5XXError', 'Sum', '5xx', '#d62728'),
+      ],
+      width: 8,
+      height: 6,
+    });
+
+    // ── Row 2: CloudFront ─────────────────────────────────────────────────────
+
+    const cfRequestsWidget = new cloudwatch.GraphWidget({
+      title: 'CloudFront — Requests / 5 min',
+      left: [cfMetric('Requests', 'Sum', 'Requests', '#1f77b4')],
+      width: 8,
+      height: 6,
+    });
+
+    const cfBytesWidget = new cloudwatch.GraphWidget({
+      title: 'CloudFront — Bytes Downloaded',
+      left: [cfMetric('BytesDownloaded', 'Sum', 'Bytes', '#17becf')],
+      width: 8,
+      height: 6,
+    });
+
+    const cfErrorWidget = new cloudwatch.GraphWidget({
+      title: 'CloudFront — Error Rate %',
+      left: [
+        cfMetric('4xxErrorRate', 'Average', '4xx Rate', '#ff7f0e'),
+        cfMetric('5xxErrorRate', 'Average', '5xx Rate', '#d62728'),
+      ],
+      width: 8,
+      height: 6,
+    });
+
+    // ── Row 3: Core Lambda — Invocations ─────────────────────────────────────
+
+    const coreInvocationsWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — Invocations / 5 min',
+      left: [
+        lambdaInvocations(this.submitHandler, 'Submit'),
+        lambdaInvocations(this.pollHandler, 'Poll'),
+        lambdaInvocations(this.uploadHandler, 'Upload'),
+        lambdaInvocations(this.authHandler, 'Auth'),
+        lambdaInvocations(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const coreErrorsWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — Errors / 5 min',
+      left: [
+        lambdaErrors(this.submitHandler, 'Submit'),
+        lambdaErrors(this.pollHandler, 'Poll'),
+        lambdaErrors(this.uploadHandler, 'Upload'),
+        lambdaErrors(this.authHandler, 'Auth'),
+        lambdaErrors(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 4: Core Lambda — Duration & Throttles ─────────────────────────────
+
+    const coreDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — p99 Duration (ms)',
+      left: [
+        lambdaDuration(this.submitHandler, 'Submit'),
+        lambdaDuration(this.pollHandler, 'Poll'),
+        lambdaDuration(this.uploadHandler, 'Upload'),
+        lambdaDuration(this.authHandler, 'Auth'),
+        lambdaDuration(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const coreThrottlesWidget = new cloudwatch.GraphWidget({
+      title: 'Core Lambdas — Throttles / 5 min',
+      left: [
+        lambdaThrottles(this.submitHandler, 'Submit'),
+        lambdaThrottles(this.pollHandler, 'Poll'),
+        lambdaThrottles(this.uploadHandler, 'Upload'),
+        lambdaThrottles(this.authHandler, 'Auth'),
+        lambdaThrottles(this.sessionsHandler, 'Sessions'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 5: Pipeline ───────────────────────────────────────────────────────
+
+    const pipelineWidget = new cloudwatch.GraphWidget({
+      title: 'Pipeline Orchestrator — Invocations & Errors',
+      left: [lambdaInvocations(this.pipelineOrchestrator, 'Invocations')],
+      right: [lambdaErrors(this.pipelineOrchestrator, 'Errors')],
+      width: 12,
+      height: 6,
+    });
+
+    const pipelineDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Pipeline Orchestrator — p99 Duration (ms)',
+      left: [lambdaDuration(this.pipelineOrchestrator, 'Duration p99')],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 6: Gamification Lambdas ───────────────────────────────────────────
+
+    const gamificationInvocationsWidget = new cloudwatch.GraphWidget({
+      title: 'Gamification Lambdas — Invocations / 5 min',
+      left: [
+        lambdaInvocations(this.guideGenerateHandler, 'Guide Generate'),
+        lambdaInvocations(this.guideChatHandler, 'Guide Chat'),
+        lambdaInvocations(this.projectSubmitHandler, 'Project Submit'),
+        lambdaInvocations(this.projectsListHandler, 'Projects List'),
+        lambdaInvocations(this.projectUpdateHandler, 'Project Update'),
+        lambdaInvocations(this.projectGetHandler, 'Project Get'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const gamificationErrorsWidget = new cloudwatch.GraphWidget({
+      title: 'Gamification Lambdas — Errors / 5 min',
+      left: [
+        lambdaErrors(this.guideGenerateHandler, 'Guide Generate'),
+        lambdaErrors(this.guideChatHandler, 'Guide Chat'),
+        lambdaErrors(this.projectSubmitHandler, 'Project Submit'),
+        lambdaErrors(this.projectsListHandler, 'Projects List'),
+        lambdaErrors(this.projectUpdateHandler, 'Project Update'),
+        lambdaErrors(this.projectGetHandler, 'Project Get'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 7: Gamification Duration ──────────────────────────────────────────
+
+    const gamificationDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Gamification Lambdas — p99 Duration (ms)',
+      left: [
+        lambdaDuration(this.guideGenerateHandler, 'Guide Generate'),
+        lambdaDuration(this.guideChatHandler, 'Guide Chat'),
+        lambdaDuration(this.projectSubmitHandler, 'Project Submit'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const communityWidget = new cloudwatch.GraphWidget({
+      title: 'Community Lambda — Invocations & Errors',
+      left: [lambdaInvocations(this.communityHandler, 'Invocations')],
+      right: [lambdaErrors(this.communityHandler, 'Errors')],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 8: DynamoDB ───────────────────────────────────────────────────────
+
+    const dynamoReadWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — Consumed Read Capacity',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'ConsumedReadCapacityUnits', 'Sum', 'Sessions', '#1f77b4'),
+        dynamoMetric('resource-ai-users', 'ConsumedReadCapacityUnits', 'Sum', 'Users', '#2ca02c'),
+        dynamoMetric('resource-ai-projects', 'ConsumedReadCapacityUnits', 'Sum', 'Projects', '#9467bd'),
+        dynamoMetric('resource-ai-community', 'ConsumedReadCapacityUnits', 'Sum', 'Community', '#8c564b'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const dynamoWriteWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — Consumed Write Capacity',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'ConsumedWriteCapacityUnits', 'Sum', 'Sessions', '#1f77b4'),
+        dynamoMetric('resource-ai-users', 'ConsumedWriteCapacityUnits', 'Sum', 'Users', '#2ca02c'),
+        dynamoMetric('resource-ai-projects', 'ConsumedWriteCapacityUnits', 'Sum', 'Projects', '#9467bd'),
+        dynamoMetric('resource-ai-community', 'ConsumedWriteCapacityUnits', 'Sum', 'Community', '#8c564b'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 9: DynamoDB Errors & Latency ─────────────────────────────────────
+
+    const dynamoErrorWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — System Errors',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'SystemErrors', 'Sum', 'Sessions', '#d62728'),
+        dynamoMetric('resource-ai-users', 'SystemErrors', 'Sum', 'Users', '#ff7f0e'),
+        dynamoMetric('resource-ai-projects', 'SystemErrors', 'Sum', 'Projects', '#9467bd'),
+        dynamoMetric('resource-ai-community', 'SystemErrors', 'Sum', 'Community', '#8c564b'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const dynamoLatencyWidget = new cloudwatch.GraphWidget({
+      title: 'DynamoDB — Successful Request Latency (ms)',
+      left: [
+        dynamoMetric('resource-ai-sessions', 'SuccessfulRequestLatency', 'p99', 'Sessions p99', '#1f77b4'),
+        dynamoMetric('resource-ai-users', 'SuccessfulRequestLatency', 'p99', 'Users p99', '#2ca02c'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Row 10: Admin & Leaderboard ───────────────────────────────────────────
+
+    const adminLeaderboardWidget = new cloudwatch.GraphWidget({
+      title: 'Admin & Leaderboard — Invocations & Errors',
+      left: [
+        lambdaInvocations(this.adminHandler, 'Admin'),
+        lambdaInvocations(this.leaderboardHandler, 'Leaderboard'),
+      ],
+      right: [
+        lambdaErrors(this.adminHandler, 'Admin Errors'),
+        lambdaErrors(this.leaderboardHandler, 'Leaderboard Errors'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    const adminLeaderboardDurationWidget = new cloudwatch.GraphWidget({
+      title: 'Admin & Leaderboard — p99 Duration (ms)',
+      left: [
+        lambdaDuration(this.adminHandler, 'Admin'),
+        lambdaDuration(this.leaderboardHandler, 'Leaderboard'),
+      ],
+      width: 12,
+      height: 6,
+    });
+
+    // ── Assemble dashboard ────────────────────────────────────────────────────
+
+    const dashboardName = `${this.stackName}-Operations`;
+    new cloudwatch.Dashboard(this, 'ResourceAiDashboard', {
+      dashboardName,
+      defaultInterval: cdk.Duration.hours(3),
+      widgets: [
+        // Title
+        [titleWidget],
+
+        // API Gateway
+        [header('🌐 API Gateway')],
+        [apiRequestsWidget, apiLatencyWidget, api4xxWidget],
+
+        // CloudFront
+        [header('☁️ CloudFront (Frontend CDN)')],
+        [cfRequestsWidget, cfBytesWidget, cfErrorWidget],
+
+        // Core Lambdas
+        [header('⚡ Core Lambda Functions')],
+        [coreInvocationsWidget, coreErrorsWidget],
+        [coreDurationWidget, coreThrottlesWidget],
+
+        // Pipeline
+        [header('🔬 AI Pipeline (Bedrock)')],
+        [pipelineWidget, pipelineDurationWidget],
+
+        // Gamification
+        [header('🎮 Gamification & Projects')],
+        [gamificationInvocationsWidget, gamificationErrorsWidget],
+        [gamificationDurationWidget, communityWidget],
+
+        // Admin & Leaderboard
+        [header('🛡️ Admin & Leaderboard')],
+        [adminLeaderboardWidget, adminLeaderboardDurationWidget],
+
+        // DynamoDB
+        [header('🗄️ DynamoDB')],
+        [dynamoReadWidget, dynamoWriteWidget],
+        [dynamoErrorWidget, dynamoLatencyWidget],
+      ],
+    });
+
+    new cdk.CfnOutput(this, 'DashboardUrl', {
+      value: `https://${this.region}.console.aws.amazon.com/cloudwatch/home?region=${this.region}#dashboards:name=${dashboardName}`,
+      description: 'CloudWatch Operations Dashboard URL',
     });
   }
 }

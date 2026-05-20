@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus, Eye, EyeOff, AlertCircle, X } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, X } from 'lucide-react';
 import { AuthPanelBadge } from '../components/auth/AuthPanelBadge';
+import { GoogleLogo } from '../components/icons/GoogleLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -39,7 +40,7 @@ const itemVariants = {
 } as const;
 
 export function RegisterPage() {
-  const { register, isAuthenticated } = useAuth();
+  const { register, isAuthenticated, authMode, loginWithProvider } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
@@ -66,7 +67,7 @@ export function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/triage', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -166,7 +167,7 @@ export function RegisterPage() {
 
     try {
       await register(formData.email, formData.password, formData.displayName.trim());
-      navigate('/', { replace: true });
+      navigate('/triage', { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
       // Check for 409 conflict (email already registered)
@@ -177,6 +178,15 @@ export function RegisterPage() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleCognitoStart = async (provider?: 'Google' | 'SignInWithApple') => {
+    setToast(null);
+    try {
+      await loginWithProvider(provider, '/triage');
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Failed to start Cognito registration');
     }
   };
 
@@ -213,7 +223,9 @@ export function RegisterPage() {
                 Create Account
               </h1>
               <p className="text-sm mt-1" style={{ color: 'rgba(255, 255, 255, 0.82)' }}>
-                Join ReSource AI and start your recycling journey
+                {authMode === 'cognito'
+                  ? 'Create an email account, or use a provider below'
+                  : 'Join ReSource AI and start your recycling journey'}
               </p>
             </motion.div>
 
@@ -433,6 +445,26 @@ export function RegisterPage() {
                 Create Account
               </Button>
             </motion.div>
+
+            {authMode === 'cognito' && (
+              <motion.div variants={itemVariants} className="mt-4 pt-4 border-t border-white/10">
+                <p className="text-center text-xs mb-3" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+                  Or continue with
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="flex-1 !min-h-[46px] !py-2 !text-sm"
+                    leftIcon={<GoogleLogo className="w-4 h-4" />}
+                    onClick={() => { void handleCognitoStart('Google'); }}
+                  >
+                    Google
+                  </Button>
+                </div>
+              </motion.div>
+            )}
 
             {/* Link to Login */}
             <motion.p

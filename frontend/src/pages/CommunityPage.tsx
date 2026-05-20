@@ -22,6 +22,7 @@ import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Avatar } from '../components/ui/Avatar';
 import type {
   CommunityPost,
   CommunityComment,
@@ -46,16 +47,15 @@ const GRADE_STYLES: Record<string, { color: string; bg: string; border: string }
 function CommunityPostCard({
   post,
   onVote,
-  onToggleComments,
-  isCommentsOpen,
+  apiClient,
 }: {
   post: CommunityPost;
   onVote: (postId: string, vote: VoteType) => void;
-  onToggleComments: (postId: string) => void;
-  isCommentsOpen: boolean;
+  apiClient: ApiClient;
 }) {
   const gradeStyle = GRADE_STYLES[post.grade] ?? GRADE_STYLES.C;
   const netVotes = post.upvotes - post.downvotes;
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
 
   return (
     <motion.div
@@ -68,17 +68,12 @@ function CommunityPostCard({
         <div className="p-4 pb-3">
           <div className="flex items-center gap-3">
             {/* Avatar */}
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-              style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
-              aria-hidden="true"
-            >
-              {post.displayName
-                .split(' ')
-                .slice(0, 2)
-                .map((w) => w[0]?.toUpperCase())
-                .join('')}
-            </div>
+            <Avatar
+              name={post.displayName}
+              src={post.avatarUrl}
+              sizeClassName="w-9 h-9"
+              textClassName="text-xs"
+            />
 
             <div className="flex-1 min-w-0">
               <p
@@ -88,26 +83,44 @@ function CommunityPostCard({
                 {post.displayName}
               </p>
               <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
-                {new Date(post.createdAt).toLocaleDateString('en-US', {
+                {new Date(post.createdAt).toLocaleString('en-US', {
                   month: 'short',
                   day: 'numeric',
                   year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  second: '2-digit',
                 })}
               </p>
             </div>
 
             {/* Grade badge */}
-            <span
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-              style={{
-                color: gradeStyle.color,
-                backgroundColor: gradeStyle.bg,
-                border: `1px solid ${gradeStyle.border}`,
-              }}
-            >
-              <Trophy className="w-3 h-3" aria-hidden="true" />
-              Grade {post.grade}
-            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              {post.userLevel && (
+                <span
+                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
+                  style={{
+                    color: 'var(--color-primary)',
+                    backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--color-primary) 28%, transparent)',
+                  }}
+                  aria-label={`User level: ${post.userLevel}`}
+                >
+                  {post.userLevel}
+                </span>
+              )}
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+                style={{
+                  color: gradeStyle.color,
+                  backgroundColor: gradeStyle.bg,
+                  border: `1px solid ${gradeStyle.border}`,
+                }}
+              >
+                <Trophy className="w-3 h-3" aria-hidden="true" />
+                Grade {post.grade}
+              </span>
+            </div>
           </div>
 
           {/* Project title */}
@@ -224,22 +237,23 @@ function CommunityPostCard({
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Comments toggle */}
           <button
             type="button"
-            onClick={() => onToggleComments(post.postId)}
+            onClick={() => setIsCommentsOpen((prev) => !prev)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors min-h-[36px]"
             style={{
               color: isCommentsOpen ? 'var(--color-primary)' : 'var(--color-text-muted)',
               backgroundColor: isCommentsOpen
                 ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)'
-                : 'transparent',
+                : 'var(--color-surface-elevated)',
             }}
-            aria-expanded={isCommentsOpen}
             aria-label={`Comments (${post.commentCount})`}
+            aria-expanded={isCommentsOpen}
           >
             <MessageCircle className="w-4 h-4" />
-            <span className="text-xs font-medium tabular-nums">{post.commentCount}</span>
+            <span className="text-xs font-medium tabular-nums">
+              {isCommentsOpen ? 'Hide comments' : `View comments (${post.commentCount})`}
+            </span>
             {isCommentsOpen ? (
               <ChevronUp className="w-3.5 h-3.5" />
             ) : (
@@ -247,6 +261,14 @@ function CommunityPostCard({
             )}
           </button>
         </div>
+
+        <AnimatePresence>
+          <CommentsSection
+            postId={post.postId}
+            apiClient={apiClient}
+            isExpanded={isCommentsOpen}
+          />
+        </AnimatePresence>
       </Card>
     </motion.div>
   );
@@ -257,9 +279,11 @@ function CommunityPostCard({
 function CommentsSection({
   postId,
   apiClient,
+  isExpanded,
 }: {
   postId: string;
   apiClient: ApiClient;
+  isExpanded: boolean;
 }) {
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -297,12 +321,7 @@ function CommentsSection({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
-      className="overflow-hidden"
-    >
+    <div className="overflow-hidden">
       <div
         className="px-4 pb-4 pt-1 space-y-3"
         style={{ borderTop: '1px solid var(--color-border-subtle)' }}
@@ -349,59 +368,69 @@ function CommentsSection({
         </div>
 
         {/* Comments list */}
-        {isLoading ? (
-          <div className="space-y-2">
-            {[1, 2].map((i) => (
-              <Skeleton key={i} variant="rectangular" height={48} />
-            ))}
-          </div>
-        ) : comments.length === 0 ? (
-          <p className="text-xs text-center py-3" style={{ color: 'var(--color-text-muted)' }}>
-            No comments yet. Be the first to comment!
-          </p>
-        ) : (
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
-            {comments.map((comment) => (
-              <div
-                key={comment.commentId}
-                className="flex gap-2 p-2.5 rounded-lg"
-                style={{ backgroundColor: 'var(--color-surface-elevated)' }}
-              >
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-                  style={{ backgroundColor: 'var(--color-primary)', color: '#fff' }}
-                  aria-hidden="true"
-                >
-                  {comment.displayName[0]?.toUpperCase()}
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              {isLoading ? (
+                <div className="space-y-2">
+                  {[1, 2].map((i) => (
+                    <Skeleton key={i} variant="rectangular" height={48} />
+                  ))}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: 'var(--color-text-primary)' }}
+              ) : comments.length === 0 ? (
+                <p className="text-xs text-center py-3" style={{ color: 'var(--color-text-muted)' }}>
+                  No comments yet. Be the first to comment!
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {comments.map((comment) => (
+                    <div
+                      key={comment.commentId}
+                      className="flex gap-2 p-2.5 rounded-lg"
+                      style={{ backgroundColor: 'var(--color-surface-elevated)' }}
                     >
-                      {comment.displayName}
-                    </span>
-                    <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
-                      {new Date(comment.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                  <p
-                    className="text-xs mt-0.5 leading-relaxed"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                  >
-                    {comment.text}
-                  </p>
+                      <Avatar
+                        name={comment.displayName}
+                        src={comment.avatarUrl}
+                        sizeClassName="w-6 h-6"
+                        textClassName="text-[10px]"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="text-xs font-semibold"
+                            style={{ color: 'var(--color-text-primary)' }}
+                          >
+                            {comment.displayName}
+                          </span>
+                          <span className="text-[10px]" style={{ color: 'var(--color-text-muted)' }}>
+                            {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                        <p
+                          className="text-xs mt-0.5 leading-relaxed"
+                          style={{ color: 'var(--color-text-secondary)' }}
+                        >
+                          {comment.text}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -413,7 +442,6 @@ export function CommunityPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'recent' | 'top'>('recent');
-  const [openComments, setOpenComments] = useState<Set<string>>(new Set());
 
   const apiClient = new ApiClient(API_URL, API_KEY, () => token);
 
@@ -454,18 +482,6 @@ export function CommunityPage() {
     } catch {
       // silently fail
     }
-  };
-
-  const toggleComments = (postId: string) => {
-    setOpenComments((prev) => {
-      const next = new Set(prev);
-      if (next.has(postId)) {
-        next.delete(postId);
-      } else {
-        next.add(postId);
-      }
-      return next;
-    });
   };
 
   return (
@@ -559,16 +575,8 @@ export function CommunityPage() {
               <CommunityPostCard
                 post={post}
                 onVote={handleVote}
-                onToggleComments={toggleComments}
-                isCommentsOpen={openComments.has(post.postId)}
+                apiClient={apiClient}
               />
-              <AnimatePresence>
-                {openComments.has(post.postId) && (
-                  <Card elevation="sm" className="mt-1 overflow-hidden">
-                    <CommentsSection postId={post.postId} apiClient={apiClient} />
-                  </Card>
-                )}
-              </AnimatePresence>
             </div>
           ))}
         </div>

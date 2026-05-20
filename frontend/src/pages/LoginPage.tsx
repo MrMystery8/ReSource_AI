@@ -3,13 +3,14 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, AlertCircle } from 'lucide-react';
 import { AuthPanelBadge } from '../components/auth/AuthPanelBadge';
+import { GoogleLogo } from '../components/icons/GoogleLogo';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
 export function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, authMode, loginWithProvider } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,15 +19,14 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Determine where to redirect after login
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/triage';
 
-  // If already authenticated, redirect immediately
   if (isAuthenticated) {
     navigate(from, { replace: true });
   }
 
   const isFormValid = email.trim().length > 0 && password.trim().length > 0;
+
   const fieldLabelStyle = { color: '#ffffff' } as const;
   const fieldInputStyle = {
     color: '#ffffff',
@@ -51,6 +51,15 @@ export function LoginPage() {
     }
   };
 
+  const handleCognitoLogin = async (provider?: 'Google' | 'SignInWithApple') => {
+    setError('');
+    try {
+      await loginWithProvider(provider, from);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to start Cognito sign-in');
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -60,23 +69,20 @@ export function LoginPage() {
       className="flex items-center justify-center min-h-[70vh]"
     >
       <Card surface="analysis" elevation="md" className="p-8 w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1, duration: 0.3 }}>
             <AuthPanelBadge />
           </motion.div>
-          <h1
-            className="text-3xl font-bold tracking-tight sm:text-4xl"
-            style={{ color: '#ffffff' }}
-          >
-            Welcome Back
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl" style={{ color: '#ffffff' }}>
+            {authMode === 'cognito' ? 'Sign In' : 'Welcome Back'}
           </h1>
           <p className="mt-1 text-sm" style={{ color: 'rgba(255, 255, 255, 0.84)' }}>
-            Sign in to continue your recycling journey
+            {authMode === 'cognito'
+              ? 'Sign in with your email password, or choose a provider below'
+              : 'Sign in to continue your recycling journey'}
           </p>
         </div>
 
-        {/* Error message */}
         {error && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -93,9 +99,7 @@ export function LoginPage() {
           </motion.div>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email field */}
           <Input
             label="Email"
             id="email"
@@ -109,21 +113,19 @@ export function LoginPage() {
             className="placeholder:text-white/40"
           />
 
-          {/* Password field */}
           <Input
             label="Password"
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder="********"
             autoComplete="current-password"
             labelStyle={fieldLabelStyle}
             inputStyle={fieldInputStyle}
             className="placeholder:text-white/40"
           />
 
-          {/* Submit button */}
           <Button
             type="submit"
             variant="primary"
@@ -132,11 +134,32 @@ export function LoginPage() {
             className="w-full !bg-[#34d399] !text-[#02130e] hover:!bg-[#6ee7b7]"
             leftIcon={!isSubmitting ? <LogIn className="w-4 h-4" /> : undefined}
           >
-            Sign In
+            {authMode === 'cognito' ? 'Continue with Email' : 'Sign In'}
           </Button>
         </form>
 
-        {/* Register link */}
+        {authMode === 'cognito' && (
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <p className="text-center text-xs mb-3" style={{ color: 'rgba(255, 255, 255, 0.65)' }}>
+              Or continue with
+            </p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="flex-1 !min-h-[46px] !py-2 !text-sm"
+                leftIcon={<GoogleLogo className="w-4 h-4" />}
+                onClick={() => {
+                  void handleCognitoLogin('Google');
+                }}
+              >
+                Google
+              </Button>
+            </div>
+          </div>
+        )}
+
         <p className="text-center text-sm mt-6" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
           Don&apos;t have an account?{' '}
           <Link

@@ -1,7 +1,8 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { Navigate, createBrowserRouter } from 'react-router-dom';
 import App from './App';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { TriagePage } from './pages/TriagePage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SessionDetailPage } from './pages/SessionDetailPage';
@@ -11,6 +12,8 @@ import { AdminPage } from './pages/AdminPage';
 import { ImplementationGuidePage } from './pages/ImplementationGuidePage';
 import { CommunityPage } from './pages/CommunityPage';
 import { LandingPage } from './pages/LandingPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { HomePage } from './pages/HomePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ManagerRoute } from './components/auth/ManagerRoute';
 
@@ -25,6 +28,10 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <HomePage />,
+      },
+      {
+        path: 'triage',
         element: (
           <ProtectedRoute>
             <TriagePage />
@@ -38,6 +45,10 @@ export const router = createBrowserRouter([
       {
         path: 'register',
         element: <RegisterPage />,
+      },
+      {
+        path: 'auth/callback',
+        element: <AuthCallbackPage />,
       },
       {
         path: 'history',
@@ -96,6 +107,14 @@ export const router = createBrowserRouter([
             <CommunityPage />
           </ProtectedRoute>
         ),
+      },
+      {
+        path: 'legal/privacy',
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        path: 'privacy-policy',
+        element: <Navigate to="/legal/privacy" replace />,
       },
     ],
   },

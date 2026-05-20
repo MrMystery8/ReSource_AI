@@ -10,11 +10,14 @@ import {
   TriageSession,
   ErrorResponse,
 } from '@resource-ai/shared';
+import { UserStore } from '../auth/user-store';
+import { resolveAuthenticatedUserId } from '../auth/request-identity';
 
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
+const userStore = new UserStore();
 
 const CORS_HEADERS = {
   'Content-Type': 'application/json',
@@ -36,8 +39,7 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     // Extract userId from authorizer context
-    const userId = event.requestContext.authorizer?.lambda?.userId as string | undefined
-      || event.requestContext.authorizer?.userId as string | undefined;
+    const userId = await resolveAuthenticatedUserId(event, userStore);
 
     if (!userId) {
       const errorResponse: ErrorResponse = {

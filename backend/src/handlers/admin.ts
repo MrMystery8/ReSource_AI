@@ -6,6 +6,7 @@ import {
   QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { UserStore } from '../auth/user-store';
+import { getRoleFromEvent } from '../auth/request-identity';
 import {
   UserProfile,
   UserRole,
@@ -55,8 +56,7 @@ function toUserProfile(user: { userId: string; email: string; displayName: strin
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
     // Check manager role from authorizer context
-    const authorizer = event.requestContext.authorizer;
-    const role = authorizer?.role as string | undefined;
+    const role = getRoleFromEvent(event);
 
     if (role !== 'manager') {
       return errorResponse(403, {

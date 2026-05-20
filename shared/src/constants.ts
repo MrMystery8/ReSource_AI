@@ -30,6 +30,7 @@ export const DYNAMODB_MAX_RETRIES = 3;
 export const MAX_INPUT_LENGTH = 5_000;
 export const MAX_FIELD_LENGTH = 2_000;
 export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+export const MAX_AVATAR_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const MAX_FILES_PER_SESSION = 5;
 export const MIN_EVIDENCE_CHAR_THRESHOLD = 50;
 

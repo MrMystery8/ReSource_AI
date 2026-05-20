@@ -191,6 +191,41 @@ The AI analysis runs through these stages in order:
 |---|---|
 | `VITE_API_URL` | Backend API Gateway URL |
 | `VITE_API_KEY` | API Gateway authentication key |
+| `VITE_AUTH_MODE` | `legacy` (default) or `cognito` |
+| `VITE_COGNITO_DOMAIN` | Cognito hosted UI domain (required for `cognito` mode) |
+| `VITE_COGNITO_APP_CLIENT_ID` | Cognito app client ID (required for `cognito` mode) |
+| `VITE_COGNITO_REDIRECT_SIGN_IN` | Cognito callback URL, e.g. `http://localhost:5173/auth/callback` |
+| `VITE_COGNITO_REDIRECT_SIGN_OUT` | Post-logout URL, e.g. `http://localhost:5173/login` |
+
+### Auth Modes and Rollback
+
+The project now supports two authentication modes:
+
+- **`legacy`**: Existing email/password + custom JWT Lambda authorizer flow.
+- **`cognito`**: Cognito User Pool + hosted login flow (email/social providers).
+
+For local frontend rollback, switch:
+
+```bash
+VITE_AUTH_MODE=legacy
+```
+
+For infrastructure rollback, deploy with:
+
+```bash
+npx cdk deploy -c authMode=legacy
+```
+
+To enable Cognito in infrastructure:
+
+```bash
+npx cdk deploy -c authMode=cognito
+```
+
+Optional provider contexts for Cognito social login:
+
+- Google: `googleClientId`, `googleClientSecret`
+- Apple: `appleClientId`, `appleTeamId`, `appleKeyId`, `applePrivateKey`
 
 ## License
 
