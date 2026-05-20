@@ -111,7 +111,7 @@ function ProjectIdeaCard({
         />
 
         <div className="relative flex h-full flex-col">
-          <div className="flex h-[41%] flex-col justify-between px-5 pb-4 pt-5">
+          <div className="px-5 pb-4 pt-5">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-2 pr-2">
                 <span
@@ -134,8 +134,8 @@ function ProjectIdeaCard({
             </div>
 
             <p
-              className="max-w-[30ch] text-sm leading-relaxed text-white/85 overflow-hidden"
-              style={{ display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical' }}
+              className="mt-3 max-w-[30ch] text-sm leading-relaxed text-white/85 overflow-hidden"
+              style={{ display: '-webkit-box', WebkitLineClamp: 8, WebkitBoxOrient: 'vertical' }}
             >
               {idea.description}
             </p>
