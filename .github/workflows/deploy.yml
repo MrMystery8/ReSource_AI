@@ -69,6 +69,11 @@ jobs:
         env:
           VITE_API_URL: https://9rx4ve8q89.execute-api.ap-southeast-1.amazonaws.com/prod
           VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+          VITE_AUTH_MODE: cognito
+          VITE_COGNITO_DOMAIN: https://resource-ai-auth-dev1.auth.ap-southeast-1.amazoncognito.com
+          VITE_COGNITO_APP_CLIENT_ID: 7muh97ed5g0a9lq2hjo7ocmaeh
+          VITE_COGNITO_REDIRECT_SIGN_IN: https://du1pydjgrqi6x.cloudfront.net/auth/callback
+          VITE_COGNITO_REDIRECT_SIGN_OUT: https://du1pydjgrqi6x.cloudfront.net/login
           VITE_LANDING_VIDEO_URL: https://resource-ai-media-714799286226-ap-southeast-1.s3.ap-southeast-1.amazonaws.com/landing/video/laptop-to-project.mp4
 
       - name: Configure AWS credentials
