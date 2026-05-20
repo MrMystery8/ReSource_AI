@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Cpu, Recycle, Wrench, Sparkles } from 'lucide-react';
+import { ArrowRight, Cpu, Recycle, Wrench } from 'lucide-react';
+import { SITE_LOGO_URL } from '../lib/siteAssets';
 
 const FEATURE_ITEMS = [
   {
@@ -84,16 +85,18 @@ export function HomePage() {
           transition={{ duration: 0.45, ease: 'easeOut' }}
           className="mx-auto w-full max-w-4xl text-center"
         >
-          <div
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs tracking-[0.14em] uppercase"
-            style={{
-              color: 'var(--color-text-secondary)',
-              backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 78%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--color-primary) 26%, transparent)',
-            }}
-          >
-            <Sparkles className="h-3.5 w-3.5" style={{ color: 'var(--color-primary)' }} />
-            ReSource AI
+          <div className="inline-flex items-center gap-2.5 rounded-lg px-1 py-1">
+            <img
+              src={SITE_LOGO_URL}
+              alt=""
+              aria-hidden="true"
+              className="h-10 w-10 rounded-lg object-cover"
+              loading="eager"
+              decoding="async"
+            />
+            <span className="text-2xl font-semibold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+              ReSource AI
+            </span>
           </div>
 
           <h1
@@ -113,7 +116,7 @@ export function HomePage() {
           <div className="mx-auto mt-8 flex w-full max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/register"
-              className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl px-7 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.015]"
+              className="inline-flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl px-7 py-2.5 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:brightness-110"
               style={{
                 backgroundColor: 'var(--color-primary)',
                 color: '#04110d',
@@ -125,7 +128,7 @@ export function HomePage() {
             </Link>
             <Link
               to="/login"
-              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl px-6 py-2.5 text-sm font-medium transition-colors"
+              className="inline-flex min-h-[50px] w-full items-center justify-center rounded-xl px-6 py-2.5 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"
               style={{
                 color: 'var(--color-text-primary)',
                 backgroundColor: 'color-mix(in srgb, var(--color-surface-card) 76%, transparent)',

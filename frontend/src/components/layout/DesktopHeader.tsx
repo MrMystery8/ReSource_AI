@@ -8,12 +8,11 @@
  *  - Logo: "ReSource AI" with the brand image, no glow/animation
  *  - Horizontal nav links with icon + text label (NavLink active state)
  *  - Active item: primary color text + bg-primary/10 background
- *  - ThemeToggle button
  *  - User profile dropdown (avatar initials, display name, level badge, logout)
  *
  * Accessibility:
  *  - All interactive elements have visible focus rings (2–4px, primary color)
- *  - Tab order: logo → nav links (L→R) → theme toggle → profile trigger
+ *  - Tab order: logo → nav links (L→R) → profile trigger
  *  - Dropdown: focus trap, Escape to close, focus returns to trigger on close
  *  - aria-expanded on dropdown trigger, role="menu" on dropdown list
  *
@@ -34,7 +33,6 @@ import {
   type LucideProps,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { ThemeToggle } from '../ui/ThemeToggle';
 import { ApiClient } from '../../services/api';
 import type { UserLevel, UserStatsResponse } from '@resource-ai/shared';
 import { SITE_LOGO_URL } from '../../lib/siteAssets';
@@ -442,9 +440,6 @@ export function DesktopHeader(): JSX.Element {
 
         {/* ── Right section ────────────────────────────────────────────── */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Theme toggle */}
-          <ThemeToggle />
-
           {/* Profile dropdown */}
           {isAuthenticated && (
             <div className="relative" ref={dropdownContainerRef}>

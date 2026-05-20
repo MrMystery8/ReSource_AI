@@ -1,12 +1,9 @@
 /**
  * ThemeContext.tsx
  *
- * Provides light/dark theme management for the application.
+ * Provides theme management for the application.
  *
- * Resolution priority on mount:
- *   1. localStorage ('theme' key) — if value is 'light' or 'dark'
- *   2. OS prefers-color-scheme media query
- *   3. 'light' as default fallback
+ * Current mode is fixed to dark.
  *
  * Applies `data-theme` attribute to `document.documentElement` for CSS scoping.
  * Persists selection to localStorage; gracefully handles write failures.
@@ -83,7 +80,7 @@ function detectOsTheme(): Theme | null {
  *   localStorage → OS preference → 'light' fallback
  */
 function resolveInitialTheme(): Theme {
-  return readStoredTheme() ?? detectOsTheme() ?? 'light';
+  return 'dark';
 }
 
 /**
@@ -138,7 +135,8 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
    * but this effect ensures any subsequent changes are reflected in the DOM.
    */
   useEffect(() => {
-    applyThemeToDOM(theme);
+    applyThemeToDOM('dark');
+    persistTheme('dark');
   }, [theme]);
 
   /**
@@ -146,9 +144,10 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
    * Satisfies Requirements 2.3, 2.4, 2.8.
    */
   const setTheme = useCallback((newTheme: Theme): void => {
-    setThemeState(newTheme);
-    applyThemeToDOM(newTheme);
-    persistTheme(newTheme);
+    void newTheme;
+    setThemeState('dark');
+    applyThemeToDOM('dark');
+    persistTheme('dark');
   }, []);
 
   /**
@@ -157,12 +156,9 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
    * CSS custom properties update instantly when data-theme changes.
    */
   const toggleTheme = useCallback((): void => {
-    setThemeState((current) => {
-      const next: Theme = current === 'light' ? 'dark' : 'light';
-      applyThemeToDOM(next);
-      persistTheme(next);
-      return next;
-    });
+    setThemeState('dark');
+    applyThemeToDOM('dark');
+    persistTheme('dark');
   }, []);
 
   const value: ThemeContextValue = {
