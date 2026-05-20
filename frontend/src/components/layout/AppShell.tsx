@@ -40,8 +40,8 @@ export function AppShell({ children }: AppShellProps): JSX.Element {
           id="main-content"
           className={
             isHomeRoute
-              ? 'w-full flex-1 max-w-none mx-0 px-0 pt-0 pb-[calc(64px+0px)] md:pb-0'
-              : 'w-full flex-1 max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-[calc(64px+32px)] md:pb-8'
+              ? 'w-full flex-1 max-w-none mx-0 px-0 pt-0 pb-[calc(64px+0px)] md:pb-0 focus:outline-none focus-visible:outline-none'
+              : 'w-full flex-1 max-w-6xl mx-auto px-4 md:px-6 pt-6 md:pt-8 pb-[calc(64px+32px)] md:pb-8 focus:outline-none focus-visible:outline-none'
           }
         >
           {children}
