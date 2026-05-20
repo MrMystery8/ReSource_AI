@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -41,6 +43,8 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    env:
+      BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
     steps:
       - uses: actions/checkout@v4
 
