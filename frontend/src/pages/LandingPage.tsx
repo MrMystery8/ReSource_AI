@@ -16,7 +16,7 @@ type Mode = 'paused' | 'transition';
 
 const CAPTIONS = [
   {
-    kicker: 'Checkpoint 01',
+    id: 'scene-1',
     titleLines: [
       'Thirteen devices left unused in one home.',
       'Now multiply that by millions of homes.',
@@ -27,7 +27,7 @@ const CAPTIONS = [
       'International E-waste Day: Of ~16 billion mobile phones possessed worldwide, ~5.3 billion will become waste in 2022.',
   },
   {
-    kicker: 'Checkpoint 02',
+    id: 'scene-2',
     titleLines: [
       'An old device is not empty.',
       'It holds materials, parts, and possibilities.',
@@ -37,21 +37,21 @@ const CAPTIONS = [
     subtextItalic: '',
   },
   {
-    kicker: 'Checkpoint 03',
+    id: 'scene-3',
     titleLines: ['Inside the shell, the useful core appears.'],
     subtext: 'The device opens to reveal what was hidden beneath the surface.',
     subtextPrefix: '',
     subtextItalic: '',
   },
   {
-    kicker: 'Checkpoint 04',
+    id: 'scene-4',
     titleLines: ['Parts begin to shift into purpose.'],
     subtext: 'Recovered pieces start taking on a new function.',
     subtextPrefix: '',
     subtextItalic: '',
   },
   {
-    kicker: 'Checkpoint 05',
+    id: 'scene-5',
     titleLines: ['What was left behind now has a new purpose.'],
     subtext: 'ReSource AI turns recovery into responsible second-life design.',
     subtextPrefix: '',
@@ -291,14 +291,13 @@ export function LandingPage(): JSX.Element {
 
         {CAPTIONS.map((caption, index) => (
           <article
-            key={caption.kicker}
+            key={caption.id}
             className="chapter-caption"
             style={{ opacity: captionStyles[index]?.opacity ?? 0, transform: `translateY(${captionStyles[index]?.y ?? 0}px)` }}
           >
-            <p className="chapter-kicker">{caption.kicker}</p>
             <h1>
               {caption.titleLines.map((line, lineIndex) => (
-                <span key={`${caption.kicker}-${line}`}>
+                <span key={`${caption.id}-${line}`}>
                   {line}
                   {lineIndex < caption.titleLines.length - 1 ? <br /> : null}
                 </span>
