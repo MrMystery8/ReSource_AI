@@ -30,10 +30,10 @@ import { UserStore } from '../auth/user-store';
 import { resolveAuthenticatedUserId, syncCognitoUserFromClaims } from '../auth/request-identity';
 
 const userStore = new UserStore();
-const avatarService = new AvatarService();
 const AUTH_MODE = (process.env.AUTH_MODE ?? 'legacy').toLowerCase();
 const COGNITO_APP_CLIENT_ID = process.env.COGNITO_APP_CLIENT_ID;
 const cognitoClient = new CognitoIdentityProviderClient({});
+let avatarService: AvatarService | undefined;
 
 const HEADERS = {
   'Content-Type': 'application/json',
@@ -71,6 +71,13 @@ function validateDisplayName(displayName: unknown): string | null {
 
 function isCognitoAuthMode(): boolean {
   return AUTH_MODE === 'cognito';
+}
+
+function getAvatarService(): AvatarService | undefined {
+  if (avatarService) return avatarService;
+  if (!process.env.BUCKET_NAME) return undefined;
+  avatarService = new AvatarService();
+  return avatarService;
 }
 
 function decodeJwtPayload(token: string): Record<string, unknown> {
@@ -140,9 +147,10 @@ async function initiateCognitoPasswordAuth(
 
 async function toUserProfile(user: User): Promise<UserProfile> {
   let avatarUrl: string | undefined;
-  if (user.avatarKey) {
+  const service = getAvatarService();
+  if (user.avatarKey && service) {
     try {
-      avatarUrl = await avatarService.getAvatarUrl(user.avatarKey);
+      avatarUrl = await service.getAvatarUrl(user.avatarKey);
     } catch (error) {
       console.warn('Failed to sign avatar URL:', error);
     }
@@ -241,7 +249,7 @@ async function handleRegister(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       }
 
       const user =
-        (await syncCognitoUserFromClaims(decodeCognitoClaims(idToken), userStore, avatarService)) ??
+        (await syncCognitoUserFromClaims(decodeCognitoClaims(idToken), userStore, getAvatarService())) ??
         ({
           userId: uuidv4(),
           email: normalizedEmail,
@@ -356,7 +364,7 @@ async function handleLogin(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
       }
 
       const user =
-        (await syncCognitoUserFromClaims(decodeCognitoClaims(idToken), userStore, avatarService)) ??
+        (await syncCognitoUserFromClaims(decodeCognitoClaims(idToken), userStore, getAvatarService())) ??
         ({
           userId: uuidv4(),
           email: normalizedEmail,
@@ -471,6 +479,13 @@ async function handleUpdateProfile(event: APIGatewayProxyEvent): Promise<APIGate
   }
 
   if (body.avatarKey !== undefined) {
+    const service = getAvatarService();
+    if (!service) {
+      return errorResponse(500, {
+        error: { code: 'INTERNAL_ERROR', message: 'Avatar storage is not configured' },
+      });
+    }
+
     if (typeof body.avatarKey !== 'string' || body.avatarKey.trim().length === 0) {
       return errorResponse(400, {
         error: { code: 'VALIDATION_ERROR', message: 'avatarKey is required', field: 'avatarKey' },
@@ -478,13 +493,13 @@ async function handleUpdateProfile(event: APIGatewayProxyEvent): Promise<APIGate
     }
 
     const avatarKey = body.avatarKey.trim();
-    if (!avatarService.avatarKeyBelongsToUser(userId, avatarKey)) {
+    if (!service.avatarKeyBelongsToUser(userId, avatarKey)) {
       return errorResponse(403, {
         error: { code: 'FORBIDDEN', message: 'You cannot attach another user\'s avatar' },
       });
     }
 
-    if (!(await avatarService.avatarExists(avatarKey))) {
+    if (!(await service.avatarExists(avatarKey))) {
       return errorResponse(400, {
         error: { code: 'VALIDATION_ERROR', message: 'Avatar upload could not be found', field: 'avatarKey' },
       });
@@ -528,7 +543,14 @@ async function handleCreateAvatarUploadUrl(event: APIGatewayProxyEvent): Promise
     });
   }
 
-  const response: AvatarUploadResponse = await avatarService.createUploadUrl(userId, contentType);
+  const service = getAvatarService();
+  if (!service) {
+    return errorResponse(500, {
+      error: { code: 'INTERNAL_ERROR', message: 'Avatar storage is not configured' },
+    });
+  }
+
+  const response: AvatarUploadResponse = await service.createUploadUrl(userId, contentType);
   return successResponse(200, response);
 }
 
