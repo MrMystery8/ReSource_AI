@@ -13,52 +13,110 @@ ReSource AI helps users make informed decisions about electronic waste by runnin
 
 ### Key Features
 
-- **Multi-stage AI Pipeline** — 7-stage analysis from quick verdict to detailed impact card
-- **Real-time Progress** — Live polling with animated stage-by-stage results
-- **File Upload** — Drag-and-drop device photos for improved analysis accuracy
-- **Safety-First** — Dedicated safety gate with hazard identification and risk levels
+- **Multi-stage AI Pipeline** — 5-stage structured triage from quick verdict through safe recovery guidance
+- **Multimodal Analysis** — Text prompts can be combined with uploaded evidence images for richer device assessment
+- **Real-time Progress** — The UI polls session state and renders stage-by-stage results as the backend completes them
+- **File Upload** — Drag-and-drop evidence uploads backed by S3
+- **Safety-First** — Dedicated safety gate with hazard identification and downstream risk constraints
+- **Extended Product Flow** — Project guides, project grading, community sharing, leaderboard, and admin tooling
 - **Modern UI** — Dark glassmorphism design with smooth animations and micro-interactions
 
 ## Architecture
 
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
-│   Frontend   │────▶│   API GW +   │────▶│  Lambda (Node)  │
-│  React/Vite  │◀────│   Lambda     │◀────│  Pipeline Exec  │
-└─────────────┘     └──────────────┘     └────────┬────────┘
-                                                   │
-                                          ┌────────▼────────┐
-                                          │  Amazon Bedrock  │
-                                          │  (Claude Model)  │
-                                          └────────┬────────┘
-                                                   │
-                                          ┌────────▼────────┐
-                                          │    DynamoDB +    │
-                                          │       S3         │
-                                          └─────────────────┘
+```text
+Browser
+  │
+  ├── CloudFront ──▶ S3 frontend bucket (static SPA hosting)
+  │
+  └── API Gateway REST API
+         │
+         ├── Auth / profile / admin / leaderboard Lambdas
+         ├── Upload Lambda
+         ├── Sessions submit / list / poll Lambdas
+         ├── Guide / project / community Lambdas
+         └── Async pipeline orchestrator Lambda
+                    │
+                    ├── Amazon Bedrock
+                    │     ├── Amazon Nova Pro (text + multimodal analysis)
+                    │     └── Amazon Titan Image Generator v1 (image generation support)
+                    │
+                    ├── DynamoDB
+                    │     ├── sessions
+                    │     ├── users
+                    │     ├── projects
+                    │     └── community
+                    │
+                    └── S3 media bucket
+                          ├── uploaded evidence files
+                          ├── avatar assets
+                          └── generated concept images
 ```
 
-- **Frontend** — React 18, Vite, Tailwind CSS v4, Framer Motion
-- **Backend** — AWS Lambda (TypeScript), API Gateway
-- **AI** — Amazon Bedrock (Claude) for multi-stage analysis
-- **Storage** — DynamoDB (sessions), S3 (file uploads)
-- **Infrastructure** — AWS CDK (TypeScript)
+### Frontend
+
+- **Framework** — React 18 + React Router + Vite
+- **Styling** — Tailwind CSS v4, custom design tokens, Framer Motion
+- **Auth State** — Local token persistence with either legacy JWT auth or Cognito hosted login
+- **Client-Server Contract** — Shared TypeScript types from the `shared` workspace
+
+### Backend
+
+- **Compute Model** — Many focused Node.js 20 Lambda handlers rather than one monolith
+- **API Layer** — API Gateway REST API with API key enforcement on all routes
+- **Protected Access** — API key plus either a custom Lambda JWT authorizer or a Cognito User Pool authorizer
+- **Async Processing** — Session submission triggers a second Lambda asynchronously for long-running AI work
+
+### AWS Services Used
+
+| Service | Purpose |
+|---|---|
+| CloudFront | Serves the built SPA over HTTPS |
+| S3 (frontend bucket) | Stores and serves the Vite production build |
+| API Gateway REST API | Public backend API surface |
+| Lambda | Route handlers, async triage pipeline, auth helpers |
+| DynamoDB | Sessions, users, projects, and community data |
+| S3 (media bucket) | Evidence uploads, avatars, generated images |
+| Bedrock | AI analysis and image generation |
+| Cognito | Optional modern auth mode with hosted UI and social sign-in |
+| IAM | Per-function least-privilege access control |
+| CloudWatch | Metrics dashboard for API, Lambda, DynamoDB, and CloudFront |
+
+### Runtime Flow
+
+1. The React SPA is served from CloudFront backed by an S3 bucket.
+2. The browser calls API Gateway with `x-api-key` on every request and an `Authorization` token on protected routes.
+3. `POST /sessions` creates a session record in DynamoDB and asynchronously invokes the pipeline Lambda.
+4. The pipeline Lambda runs the AI stages sequentially, persists each stage result to DynamoDB, and updates session state.
+5. The browser polls `GET /sessions/{sessionId}` until the session is complete or failed.
+6. Supporting flows such as guide generation, project grading, leaderboard updates, and community activity use separate Lambdas over the same shared data stores.
+
+### AI Architecture
+
+- **Primary analysis model** — Amazon Bedrock `apac.amazon.nova-pro-v1:0`
+- **Multimodal mode** — Uploaded image files are fetched from S3 and sent inline with prompts to Nova Pro
+- **Image generation model** — Amazon Bedrock `amazon.titan-image-generator-v1`
+- **Prompting strategy** — The backend builds structured prompts per stage and expects strict JSON responses
+- **Safety controls** — The safety stage feeds risk constraints into downstream prompts so later recommendations stay within the handling tier
 
 ## Project Structure
 
 ```
 ReSource_AI/
-├── frontend/          # React SPA (Vite + Tailwind + Framer Motion)
+├── frontend/          # React SPA (Vite + React Router + Tailwind + Framer Motion)
 │   └── src/
 │       ├── components/   # UI components
 │       ├── hooks/        # Custom React hooks
-│       └── services/     # API client
-├── backend/           # Lambda handlers + AI pipeline
+│       ├── services/     # API client
+│       ├── auth/         # Cognito hosted-login helpers
+│       └── contexts/     # Auth and UI state providers
+├── backend/           # Lambda handlers, auth layer, AI pipeline, gamification
 │   └── src/
 │       ├── handlers/     # API route handlers
-│       └── pipeline/     # AI pipeline stages
-├── shared/            # Shared types & constants
-├── infra/             # AWS CDK infrastructure
+│       ├── pipeline/     # Prompt builder, stage executor, stage validators
+│       ├── auth/         # JWT/Cognito identity resolution + user persistence
+│       └── gamification/ # Points, badges, levels, streak logic
+├── shared/            # Shared types, constants, and API contracts
+├── infra/             # AWS CDK stack defining AWS resources and permissions
 └── .github/workflows/ # CI/CD pipeline
 ```
 
@@ -115,6 +173,8 @@ For smooth `currentTime` scrubbing, keyframes should be near total frames (ideal
 npx tsc -p backend/tsconfig.json
 ```
 
+The backend is designed for AWS Lambda and is organized around route handlers rather than a long-running server process.
+
 ### Running Tests
 
 ```bash
@@ -169,9 +229,19 @@ The project deploys automatically via GitHub Actions on push to `main`.
 npm run build
 cd frontend && npm run build && cd ..
 
-# Deploy infrastructure
+# Deploy infrastructure and application assets
 npx cdk deploy
 ```
+
+The CDK deploy provisions or updates:
+
+- DynamoDB tables for sessions, users, projects, and community data
+- The S3 frontend hosting bucket and media bucket
+- CloudFront distribution for the SPA
+- API Gateway routes and usage plan
+- All Lambda handlers and their IAM permissions
+- Optional Cognito resources when `authMode=cognito`
+- A CloudWatch operations dashboard
 
 ## Pipeline Stages
 
@@ -182,6 +252,13 @@ The AI analysis runs through these stages in order:
 3. **Detailed Analysis** — Component profiling and failure diagnosis
 4. **Second Life Ideas** — Creative reuse project suggestions
 5. **Next Steps** — Safe recovery route and action plan
+
+Notes:
+
+- The pipeline is asynchronous and runs inside a dedicated orchestrator Lambda after session submission.
+- Uploaded image evidence is included in model calls when available.
+- Session progress is persisted after each stage so the frontend can render partial results while polling.
+- The shared types include `conceptVisual`, and the codebase includes image-generation support, but the active core pipeline currently runs the 5 stages above.
 
 ## Environment Variables
 
@@ -203,6 +280,8 @@ The project now supports two authentication modes:
 
 - **`legacy`**: Existing email/password + custom JWT Lambda authorizer flow.
 - **`cognito`**: Cognito User Pool + hosted login flow (email/social providers).
+
+In both modes, API Gateway still expects the frontend API key in `x-api-key`.
 
 For local frontend rollback, switch:
 
