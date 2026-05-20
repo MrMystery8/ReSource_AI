@@ -47,6 +47,37 @@
     linear-gradient(120deg, rgba(4, 11, 8, 0.72) 0%, rgba(4, 11, 8, 0.08) 70%);
 }
 
+.chapter-brand {
+  position: absolute;
+  top: clamp(0.8rem, 2.2vw, 1.5rem);
+  right: clamp(0.8rem, 2.2vw, 1.5rem);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 999px;
+  padding: 0.42rem 0.78rem 0.42rem 0.44rem;
+  background: rgba(4, 11, 8, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34);
+}
+
+.chapter-brand-logo {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.chapter-brand-name {
+  color: #ffffff;
+  font-size: clamp(0.86rem, 1.16vw, 0.98rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.38);
+}
+
 .chapter-caption {
   position: absolute;
   left: clamp(1rem, 4.4vw, 3.8rem);
@@ -170,6 +201,22 @@
 }
 
 @media (max-width: 800px) {
+  .chapter-brand {
+    top: 0.7rem;
+    right: 0.7rem;
+    gap: 0.48rem;
+    padding: 0.36rem 0.64rem 0.36rem 0.4rem;
+  }
+
+  .chapter-brand-logo {
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+
+  .chapter-brand-name {
+    font-size: 0.84rem;
+  }
+
   .chapter-caption {
     left: 0.75rem;
     right: 0.75rem;

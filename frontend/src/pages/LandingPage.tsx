@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { SITE_LOGO_URL } from '../lib/siteAssets';
 import './LandingPage.css';
 
 const CHECKPOINTS = [0, 8, 10, 8 + 4 + 9 / 30, 8 + 8 + 5 / 30] as const;
@@ -288,6 +289,10 @@ export function LandingPage(): JSX.Element {
           onLoadedMetadata={handleLoadedMetadata}
         />
         <div className="chapter-shade" />
+        <div className="chapter-brand" aria-label="ReSource AI">
+          <img src={SITE_LOGO_URL} alt="" aria-hidden="true" className="chapter-brand-logo" loading="eager" decoding="async" />
+          <span className="chapter-brand-name">ReSource AI</span>
+        </div>
 
         {CAPTIONS.map((caption, index) => (
           <article
